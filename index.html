@@ -250,52 +250,40 @@ function goTo(i){
 function toggleRec(){rec?doStop():doStart();}
 
 function doStart(){
-  navigator.mediaDevices.getUserMedia({audio:true,video:false})
+  navigator.mediaDevices.getUserMedia({audio:true})
     .then(function(stream){
-      chunks=[];
-      // iOS Safari only supports audio/mp4
-      var preferredTypes=['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg'];
-      mt='';
-      for(var i=0;i<preferredTypes.length;i++){
-        if(typeof MediaRecorder!=='undefined'&&MediaRecorder.isTypeSupported(preferredTypes[i])){
-          mt=preferredTypes[i];break;
-        }
-      }
-      try{
-        mr=new MediaRecorder(stream,mt?{mimeType:mt}:{});
-      }catch(e){
-        mr=new MediaRecorder(stream);
-      }
+      chunks=[];mt=mime();
+      mr=new MediaRecorder(stream,mt?{mimeType:mt}:{});
       mr.ondataavailable=function(e){if(e.data&&e.data.size>0)chunks.push(e.data);};
       mr.start(250);rec=true;
       var b=document.getElementById('mbtn'),l=document.getElementById('mlbl');
       if(b){b.classList.add('rec');b.innerHTML='&#9209;';}
       if(l)l.textContent='Recording... tap to stop';
-      var t=document.getElementById('tbox');if(t)t.innerHTML='<span class="ph">Listening...</span>';
+      var t=document.getElementById('tbox');
+      if(t)t.innerHTML='<span class="ph">Listening...</span>';
       window._transcript='';
       var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-      if(SR){
-        try{
-          window._sr=new SR();window._sr.continuous=true;window._sr.interimResults=true;window._sr.lang='en-US';
-          window._sr.onresult=function(e){
-            var interim='',final='';
-            for(var i=e.resultIndex;i<e.results.length;i++){
-              if(e.results[i].isFinal)final+=e.results[i][0].transcript;
-              else interim+=e.results[i][0].transcript;
-            }
-            window._transcript=(window._transcript||'')+final;
-            var tb=document.getElementById('tbox');
-            if(tb)tb.innerHTML=(window._transcript||'')+(interim?'<em style="color:rgba(255,255,255,0.4)"> '+interim+'</em>':'');
-          };
-          window._sr.onerror=function(){};
-          window._sr.onend=function(){if(rec&&window._sr){try{window._sr.start();}catch(e){}}};
-          window._sr.start();
-        }catch(e){}
-      }
+      if(SR){try{
+        window._sr=new SR();
+        window._sr.continuous=true;window._sr.interimResults=true;window._sr.lang='en-US';
+        window._sr.onresult=function(e){
+          var interim='',final='';
+          for(var i=e.resultIndex;i<e.results.length;i++){
+            if(e.results[i].isFinal)final+=e.results[i][0].transcript;
+            else interim+=e.results[i][0].transcript;
+          }
+          window._transcript=(window._transcript||'')+final;
+          var tb=document.getElementById('tbox');
+          if(tb)tb.innerHTML=(window._transcript||'')+(interim?'<em style="color:rgba(255,255,255,0.4)"> '+interim+'</em>':'');
+        };
+        window._sr.onerror=function(){};
+        window._sr.onend=function(){if(rec&&window._sr){try{window._sr.start();}catch(e){}}};
+        window._sr.start();
+      }catch(e){}}
     })
     .catch(function(e){
       var l=document.getElementById('mlbl');
-      if(l)l.textContent='Mic blocked: '+e.message+'. Go to Settings > Safari > Microphone > Allow.';
+      if(l)l.textContent='Error: '+e.message;
     });
 }
 
