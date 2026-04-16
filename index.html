@@ -250,11 +250,31 @@ function goTo(i){
 function toggleRec(){rec?doStop():doStart();}
 
 function doStart(){
-  navigator.mediaDevices.getUserMedia({audio:true})
+  // iOS Safari requires getUserMedia to be called directly in user gesture handler
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    var l=document.getElementById('mlbl');
+    if(l)l.textContent='Microphone not supported on this browser. Use Safari on iPhone.';
+    return;
+  }
+  var lbl=document.getElementById('mlbl');
+  if(lbl)lbl.textContent='Requesting mic access...';
+  navigator.mediaDevices.getUserMedia({audio:true,video:false})
     .then(function(stream){
-      chunks=[];mt=mime();
-      mr=new MediaRecorder(stream,mt?{mimeType:mt}:{});
-      mr.ondataavailable=function(e){if(e.data.size>0)chunks.push(e.data);};
+      chunks=[];
+      // iOS Safari only supports audio/mp4
+      var preferredTypes=['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg'];
+      mt='';
+      for(var i=0;i<preferredTypes.length;i++){
+        if(typeof MediaRecorder!=='undefined'&&MediaRecorder.isTypeSupported(preferredTypes[i])){
+          mt=preferredTypes[i];break;
+        }
+      }
+      try{
+        mr=new MediaRecorder(stream,mt?{mimeType:mt}:{});
+      }catch(e){
+        mr=new MediaRecorder(stream);
+      }
+      mr.ondataavailable=function(e){if(e.data&&e.data.size>0)chunks.push(e.data);};
       mr.start(250);rec=true;
       var b=document.getElementById('mbtn'),l=document.getElementById('mlbl');
       if(b){b.classList.add('rec');b.innerHTML='&#9209;';}
@@ -281,7 +301,10 @@ function doStart(){
         }catch(e){}
       }
     })
-    .catch(function(e){var l=document.getElementById('mlbl');if(l)l.textContent='Mic error: '+e.message;});
+    .catch(function(e){
+      var l=document.getElementById('mlbl');
+      if(l)l.textContent='Mic blocked: '+e.message+'. Go to Settings > Safari > Microphone > Allow.';
+    });
 }
 
 function doStop(){
