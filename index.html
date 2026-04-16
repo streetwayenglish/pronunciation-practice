@@ -250,15 +250,24 @@ function goTo(i){
 function toggleRec(){rec?doStop():doStart();}
 
 function doStart(){
-  // iOS Safari requires getUserMedia to be called directly in user gesture handler
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
-    var l=document.getElementById('mlbl');
-    if(l)l.textContent='Microphone not supported on this browser. Use Safari on iPhone.';
-    return;
-  }
   var lbl=document.getElementById('mlbl');
   if(lbl)lbl.textContent='Requesting mic access...';
-  navigator.mediaDevices.getUserMedia({audio:true,video:false})
+  // Try all possible getUserMedia APIs for iOS compatibility
+  var gum = (navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
+    ? navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices)
+    : (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia
+       ? function(c){
+           return new Promise(function(res,rej){
+             (navigator.getUserMedia||navigator.webkitGetUserMedia||navigator.mozGetUserMedia).call(navigator,c,res,rej);
+           });
+         }
+       : null);
+  if(!gum){
+    var l=document.getElementById('mlbl');
+    if(l)l.textContent='Mic not available. Make sure you allow microphone in Settings > Safari.';
+    return;
+  }
+  gum({audio:true,video:false})
     .then(function(stream){
       chunks=[];
       // iOS Safari only supports audio/mp4
