@@ -65,9 +65,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--white);color:var(--black)
 .sl strong{color:var(--black);font-weight:700;font-family:'Syne',sans-serif;font-size:16px}
 /* Word pills */
 .wp{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px;justify-content:center}
-.pill{display:inline-flex;flex-direction:column;align-items:center;padding:6px 12px;border-radius:8px;min-width:52px;cursor:help}
-.pt2{font-size:14px;font-weight:600;font-family:'Syne',sans-serif}
-.ps{font-size:11px;margin-top:2px;opacity:.8}
+.pill{display:inline-flex;flex-direction:column;align-items:center;padding:8px 12px;border-radius:8px;cursor:pointer}
+.pt2{font-size:16px;font-weight:600;font-family:'Syne',sans-serif}
+.ps{font-size:12px;margin-top:2px;opacity:.8}
 .pg{background:var(--gl);color:var(--green)}
 .po{background:var(--aml);color:var(--amb)}
 .prr{background:var(--rl);color:var(--red)}
@@ -133,6 +133,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--white);color:var(--black)
 .lbt{width:100%;padding:12px;background:var(--black);color:var(--white);border:none;border-radius:var(--rx);font-size:14px;font-weight:600;font-family:'Syne',sans-serif;cursor:pointer}
 .pwe{font-size:13px;color:var(--red);margin-top:6px}
 .dots{display:inline-flex;gap:4px}
+/* Word popup */
+.wpop{display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:rgba(0,0,0,.5);padding:1rem}
+.wpop.show{display:flex}
+.wpop-box{background:#fff;border-radius:16px;padding:1.5rem;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.wpop-word{font-family:'DM Sans',sans-serif;font-size:20px;font-weight:700;color:var(--black);margin-bottom:4px;letter-spacing:-0.01em}
+.wpop-score{font-size:13px;color:var(--g400);margin-bottom:1rem}
+.wpop-btns{display:flex;gap:8px;margin-bottom:1.25rem}
+.wpop-btn{flex:1;padding:10px 8px;border-radius:10px;border:1.5px solid var(--g200);background:#fff;cursor:pointer;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;color:var(--g600);display:flex;flex-direction:column;align-items:center;gap:4px;transition:background .15s}
+.wpop-btn:hover{background:var(--g100)}
+.wpop-btn.active{background:var(--yellow);border-color:var(--yellow);color:var(--black)}
+.wpop-btn.loading{opacity:.6;pointer-events:none}
+.wpop-btn-icon{font-size:18px;transition:transform .3s}
+.wpop-btn.active .wpop-btn-icon{animation:pulse .6s infinite alternate}
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.25)}}
+.wpop-table{width:100%;border-collapse:collapse;font-size:13px}
+.wpop-table th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--g400);padding:0 0 8px;border-bottom:1px solid var(--g200)}
+.wpop-table td{padding:7px 0;border-bottom:1px solid var(--g100);color:var(--black);vertical-align:middle}
+.wpop-table td:last-child{text-align:right}
+.wpop-good{color:var(--green);font-weight:600}
+.wpop-bad{color:var(--red);font-weight:600}
+.wpop-close{width:100%;margin-top:1.25rem;padding:10px;background:var(--black);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'Syne',sans-serif;cursor:pointer}
 .mic-banner{background:#fdecea;border:1px solid #f5c6c6;border-radius:10px;padding:12px 16px;margin-bottom:1rem;display:none;align-items:flex-start;gap:10px}
 .mic-banner.show{display:flex}
 .mic-banner-icon{font-size:18px;flex-shrink:0}
@@ -379,7 +400,8 @@ function doAnalyze(){
             }
           }
         }
-        pills+='<div class="pill '+spc(ww.score)+'"'+tip+'><span class="pt2">'+wordHtml+'</span><span class="ps">'+ww.score+'%</span></div>';
+        var wdata=encodeURIComponent(JSON.stringify({word:ww.word,score:ww.score,phonemes:ww.phonemeIssues||[],allPhones:ww.allPhones||[],start:ww.start||0,end:ww.end||0}));
+        pills+='<div class="pill '+spc(ww.score)+'" onclick="openWordPopup(this)" data-w="'+wdata+'" style="cursor:pointer"><span class="pt2">'+wordHtml+'</span><span class="ps">'+ww.score+'%</span></div>';
       }
 
       // Profile metrics
@@ -493,6 +515,99 @@ function speakCoach(btn){
     });
 }
 
+var wpopCorrectAudio=null,wpopRecAudio=null;
+function openWordPopup(pill){
+  var d=JSON.parse(decodeURIComponent(pill.getAttribute('data-w')));
+  var pop=document.getElementById('wpop');
+  var box=document.getElementById('wpopBox');
+  var scoreColor=d.score>=85?'var(--green)':d.score>=75?'var(--amb)':'var(--red)';
+  var rows='';
+  if(d.allPhones&&d.allPhones.length){
+    for(var i=0;i<d.allPhones.length;i++){
+      var p=d.allPhones[i];
+      var isGood=p.score>=75;
+      var feedback=isGood?'<span class="wpop-good">Good</span>':'<span class="wpop-bad">'+(p.soundLike?'Sounds like '+p.soundLike:'Needs work')+'</span>';
+      rows+='<tr><td>'+p.syllable+'</td><td style="font-family:monospace">'+p.phone+'</td><td>'+feedback+'</td></tr>';
+    }
+  } else {
+    rows='<tr><td colspan="3" style="color:var(--g400);text-align:center;padding:12px 0">No phoneme data</td></tr>';
+  }
+  box.innerHTML=
+    '<div class="wpop-word">'+d.word+'</div>'+
+    '<div class="wpop-score" style="color:'+scoreColor+'">Score: '+d.score+'%</div>'+
+    '<div class="wpop-btns">'+
+      '<button class="wpop-btn" id="wpopCorrectBtn" onclick="playCorrectWord(this)" data-word="'+d.word+'">'+
+        '<span class="wpop-btn-icon">🔊</span><span>Correct</span>'+
+      '</button>'+
+      (window._recUrl&&d.start&&d.end?
+        '<button class="wpop-btn" id="wpopRecBtn" onclick="playWordClip('+d.start+','+d.end+',this)">'+
+          '<span class="wpop-btn-icon">▶</span><span>Your voice</span>'+
+        '</button>':'')+
+    '</div>'+
+    '<table class="wpop-table">'+
+      '<thead><tr><th>Syllable</th><th>Sound</th><th style="text-align:right">Score</th></tr></thead>'+
+      '<tbody>'+rows+'</tbody>'+
+    '</table>'+
+    '<button class="wpop-close" onclick="closeWordPopup()">Close</button>';
+  pop.classList.add('show');
+}
+function closeWordPopup(e){
+  if(e&&e.target!==document.getElementById('wpop'))return;
+  if(wpopCorrectAudio){wpopCorrectAudio.pause();wpopCorrectAudio=null;}
+  if(wpopRecAudio){wpopRecAudio.pause();wpopRecAudio=null;}
+  document.getElementById('wpop').classList.remove('show');
+}
+function playCorrectWord(btn){var word=btn.getAttribute('data-word');
+  if(wpopCorrectAudio&&!wpopCorrectAudio.paused){
+    wpopCorrectAudio.pause();wpopCorrectAudio=null;
+    btn.classList.remove('active','loading');return;
+  }
+  btn.classList.add('loading');
+  var icon=btn.querySelector('.wpop-btn-icon');
+  if(icon)icon.textContent='⏳';
+  fetch(W+'/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:word})})
+    .then(function(r){return r.blob();})
+    .then(function(b){
+      var url=URL.createObjectURL(b);
+      wpopCorrectAudio=new Audio(url);
+      btn.classList.remove('loading');btn.classList.add('active');
+      if(icon)icon.textContent='🔊';
+      wpopCorrectAudio.play();
+      wpopCorrectAudio.onended=function(){
+        btn.classList.remove('active');
+        if(icon)icon.textContent='🔊';
+        URL.revokeObjectURL(url);
+      };
+    }).catch(function(){
+      btn.classList.remove('active','loading');
+      if(icon)icon.textContent='🔊';
+    });
+}
+function playWordClip(start,end,btn){
+  if(wpopRecAudio&&!wpopRecAudio.paused){
+    wpopRecAudio.pause();wpopRecAudio=null;
+    btn.classList.remove('active');return;
+  }
+  if(!window._recUrl)return;
+  var startSec=start*0.01;
+  var endSec=end*0.01;
+  var audio=new Audio(window._recUrl);
+  audio.currentTime=startSec;
+  wpopRecAudio=audio;
+  btn.classList.add('active');
+  var icon=btn.querySelector('.wpop-btn-icon');
+  if(icon)icon.textContent='▶';
+  audio.play();
+  var iv=setInterval(function(){
+    if(audio.currentTime>=endSec){
+      audio.pause();clearInterval(iv);
+      btn.classList.remove('active');
+      wpopRecAudio=null;
+      if(icon)icon.textContent='▶';
+    }
+  },50);
+}
+
 if(window.location.search.indexOf('teacher')!==-1)showTeacherLogin();
 function showTeacherLogin(){
   var o=document.getElementById('tov');o.style.display='flex';
@@ -557,5 +672,6 @@ if(navigator.permissions&&navigator.permissions.query){
 fetch(W+'/sentences').then(function(r){return r.json();}).then(function(d){if(Array.isArray(d)&&d.length>0){SENTS.length=0;d.forEach(function(s){SENTS.push(s);});render();}}).catch(function(){});
 render();
 </script>
+<div class="wpop" id="wpop" onclick="closeWordPopup(event)"><div class="wpop-box" id="wpopBox"></div></div>
 </body>
 </html>
