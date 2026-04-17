@@ -64,10 +64,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--white);color:var(--black)
 .sl{font-size:14px;color:var(--g600);line-height:1.5}
 .sl strong{color:var(--black);font-weight:700;font-family:'Syne',sans-serif;font-size:16px}
 /* Word pills */
-.wp{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
-.pill{display:inline-flex;flex-direction:column;align-items:center;padding:6px 10px;border-radius:8px;min-width:52px;cursor:help}
-.pt2{font-size:13px;font-weight:600;font-family:'Syne',sans-serif}
-.ps{font-size:10px;margin-top:2px;opacity:.8}
+.wp{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px;justify-content:center}
+.pill{display:inline-flex;flex-direction:column;align-items:center;padding:5px 8px;border-radius:8px;min-width:44px;cursor:help}
+.pt2{font-size:12px;font-weight:600;font-family:'Syne',sans-serif}
+.ps{font-size:9px;margin-top:2px;opacity:.8}
 .pg{background:var(--gl);color:var(--green)}
 .po{background:var(--aml);color:var(--amb)}
 .prr{background:var(--rl);color:var(--red)}
@@ -404,7 +404,7 @@ function doAnalyze(){
         }
         var tip=ww.phonemeIssues&&ww.phonemeIssues.length?' title="'+ww.phonemeIssues.join(' | ')+'"':'';
         var sylHtml='';
-        if(ww.allSyllables&&ww.allSyllables.length){
+        if(ww.allSyllables&&ww.allSyllables.length>1){
           sylHtml='<div class="sylrow">';
           for(var si=0;si<ww.allSyllables.length;si++){
             var syl2=ww.allSyllables[si];
@@ -412,8 +412,14 @@ function doAnalyze(){
             sylHtml+='<span class="syl '+sylClass+'">'+syl2.letters+'</span>';
           }
           sylHtml+='</div>';
+        } else if(ww.allSyllables&&ww.allSyllables.length===1&&ww.allSyllables[0].bad){
+          sylHtml='<div class="sylrow"><span class="syl syl-bad">'+ww.allSyllables[0].letters+'</span></div>';
         }
-        pills+='<div class="pill '+spc(ww.score)+'"'+tip+'><span class="pt2">'+ww.word+'</span><span class="ps">'+ww.score+'%</span>'+sylHtml+'</div>';
+        if(sylHtml){
+          pills+='<div class="pill '+spc(ww.score)+'"'+tip+'><span class="pt2">'+ww.word+'</span><span class="ps">'+ww.score+'%</span>'+sylHtml+'</div>';
+        } else {
+          pills+='<div class="pill '+spc(ww.score)+'"'+tip+'><span class="pt2">'+ww.word+'</span><span class="ps">'+ww.score+'%</span></div>';
+        }
       }
 
       // Profile metrics
