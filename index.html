@@ -125,6 +125,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--white);color:var(--black)
 .tsv{flex:1;padding:12px;background:var(--black);color:var(--white);border:none;border-radius:var(--rx);font-size:14px;font-weight:600;font-family:'Syne',sans-serif;cursor:pointer}
 .tcn{padding:12px 18px;background:none;border:1.5px solid var(--g200);border-radius:var(--rx);font-size:14px;color:var(--g600);cursor:pointer;font-family:'DM Sans',sans-serif}
 .tmsg{font-size:13px;text-align:center;margin-top:12px;color:var(--green)}
+.ttabs{display:flex;gap:0;margin-bottom:1.5rem;border-bottom:2px solid var(--g200)}
+.ttab{padding:10px 20px;background:none;border:none;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--g400);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px}
+.ttab.active{color:var(--black);border-bottom-color:var(--black)}
+.mc-row{background:var(--g100);border-radius:10px;padding:14px;margin-bottom:10px}
+.mc-q{width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:var(--rx);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;background:#fff;margin-bottom:8px}
+.mc-q:focus{border-color:var(--black)}
+.mc-opts{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.mc-opt-row{display:flex;gap:6px;align-items:center}
+.mc-opt-radio{width:16px;height:16px;flex-shrink:0;cursor:pointer;accent-color:var(--black)}
+.mc-opt-inp{flex:1;padding:8px 10px;border:1.5px solid var(--g200);border-radius:var(--rx);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;background:#fff}
+.mc-opt-inp:focus{border-color:var(--black)}
+.mc-target-row{display:flex;gap:8px;align-items:center;margin-top:6px}
+.mc-target-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--g400);white-space:nowrap}
+.mc-del{background:none;border:1.5px solid var(--g200);border-radius:var(--rx);padding:5px 10px;font-size:12px;cursor:pointer;color:var(--g400);margin-left:auto}
+.mc-del:hover{background:var(--rl);color:var(--red);border-color:var(--red)}
 .lbox{background:var(--white);border-radius:var(--r);padding:2rem;max-width:360px;width:100%}
 .lbox h2{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:6px}
 .lbox p{font-size:14px;color:var(--g600);margin-bottom:1.5rem}
@@ -622,21 +637,89 @@ function doLogin(){
   if(document.getElementById('pwi').value==='streetway2024')showTeacherPanel();
   else document.getElementById('pwe').textContent='Wrong password.';
 }
-function showTeacherPanel(){
+var MCQS=[];
+function showTeacherPanel(tab){
+  tab=tab||'sentences';
   var o=document.getElementById('tov');o.style.display='flex';
-  var rows='';
-  for(var ti=0;ti<SENTS.length;ti++){
-    var sv=SENTS[ti].replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    rows+='<div class="trow2"><input class="tinp" value="'+sv+'"/><button class="tdel" onclick="this.parentElement.remove()">x</button></div>';
+  var tabs='<div class="ttabs">'+
+    '<button class="ttab'+(tab==='sentences'?' active':'')+'" onclick="showTeacherPanel(&quot;sentences&quot;)">Sentences</button>'+
+    '<button class="ttab'+(tab==='mc'?' active':'')+'" onclick="showTeacherPanel(&quot;mc&quot;)">Multiple Choice</button>'+
+  '</div>';
+  if(tab==='sentences'){
+    var rows='';
+    for(var ti=0;ti<SENTS.length;ti++){
+      var sv=SENTS[ti].replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      rows+='<div class="trow2"><input class="tinp" value="'+sv+'"/><button class="tdel" onclick="this.parentElement.remove()">x</button></div>';
+    }
+    o.innerHTML='<div class="tmod"><h2>Teacher Panel</h2>'+tabs+'<div id="trows">'+rows+'</div><button class="tadd" id="tadd">+ Add sentence</button><div class="tact"><button class="tcn" id="tcn">Cancel</button><button class="tsv" id="tsv">Save and publish</button></div><div class="tmsg" id="tmsg"></div></div>';
+    document.getElementById('tadd').onclick=function(){
+      var c=document.getElementById('trows'),d=document.createElement('div');d.className='trow2';
+      d.innerHTML='<input class="tinp" placeholder="Type new sentence..."/><button class="tdel" onclick="this.parentElement.remove()">x</button>';
+      c.appendChild(d);d.querySelector('input').focus();
+    };
+    document.getElementById('tcn').onclick=closeTeacher;
+    document.getElementById('tsv').onclick=saveTeacher;
+  } else {
+    o.innerHTML='<div class="tmod"><h2>Teacher Panel</h2>'+tabs+'<div id="mcrows"></div><button class="tadd" id="mcadd">+ Add question</button><div class="tact"><button class="tcn" id="tcn">Cancel</button><button class="tsv" id="mcsvbtn">Save and publish</button></div><div class="tmsg" id="tmsg"></div></div>';
+    // Render existing MC questions
+    for(var qi=0;qi<MCQS.length;qi++) addMCRow(MCQS[qi]);
+    document.getElementById('mcadd').onclick=function(){addMCRow(null);};
+    document.getElementById('tcn').onclick=closeTeacher;
+    document.getElementById('mcsvbtn').onclick=saveMC;
   }
-  o.innerHTML='<div class="tmod"><h2>Edit Sentences</h2><div id="trows">'+rows+'</div><button class="tadd" id="tadd">+ Add sentence</button><div class="tact"><button class="tcn" id="tcn">Cancel</button><button class="tsv" id="tsv">Save and publish</button></div><div class="tmsg" id="tmsg"></div></div>';
-  document.getElementById('tadd').onclick=function(){
-    var c=document.getElementById('trows'),d=document.createElement('div');d.className='trow2';
-    d.innerHTML='<input class="tinp" placeholder="Type new sentence..."/><button class="tdel" onclick="this.parentElement.remove()">x</button>';
-    c.appendChild(d);d.querySelector('input').focus();
-  };
-  document.getElementById('tcn').onclick=closeTeacher;
-  document.getElementById('tsv').onclick=saveTeacher;
+}
+
+function addMCRow(q){
+  var c=document.getElementById('mcrows');
+  var div=document.createElement('div');div.className='mc-row';
+  var qv=q?q.question.replace(/"/g,'&quot;'):'';
+  var tv=q?q.target.replace(/"/g,'&quot;'):'';
+  var opts=['','','',''];
+  var correct=0;
+  if(q&&q.options){for(var i=0;i<4;i++){opts[i]=q.options[i]||'';} correct=q.correct||0;}
+  var optRows='';
+  for(var i=0;i<4;i++){
+    var ov=opts[i].replace(/"/g,'&quot;');
+    optRows+='<div class="mc-opt-row">'+
+      '<input type="radio" class="mc-opt-radio" name="mc-correct-'+Date.now()+'-'+Math.random()+'" value="'+i+'"'+(correct===i?' checked':'')+'>'+
+      '<input class="mc-opt-inp" placeholder="Option '+(i+1)+'..." value="'+ov+'">'+
+    '</div>';
+  }
+  div.innerHTML=
+    '<input class="mc-q" placeholder="Question (e.g. How do you feel about the meeting?)" value="'+qv+'">'+
+    '<div class="mc-opts">'+optRows+'</div>'+
+    '<div class="mc-target-row">'+
+      '<span class="mc-target-lbl">Target phrase:</span>'+
+      '<input class="mc-opt-inp" placeholder="e.g. looking forward to" value="'+tv+'">'+
+      '<button class="mc-del" onclick="this.parentElement.parentElement.remove()">Remove</button>'+
+    '</div>';
+  c.appendChild(div);
+}
+
+function saveMC(){
+  var rows=document.querySelectorAll('.mc-row');
+  var qs=[];
+  for(var ri=0;ri<rows.length;ri++){
+    var row=rows[ri];
+    var question=row.querySelector('.mc-q').value.trim();
+    if(!question)continue;
+    var optInps=row.querySelectorAll('.mc-opt-inp');
+    var radioInps=row.querySelectorAll('.mc-opt-radio');
+    var opts=[];
+    var correct=0;
+    for(var i=0;i<4;i++){opts.push(optInps[i]?optInps[i].value.trim():'');}
+    for(var i=0;i<radioInps.length;i++){if(radioInps[i].checked)correct=parseInt(radioInps[i].value);}
+    var target=optInps[4]?optInps[4].value.trim():'';
+    qs.push({question:question,options:opts,correct:correct,target:target});
+  }
+  if(!qs.length){document.getElementById('tmsg').textContent='Add at least one question.';return;}
+  document.getElementById('tmsg').textContent='Saving...';
+  fetch(W+'/mc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:'streetway2024',questions:qs})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.ok){MCQS=qs;document.getElementById('tmsg').textContent='Saved!';setTimeout(closeTeacher,2000);}
+      else document.getElementById('tmsg').textContent='Error saving.';
+    }).catch(function(e){document.getElementById('tmsg').textContent='Error: '+e.message;});
 }
 function saveTeacher(){
   var inp=document.querySelectorAll('.tinp'),ns=[];
@@ -670,6 +753,7 @@ if(navigator.permissions&&navigator.permissions.query){
 }
 
 fetch(W+'/sentences').then(function(r){return r.json();}).then(function(d){if(Array.isArray(d)&&d.length>0){SENTS.length=0;d.forEach(function(s){SENTS.push(s);});render();}}).catch(function(){});
+fetch(W+'/mc').then(function(r){return r.json();}).then(function(d){if(Array.isArray(d)&&d.length>0){MCQS=d;}}).catch(function(){});
 render();
 </script>
 <div class="wpop" id="wpop" onclick="closeWordPopup(event)"><div class="wpop-box" id="wpopBox"></div></div>
