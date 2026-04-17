@@ -169,6 +169,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--white);color:var(--black)
 .wpop-good{color:var(--green);font-weight:600}
 .wpop-bad{color:var(--red);font-weight:600}
 .wpop-close{width:100%;margin-top:1.25rem;padding:10px;background:var(--black);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'Syne',sans-serif;cursor:pointer}
+/* MC Exercise */
+.mode-tabs{display:flex;gap:0;border-bottom:2px solid var(--g200);margin-bottom:1.5rem}
+.mode-tab{padding:10px 20px;background:none;border:none;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--g400);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px}
+.mode-tab.active{color:var(--black);border-bottom-color:var(--yellow)}
+.mc-card{background:var(--black);border-radius:var(--r);padding:2rem;margin-bottom:1rem;position:relative;overflow:hidden}
+.mc-card::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:var(--yellow);border-radius:50%;opacity:.06;pointer-events:none}
+.mc-qnum{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--yellow);margin-bottom:12px}
+.mc-question{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--white);line-height:1.3;margin-bottom:1.5rem}
+.mc-listen-btn{width:44px;height:44px;border-radius:50%;background:var(--yellow);border:none;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem;transition:transform .15s;position:relative;z-index:2}
+.mc-listen-btn:hover{transform:scale(1.08)}
+.mc-options{display:flex;flex-direction:column;gap:10px;margin-bottom:1.5rem}
+.mc-opt{padding:14px 16px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.12);border-radius:var(--rs);font-size:15px;color:var(--white);cursor:pointer;font-family:'DM Sans',sans-serif;text-align:left;transition:background .15s;position:relative;z-index:2}
+.mc-opt:hover{background:rgba(255,255,255,.15)}
+.mc-opt.selected{border-color:var(--yellow);background:rgba(245,200,66,.1)}
+.mc-opt.correct{border-color:var(--green);background:rgba(45,122,58,.2);color:#a8d5b0}
+.mc-opt.wrong{border-color:var(--red);background:rgba(192,57,43,.2);color:#f5a0a0}
+.mc-result{margin-top:1rem;padding:1rem;border-radius:var(--rs);font-size:15px;line-height:1.6}
+.mc-result.correct-r{background:rgba(45,122,58,.2);color:#a8d5b0}
+.mc-result.wrong-r{background:rgba(192,57,43,.2);color:#f5a0a0}
+.mc-next-btn{width:100%;padding:14px;background:var(--yellow);color:var(--black);border:none;border-radius:var(--rs);font-size:15px;font-weight:600;font-family:'Syne',sans-serif;cursor:pointer;margin-top:1rem;display:none}
 .mic-banner{background:#fdecea;border:1px solid #f5c6c6;border-radius:10px;padding:12px 16px;margin-bottom:1rem;display:none;align-items:flex-start;gap:10px}
 .mic-banner.show{display:flex}
 .mic-banner-icon{font-size:18px;flex-shrink:0}
@@ -214,6 +234,7 @@ var SENTS=[
   "She helped her friend and walked home."
 ];
 var done=JSON.parse(localStorage.getItem('pd')||'{}');
+var appMode='sentences';var mcCur=0;var mcAudio=null;
 var scores=JSON.parse(localStorage.getItem('ps')||'{}');
 var cur=0,mr=null,chunks=[],rec=false,laudio=null,mt='';
 
@@ -231,6 +252,17 @@ function prog(){
   document.getElementById('pl').textContent=(cur+1)+' / '+SENTS.length;
 }
 
+function renderModeTabs(){
+  return '<div class="mode-tabs">'+
+    '<button class="mode-tab'+(appMode==='sentences'?' active':'')+'" onclick="switchMode(&quot;sentences&quot;)">Pronunciation</button>'+
+    '<button class="mode-tab'+(appMode==='mc'?' active':'')+'" onclick="switchMode(&quot;mc&quot;)">Speaking</button>'+
+  '</div>';
+}
+function switchMode(m){
+  appMode=m;
+  if(m==='sentences') render();
+  else renderMC();
+}
 function render(){
   prog();
   if(cur>=SENTS.length){showEnd();return;}
@@ -238,6 +270,7 @@ function render(){
   var prevDis=cur===0?' disabled':'';
   var nextDis=cur===SENTS.length-1?' disabled':'';
   document.getElementById('area').innerHTML=
+    renderModeTabs()+
     '<div class="card">'+
       '<div class="cl">Sentence '+(cur+1)+' of '+SENTS.length+'</div>'+
       '<div class="sr"><div class="snt">'+s+'</div>'+
@@ -478,6 +511,184 @@ function doAnalyze(){
     .catch(function(e){
       fb.innerHTML='<div class="fbc"><div class="ctext" style="color:var(--red)">Error: '+e.message+'</div></div>';
     });
+}
+
+function renderMC(){
+  var area=document.getElementById('area');
+  if(!MCQS||MCQS.length===0){
+    area.innerHTML=renderModeTabs()+'<div class="fbc" style="text-align:center;padding:2rem"><p style="color:var(--g400);font-size:15px">No speaking exercises yet. Check back soon!</p></div>';
+    return;
+  }
+  if(mcCur>=MCQS.length){
+    area.innerHTML=renderModeTabs()+'<div class="ec"><div class="ei">🎉</div><div class="et">Well done!</div><div class="es">You completed all speaking exercises</div><button class="rb" onclick="mcCur=0;renderMC()">Try again</button></div>';
+    return;
+  }
+  var q=MCQS[mcCur];
+  var optHtml='';
+  for(var i=0;i<q.options.length;i++){
+    if(q.options[i]) optHtml+='<button class="mc-opt" onclick="selectMCOpt(this,'+i+')">'+q.options[i]+'</button>';
+  }
+  area.innerHTML=renderModeTabs()+
+    '<div class="mc-card">'+
+      '<div class="mc-qnum">Question '+(mcCur+1)+' of '+MCQS.length+'</div>'+
+      '<div class="mc-question">'+q.question+'</div>'+
+      '<button class="mc-listen-btn" id="mcListenBtn" onclick="mcSpeak(this)">&#128266;</button>'+
+      '<div class="mc-options" id="mcOpts">'+optHtml+'</div>'+
+      '<div class="ms">'+
+        '<button class="mb" id="mcMicBtn" onclick="mcToggleRec()">&#127908;</button>'+
+        '<div class="ml" id="mcMicLbl">Tap to speak your answer</div>'+
+        '<div class="trow">'+
+          '<div class="tb" id="mcTbox"><span class="ph">Your answer will appear here...</span></div>'+
+          '<button class="playbtn" id="mcPlayBtn" onclick="togglePlayRec(this)">&#9654;</button>'+
+        '</div>'+
+      '</div>'+
+      '<div id="mcResult"></div>'+
+      '<button class="mc-next-btn" id="mcNextBtn" onclick="mcNext()">Next question &#8594;</button>'+
+    '</div>';
+  if(mcAudio){mcAudio.pause();mcAudio=null;}
+}
+
+function mcSpeak(btn){
+  if(mcAudio&&!mcAudio.paused){mcAudio.pause();mcAudio=null;btn.innerHTML='&#128266;';return;}
+  var q=MCQS[mcCur];
+  btn.innerHTML='&#9203;';btn.style.opacity='0.6';
+  fetch(W+'/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:q.question})})
+    .then(function(r){return r.blob();})
+    .then(function(b){
+      var url=URL.createObjectURL(b);
+      mcAudio=new Audio(url);
+      btn.innerHTML='&#9209;';btn.style.opacity='1';
+      mcAudio.play();
+      mcAudio.onended=function(){mcAudio=null;btn.innerHTML='&#128266;';URL.revokeObjectURL(url);};
+    }).catch(function(){btn.innerHTML='&#128266;';btn.style.opacity='1';});
+}
+
+var mcRec=false,mcMr=null,mcChunks=[];
+function mcToggleRec(){mcRec?mcStopRec():mcStartRec();}
+function mcStartRec(){
+  navigator.mediaDevices.getUserMedia({audio:true})
+    .then(function(stream){
+      mcChunks=[];var mt2=mime();
+      mcMr=new MediaRecorder(stream,mt2?{mimeType:mt2}:{});
+      mcMr.ondataavailable=function(e){if(e.data&&e.data.size>0)mcChunks.push(e.data);};
+      mcMr.start(250);mcRec=true;
+      var b=document.getElementById('mcMicBtn'),l=document.getElementById('mcMicLbl');
+      if(b){b.classList.add('rec');b.innerHTML='&#9209;';}
+      if(l)l.textContent='Recording... tap to stop';
+      var t=document.getElementById('mcTbox');if(t)t.innerHTML='<span class="ph">Listening...</span>';
+      window._transcript='';
+      var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+      if(SR){try{
+        window._sr=new SR();window._sr.continuous=true;window._sr.interimResults=true;window._sr.lang='en-US';
+        window._sr.onresult=function(e){
+          var interim='',final='';
+          for(var i=e.resultIndex;i<e.results.length;i++){
+            if(e.results[i].isFinal)final+=e.results[i][0].transcript;
+            else interim+=e.results[i][0].transcript;
+          }
+          window._transcript=(window._transcript||'')+final;
+          var tb=document.getElementById('mcTbox');
+          if(tb)tb.innerHTML=(window._transcript||'')+(interim?'<em style="color:rgba(255,255,255,0.4)"> '+interim+'</em>':'');
+        };
+        window._sr.onerror=function(){};
+        window._sr.onend=function(){if(mcRec&&window._sr){try{window._sr.start();}catch(e){}}};
+        window._sr.start();
+      }catch(e){}}
+    }).catch(function(e){var l=document.getElementById('mcMicLbl');if(l)l.textContent='Mic error: '+e.message;});
+}
+function mcStopRec(){
+  if(!mcMr)return;mcRec=false;
+  if(window._sr){try{window._sr.onend=null;window._sr.stop();}catch(e){}}
+  mcMr.stop();mcMr.stream.getTracks().forEach(function(t){t.stop();});
+  var b=document.getElementById('mcMicBtn'),l=document.getElementById('mcMicLbl');
+  if(b){b.classList.remove('rec');b.innerHTML='&#127908;';}
+  if(l)l.textContent='Processing...';
+  mcMr.onstop=function(){
+    var m2=mcMr.mimeType||'audio/webm';
+    var blob=new Blob(mcChunks,{type:m2});
+    if(window._recUrl)URL.revokeObjectURL(window._recUrl);
+    window._recUrl=URL.createObjectURL(blob);
+    var pb=document.getElementById('mcPlayBtn');if(pb)pb.classList.add('show');
+    var rd=new FileReader();
+    rd.onloadend=function(){
+      window._ab=rd.result.split(',')[1];window._am=m2;
+      var l2=document.getElementById('mcMicLbl');if(l2)l2.textContent='Done — checking your answer...';
+      var tb=document.getElementById('mcTbox');
+      var transcript=window._transcript||'';
+      if(tb){
+        if(transcript)tb.innerHTML='<span style="color:rgba(255,255,255,0.9);">'+transcript+'</span>';
+        else tb.innerHTML='<span style="color:rgba(255,255,255,0.7);font-style:italic;">Audio recorded ✓</span>';
+      }
+      // Auto-check answer using transcript
+      if(transcript) checkMCAnswer(transcript);
+    };
+    rd.readAsDataURL(blob);
+  };
+}
+
+function checkMCAnswer(transcript){
+  var q=MCQS[mcCur];
+  var correctOpt=q.options[q.correct]||'';
+  var said=transcript.toLowerCase().trim();
+  // Check if any option was said
+  var matchedIdx=-1;
+  var bestScore=0;
+  for(var i=0;i<q.options.length;i++){
+    if(!q.options[i])continue;
+    var opt=q.options[i].toLowerCase();
+    // Check overlap — count matching words
+    var optWords=opt.split(' ');
+    var matches=0;
+    for(var w=0;w<optWords.length;w++){if(said.indexOf(optWords[w])>=0)matches++;}
+    var score=matches/optWords.length;
+    if(score>bestScore){bestScore=score;matchedIdx=i;}
+  }
+  var isCorrect=matchedIdx===q.correct&&bestScore>0.4;
+  // Highlight options
+  var opts=document.querySelectorAll('.mc-opt');
+  for(var i=0;i<opts.length;i++){
+    if(i===q.correct)opts[i].classList.add('correct');
+    else if(i===matchedIdx&&!isCorrect)opts[i].classList.add('wrong');
+  }
+  var result=document.getElementById('mcResult');
+  var nextBtn=document.getElementById('mcNextBtn');
+  if(isCorrect){
+    result.className='mc-result correct-r';
+    result.innerHTML='Correct! Now let us check your pronunciation...';
+    if(nextBtn)nextBtn.style.display='block';
+    // Analyze pronunciation of the target phrase
+    if(window._ab&&q.target){
+      mcAnalyzePronunciation(q.target);
+    }
+  } else {
+    result.className='mc-result wrong-r';
+    var correctText=q.options[q.correct];
+    result.innerHTML='❌ Not quite. The correct answer is: <strong style="color:#fff">'+correctText+'</strong><br>Try saying it again!';
+    if(nextBtn)nextBtn.style.display='block';
+  }
+  var l=document.getElementById('mcMicLbl');if(l)l.textContent='Tap to try again';
+}
+
+function mcAnalyzePronunciation(target){
+  if(!window._ab)return;
+  var result=document.getElementById('mcResult');
+  if(result)result.innerHTML+='<br><em style="opacity:.7">Analyzing pronunciation...</em>';
+  fetch(W+'/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:window._ab,target:target,mimeType:window._am||'audio/webm'})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(result&&d.overallScore){
+        var col=d.overallScore>=85?'#a8d5b0':d.overallScore>=75?'#f5d78a':'#f5a0a0';
+        result.innerHTML+='<br>Pronunciation of <em>"'+target+'"</em>: <strong style="color:'+col+'">'+d.overallScore+'%</strong>';
+        if(d.feedback) result.innerHTML+='<br><span style="font-size:13px;opacity:.8">'+d.feedback.split('\n')[0]+'</span>';
+      }
+    }).catch(function(){});
+}
+
+function mcNext(){
+  mcCur++;
+  window._ab=null;window._transcript='';
+  if(window._recUrl){URL.revokeObjectURL(window._recUrl);window._recUrl=null;}
+  renderMC();
 }
 
 function showEnd(){
