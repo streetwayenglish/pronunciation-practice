@@ -65,16 +65,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--white);color:var(--black)
 .sl strong{color:var(--black);font-weight:700;font-family:'Syne',sans-serif;font-size:16px}
 /* Word pills */
 .wp{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px;justify-content:center}
-.pill{display:inline-flex;flex-direction:column;align-items:center;padding:5px 8px;border-radius:8px;min-width:44px;cursor:help}
-.pt2{font-size:12px;font-weight:600;font-family:'Syne',sans-serif}
-.ps{font-size:9px;margin-top:2px;opacity:.8}
+.pill{display:inline-flex;flex-direction:column;align-items:center;padding:6px 12px;border-radius:8px;min-width:52px;cursor:help}
+.pt2{font-size:14px;font-weight:600;font-family:'Syne',sans-serif}
+.ps{font-size:11px;margin-top:2px;opacity:.8}
 .pg{background:var(--gl);color:var(--green)}
 .po{background:var(--aml);color:var(--amb)}
 .prr{background:var(--rl);color:var(--red)}
-.sylrow{display:flex;gap:0px;margin-top:3px;flex-wrap:wrap;justify-content:center}
-.syl{font-size:12px;font-weight:700;font-family:'Syne',sans-serif;}
-.syl-ok{color:inherit;}
-.syl-bad{color:inherit;border-bottom:2px solid var(--red);}
+.syl{display:inline;}
+.syl-ok{}
+.syl-bad{border-bottom:2px solid var(--red);}
 /* Profile cards */
 .profile{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
 .pmet{background:var(--g100);border-radius:10px;padding:12px 14px;position:relative;overflow:hidden}
@@ -366,60 +365,21 @@ function doAnalyze(){
       var pills='';
       for(var wi=0;wi<ws.length;wi++){
         var ww=ws[wi];
-        // Build allSyllables - parse from syllableIssues (bad ones) + reconstruct word
-        if(!ww.allSyllables){
-          var badSyls={};
-          if(ww.syllableIssues){
-            for(var si2=0;si2<ww.syllableIssues.length;si2++){
-              var syl2=ww.syllableIssues[si2];
-              var qIdx=syl2.indexOf(' q:');
-              if(syl2.charAt(0)==='"'&&qIdx>0){
-                var letters=syl2.substring(1,syl2.indexOf('"',1));
-                badSyls[letters.toLowerCase()]=true;
-              }
-            }
-          }
-          // Try to reconstruct syllables from the word using bad syl letters
-          var remaining=ww.word.toLowerCase();
-          var syls=[];
-          var badKeys=Object.keys(badSyls);
-          if(badKeys.length>0){
-            // Find each bad syllable in the word
-            var wordLower=ww.word.toLowerCase();
-            var used=[];
-            for(var bk=0;bk<badKeys.length;bk++){
-              var idx2=wordLower.indexOf(badKeys[bk]);
-              if(idx2>=0) used.push({start:idx2,end:idx2+badKeys[bk].length,bad:true,letters:ww.word.substring(idx2,idx2+badKeys[bk].length)});
-            }
-            used.sort(function(a,b){return a.start-b.start;});
-            var pos=0;
-            for(var u=0;u<used.length;u++){
-              if(used[u].start>pos) syls.push({letters:ww.word.substring(pos,used[u].start),bad:false});
-              syls.push({letters:used[u].letters,bad:true});
-              pos=used[u].end;
-            }
-            if(pos<ww.word.length) syls.push({letters:ww.word.substring(pos),bad:false});
-          }
-          ww.allSyllables=syls.length>0?syls:[{letters:ww.word,bad:ww.score<75}];
-        }
         var tip=ww.phonemeIssues&&ww.phonemeIssues.length?' title="'+ww.phonemeIssues.join(' | ')+'"':'';
-        var sylHtml='';
-        if(ww.allSyllables&&ww.allSyllables.length>1){
-          sylHtml='<div class="sylrow">';
-          for(var si=0;si<ww.allSyllables.length;si++){
-            var syl2=ww.allSyllables[si];
-            var sylClass=syl2.bad?'syl-bad':'syl-ok';
-            sylHtml+='<span class="syl '+sylClass+'">'+syl2.letters+'</span>';
+        // Build inline word HTML with bad syllables underlined
+        var wordHtml=ww.word;
+        if(ww.allSyllables&&ww.allSyllables.length>0){
+          var hasBad=false;
+          for(var sx=0;sx<ww.allSyllables.length;sx++){if(ww.allSyllables[sx].bad)hasBad=true;}
+          if(hasBad){
+            wordHtml='';
+            for(var si=0;si<ww.allSyllables.length;si++){
+              var s2=ww.allSyllables[si];
+              wordHtml+='<span class="'+(s2.bad?'syl-bad':'syl-ok')+'">'+s2.letters+'</span>';
+            }
           }
-          sylHtml+='</div>';
-        } else if(ww.allSyllables&&ww.allSyllables.length===1&&ww.allSyllables[0].bad){
-          sylHtml='<div class="sylrow"><span class="syl syl-bad">'+ww.allSyllables[0].letters+'</span></div>';
         }
-        if(sylHtml){
-          pills+='<div class="pill '+spc(ww.score)+'"'+tip+'><span class="pt2">'+ww.word+'</span><span class="ps">'+ww.score+'%</span>'+sylHtml+'</div>';
-        } else {
-          pills+='<div class="pill '+spc(ww.score)+'"'+tip+'><span class="pt2">'+ww.word+'</span><span class="ps">'+ww.score+'%</span></div>';
-        }
+        pills+='<div class="pill '+spc(ww.score)+'"'+tip+'><span class="pt2">'+wordHtml+'</span><span class="ps">'+ww.score+'%</span></div>';
       }
 
       // Profile metrics
