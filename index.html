@@ -535,12 +535,21 @@ function doAnalyze(){
 }
 
 function renderMC(){
+  // Update progress bar for MC mode
+  var pf=document.getElementById('pf');
+  var pl=document.getElementById('pl');
+  if(pf)pf.style.width=MCQS.length?Math.round((mcCur/MCQS.length)*100)+'%':'0%';
+  if(pl)pl.textContent=(mcCur+1)+' / '+(MCQS.length||0);
   var area=document.getElementById('area');
   if(!MCQS||MCQS.length===0){
     area.innerHTML=renderModeTabs()+'<div class="fbc" style="text-align:center;padding:2rem"><p style="color:var(--g400);font-size:15px">No speaking exercises yet. Check back soon!</p></div>';
     return;
   }
   if(mcCur>=MCQS.length){
+    var pf2=document.getElementById('pf');
+    var pl2=document.getElementById('pl');
+    if(pf2)pf2.style.width='100%';
+    if(pl2)pl2.textContent=MCQS.length+' / '+MCQS.length;
     var total=MCQS.length;
     var correct=mcScores.filter(function(s){return s===1;}).length;
     var pct=total>0?Math.round((correct/total)*100):0;
@@ -1045,19 +1054,11 @@ function importMCJSON(){
 function generateMCWithAI(){
   var inp=document.getElementById('aiGenInp');
   var btn=document.getElementById('aiGenBtn');
-  var status=document.getElementById('aiStatus');
+  var status=document.getElementById('aiGenStatus');
   var topic=inp?inp.value.trim():'';
   if(!topic){status.textContent='Please enter vocabulary or topic first.';return;}
   btn.disabled=true;btn.textContent='Generating...';
-  status.textContent='Asking Claude to generate questions...';
-  var prompt='You are an English teacher creating speaking multiple choice exercises for Brazilian students.'+
-    ' Based on this vocabulary/topic: "'+topic+'"'+
-    ' Create 5 conversational multiple choice questions where the student must SPEAK the correct answer.'+
-    ' Each question should: be a realistic conversational situation, have 4 natural spoken answer options, one correct answer using the target expression, and identify a target phrase to practice.'+
-    ' Respond ONLY with a JSON array, no markdown, no backticks. Format:'+
-    ' [{"question":"...","options":["...","...","...","..."],"correct":0,"target":"..."}]'+
-    ' The correct field is the 0-based index of the correct option.'+
-    ' Make the questions conversational and natural, like real life situations.';
+  status.textContent='Generating questions...';
   fetch(W+'/generate-mc',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
