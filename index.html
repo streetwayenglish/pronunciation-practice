@@ -952,7 +952,20 @@ function showTeacherPanel(tab){
       var sv=SENTS[ti].replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
       rows+='<div class="trow2"><input class="tinp" value="'+sv+'"/><button class="tdel" onclick="this.parentElement.remove()">x</button></div>';
     }
-    o.innerHTML='<div class="tmod"><h2>Teacher Panel</h2>'+tabs+'<div id="trows">'+rows+'</div><button class="tadd" id="tadd">+ Add sentence</button><div class="tact"><button class="tcn" id="tcn">Cancel</button><button class="tsv" id="tsv">Save and publish</button></div><div class="tmsg" id="tmsg"></div></div>';
+    o.innerHTML='<div class="tmod"><h2>Teacher Panel</h2>'+tabs+
+      '<div class="ai-gen-box" style="margin-bottom:10px">'+
+        '<div class="ai-gen-label">📋 Import sentences from Claude</div>'+
+        '<textarea class="ai-gen-inp" id="importSentsInp" placeholder="Paste JSON array of sentences from Claude here...&#10;e.g. [&quot;She walked to the market.&quot;, &quot;He talked to his boss.&quot;]" style="min-height:60px"></textarea>'+
+        '<button class="ai-gen-btn" onclick="importSentences()" style="background:var(--g600)">Import sentences</button>'+
+        '<div class="ai-gen-status" id="importSentsStatus"></div>'+
+      '</div>'+
+      '<div class="ai-gen-box">'+
+        '<div class="ai-gen-label">✨ Generate sentences with AI</div>'+
+        '<textarea class="ai-gen-inp" id="aiSentsInp" placeholder="Paste vocabulary or topic here...&#10;e.g. walked, talked, looked forward to, called the shots"></textarea>'+
+        '<button class="ai-gen-btn" id="aiSentsBtn" onclick="generateSentsWithAI()">Generate sentences with AI</button>'+
+        '<div class="ai-gen-status" id="aiSentsStatus"></div>'+
+      '</div>'+
+      '<div id="trows">'+rows+'</div><button class="tadd" id="tadd">+ Add sentence</button><div class="tact"><button class="tcn" id="tcn">Cancel</button><button class="tsv" id="tsv">Save and publish</button></div><div class="tmsg" id="tmsg"></div></div>';
     document.getElementById('tadd').onclick=function(){
       var c=document.getElementById('trows'),d=document.createElement('div');d.className='trow2';
       d.innerHTML='<input class="tinp" placeholder="Type new sentence..."/><button class="tdel" onclick="this.parentElement.remove()">x</button>';
@@ -962,8 +975,14 @@ function showTeacherPanel(tab){
     document.getElementById('tsv').onclick=saveTeacher;
   } else {
     o.innerHTML='<div class="tmod"><h2>Teacher Panel</h2>'+tabs+
-    '<div class="ai-gen-box">'+
-      '<div class="ai-gen-label">Generate with AI</div>'+
+    '<div class="ai-gen-box" style="margin-bottom:10px">'+
+        '<div class="ai-gen-label">📋 Import from Claude chat</div>'+
+        '<textarea class="ai-gen-inp" id="importInp" placeholder="Paste JSON from Claude here..." style="min-height:60px"></textarea>'+
+        '<button class="ai-gen-btn" onclick="importMCJSON()" style="background:var(--g600)">Import questions</button>'+
+        '<div class="ai-gen-status" id="importStatus"></div>'+
+      '</div>'+
+      '<div class="ai-gen-box">'+
+      '<div class="ai-gen-label">✨ Generate with AI</div>'+
       '<textarea class="ai-gen-inp" id="aiGenInp" placeholder="Paste vocabulary, expressions or topic here... e.g. looking forward to, see eye to eye, call the shots"></textarea>'+
       '<button class="ai-gen-btn" id="aiGenBtn" onclick="generateMCWithAI()">Generate questions with AI</button>'+
       '<div class="ai-gen-status" id="aiGenStatus"></div>'+
@@ -1024,7 +1043,7 @@ function importMCJSON(){
 }
 
 function generateMCWithAI(){
-  var inp=document.getElementById('aiInp');
+  var inp=document.getElementById('aiGenInp');
   var btn=document.getElementById('aiGenBtn');
   var status=document.getElementById('aiStatus');
   var topic=inp?inp.value.trim():'';
@@ -1058,6 +1077,64 @@ function generateMCWithAI(){
   .catch(function(e){
     status.textContent='Error: '+e.message+'. Try again.';
     btn.disabled=false;btn.textContent='Generate questions';
+  });
+}
+
+function importSentences(){
+  var inp=document.getElementById('importSentsInp');
+  var status=document.getElementById('importSentsStatus');
+  var text=inp?inp.value.trim():'';
+  if(!text){status.textContent='Please paste JSON first.';return;}
+  try{
+    text=text.replace(/```json|```/g,'').trim();
+    var sents=JSON.parse(text);
+    if(!Array.isArray(sents))throw new Error('Must be a JSON array of strings');
+    var c=document.getElementById('trows');
+    for(var i=0;i<sents.length;i++){
+      if(!sents[i]||typeof sents[i]!=='string')continue;
+      var d=document.createElement('div');d.className='trow2';
+      var sv=sents[i].replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      d.innerHTML='<input class="tinp" value="'+sv+'"/><button class="tdel" onclick="this.parentElement.remove()">x</button>';
+      c.appendChild(d);
+    }
+    inp.value='';
+    status.textContent='Imported '+sents.length+' sentences!';
+  }catch(e){
+    status.textContent='Invalid JSON: '+e.message;
+  }
+}
+
+function generateSentsWithAI(){
+  var inp=document.getElementById('aiSentsInp');
+  var btn=document.getElementById('aiSentsBtn');
+  var status=document.getElementById('aiSentsStatus');
+  var topic=inp?inp.value.trim():'';
+  if(!topic){status.textContent='Please enter vocabulary or topic first.';return;}
+  btn.disabled=true;btn.textContent='Generating...';
+  status.textContent='Generating sentences...';
+  fetch(W+'/generate-sents',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({password:'streetway2024',topic:topic})
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.error)throw new Error(d.error);
+    var sents=d.sentences;
+    if(!Array.isArray(sents))throw new Error('Invalid response');
+    var c=document.getElementById('trows');
+    for(var i=0;i<sents.length;i++){
+      var dv=document.createElement('div');dv.className='trow2';
+      var sv=sents[i].replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      dv.innerHTML='<input class="tinp" value="'+sv+'"/><button class="tdel" onclick="this.parentElement.remove()">x</button>';
+      c.appendChild(dv);
+    }
+    status.textContent='Generated '+sents.length+' sentences!';
+    btn.disabled=false;btn.textContent='Generate sentences with AI';
+  })
+  .catch(function(e){
+    status.textContent='Error: '+e.message;
+    btn.disabled=false;btn.textContent='Generate sentences with AI';
   });
 }
 
