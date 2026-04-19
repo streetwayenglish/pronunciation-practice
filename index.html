@@ -1039,27 +1039,19 @@ function generateMCWithAI(){
     ' [{"question":"...","options":["...","...","...","..."],"correct":0,"target":"..."}]'+
     ' The correct field is the 0-based index of the correct option.'+
     ' Make the questions conversational and natural, like real life situations.';
-  fetch('https://api.anthropic.com/v1/messages',{
+  fetch(W+'/generate-mc',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      model:'claude-sonnet-4-20250514',
-      max_tokens:2000,
-      messages:[{role:'user',content:prompt}]
-    })
+    body:JSON.stringify({password:'streetway2024',topic:topic})
   })
   .then(function(r){return r.json();})
   .then(function(d){
-    var text=(d.content||[]).map(function(b){return b.text||'';}).join('');
-    // Strip any markdown backticks just in case
-    text=text.replace(/```json|```/g,'').trim();
-    var questions=JSON.parse(text);
+    if(d.error)throw new Error(d.error);
+    var questions=d.questions;
     if(!Array.isArray(questions))throw new Error('Invalid response');
-    // Add to existing rows
     status.textContent='Generated '+questions.length+' questions! Review and edit below.';
     btn.disabled=false;btn.textContent='Generate questions';
     for(var i=0;i<questions.length;i++) addMCRow(questions[i]);
-    // Scroll to first new question
     var rows=document.getElementById('mcrows');
     if(rows)rows.scrollIntoView({behavior:'smooth',block:'start'});
   })
