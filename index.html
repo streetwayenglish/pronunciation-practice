@@ -173,8 +173,9 @@ button{-webkit-appearance:none}
 .emma-footer{padding:12px 16px 20px;background:rgba(0,0,0,.35);border-top:1px solid rgba(255,255,255,.08);}
 .emma-status{font-size:11px;color:rgba(255,255,255,.4);text-align:center;margin-bottom:10px;min-height:18px;}
 .emma-controls{display:flex;gap:8px;}
-.emma-mic{flex:1;padding:14px;background:var(--yellow);color:var(--black);border:none;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;}
+.emma-mic{flex:1;padding:14px;background:var(--yellow);color:var(--black);border:none;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
 .emma-mic.rec{background:var(--red);color:#fff;}
+.emma-mic.rec .stop-sq{background:#fff;}
 .emma-end{padding:14px 16px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.1);border-radius:14px;font-size:13px;font-weight:600;cursor:pointer;}
 /* AI Generator */
 .ai-gen-box{background:var(--g100);border-radius:10px;padding:14px;margin-bottom:1.5rem;border:1.5px dashed var(--g200)}
@@ -910,6 +911,13 @@ function emmaStartConvo(){
     '6) Never use bullet points or formal language. '+
     '7) Start by introducing yourself briefly, then immediately ask about their work, daily routine, or what their day has been like — make it feel like catching up with a friend.';
   emmaHistory=[{role:'user',content:'[Start the conversation - introduce yourself and begin]'}];
+  // Pre-acquire mic on mobile to keep stream alive between turns
+  var isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if(isMobile&&!window._emmaMicStream){
+    navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+      window._emmaMicStream=stream;
+    }).catch(function(){});
+  }
   emmaCallClaude(sysPrompt,function(text){
     emmaHistory.push({role:'assistant',content:text});
     emmaAddBubble('emma',text);
@@ -1202,6 +1210,8 @@ function downloadReport(){
 function emmaEnd(){
   if(emmaAudio){emmaAudio.pause();emmaAudio=null;}
   if(emmaRec)emmaStopRec();
+  // Release held mic stream on mobile
+  if(window._emmaMicStream){window._emmaMicStream.getTracks().forEach(function(t){t.stop();});window._emmaMicStream=null;}
   var history=emmaHistory.slice();
   emmaHistory=[];
   var area=document.getElementById('area');
