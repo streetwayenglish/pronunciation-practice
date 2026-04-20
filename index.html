@@ -33,6 +33,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--white);color:var(--black)
 .lbtn{width:44px;height:44px;border-radius:50%;background:var(--yellow);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition:transform .15s,opacity .15s;position:relative;z-index:2}
 .lbtn:hover{transform:scale(1.08)}
 .lbtn.sp{animation:spp .8s infinite alternate}
+.stop-sq{width:14px;height:14px;background:var(--black);border-radius:2px;display:block;flex-shrink:0;}
 @keyframes spp{from{box-shadow:0 0 0 0 rgba(245,200,66,.5)}to{box-shadow:0 0 0 10px rgba(245,200,66,0)}}
 .nr{display:flex;gap:8px;margin-bottom:1.5rem}
 .nb{flex:1;padding:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:var(--rs);font-size:13px;color:rgba(255,255,255,.6);cursor:pointer;font-family:'DM Sans',sans-serif}
@@ -360,7 +361,7 @@ function doSpeak(){
     .then(function(b){
       var url=URL.createObjectURL(b);
       laudio=new Audio(url);
-      btn.innerHTML='&#9632;';btn.style.opacity='1';btn.classList.add('sp');
+      btn.innerHTML='<span class="stop-sq"></span>';btn.style.opacity='1';btn.classList.add('sp');
       laudio.play();
       laudio.onended=function(){laudio=null;var b2=document.getElementById('lbtn');if(b2){b2.innerHTML='&#128266;';b2.classList.remove('sp');}URL.revokeObjectURL(url);};
     })
@@ -390,7 +391,7 @@ function doStart(){
       mr.ondataavailable=function(e){if(e.data&&e.data.size>0)chunks.push(e.data);};
       mr.start(250);rec=true;
       var b=document.getElementById('mbtn'),l=document.getElementById('mlbl');
-      if(b){b.classList.add('rec');b.innerHTML='&#9209;&#65039;';}
+      if(b){b.classList.add('rec');b.innerHTML='<span class="stop-sq"></span>';}
       if(l)l.textContent='Recording... tap to stop';
       var t=document.getElementById('tbox');
       if(t)t.innerHTML='<span class="ph">Listening...</span>';
@@ -464,7 +465,7 @@ function togglePlayRec(btn){
   }
   if(window._recUrl){
     window._recAudio=new Audio(window._recUrl);
-    btn.innerHTML='&#9209;&#65039;';btn.classList.add('playing');
+    btn.innerHTML='<span class="stop-sq"></span>';btn.classList.add('playing');
     window._recAudio.play();
     window._recAudio.onended=function(){btn.innerHTML='&#9654;';btn.classList.remove('playing');};
   }
@@ -644,7 +645,7 @@ function mcSpeak(btn){
     .then(function(b){
       var url=URL.createObjectURL(b);
       mcAudio=new Audio(url);
-      btn.innerHTML='&#9209;&#65039;';btn.style.opacity='1';
+      btn.innerHTML='<span class="stop-sq"></span>';btn.style.opacity='1';
       mcAudio.play();
       mcAudio.onended=function(){mcAudio=null;btn.innerHTML='&#128266;';URL.revokeObjectURL(url);};
     }).catch(function(){btn.innerHTML='&#128266;';btn.style.opacity='1';});
@@ -660,7 +661,7 @@ function mcStartRec(){
       mcMr.ondataavailable=function(e){if(e.data&&e.data.size>0)mcChunks.push(e.data);};
       mcMr.start(250);mcRec=true;
       var b=document.getElementById('mcMicBtn'),l=document.getElementById('mcMicLbl');
-      if(b){b.classList.add('rec');b.innerHTML='&#9209;&#65039;';}
+      if(b){b.classList.add('rec');b.innerHTML='<span class="stop-sq"></span>';}
       if(l)l.textContent='Recording... tap to stop';
       var t=document.getElementById('mcTbox');if(t)t.innerHTML='<span class="ph">Listening...</span>';
       window._transcript='';
@@ -980,16 +981,53 @@ function emmaToggleRec(){
 function emmaStartRec(){
   var btn=document.getElementById('emmaMicBtn');
   var status=document.getElementById('emmaStatus');
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  // On iOS, MediaRecorder conflicts with SpeechRecognition — use SR only
+  var isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if(isMobile&&SR){
+    emmaRec=true;
+    emmaChunks=[];
+    window._emmaTranscript='';
+    if(btn){btn.classList.add('rec');btn.innerHTML='<span class="stop-sq"></span> Stop speaking';}
+    if(status)status.textContent='Listening...';
+    function startSR(){
+      try{
+        if(window._emmaSR){try{window._emmaSR.onend=null;window._emmaSR.onerror=null;window._emmaSR.stop();}catch(e){}}
+        window._emmaSR=new SR();
+        window._emmaSR.continuous=true;
+        window._emmaSR.interimResults=true;
+        window._emmaSR.lang='en-US';
+        window._emmaSR.onresult=function(e){
+          var final='',interim='';
+          for(var i=e.resultIndex;i<e.results.length;i++){
+            if(e.results[i].isFinal)final+=e.results[i][0].transcript;
+            else interim+=e.results[i][0].transcript;
+          }
+          window._emmaTranscript=(window._emmaTranscript||'')+final;
+          if(status)status.textContent='Listening: '+(window._emmaTranscript||interim||'...');
+        };
+        window._emmaSR.onerror=function(e){
+          if(e.error==='no-speech'||e.error==='audio-capture'||e.error==='network'){
+            if(emmaRec)setTimeout(startSR,200);
+          }
+        };
+        window._emmaSR.onend=function(){if(emmaRec)setTimeout(startSR,150);};
+        window._emmaSR.start();
+      }catch(e){}
+    }
+    startSR();
+    return;
+  }
+  // Desktop: use MediaRecorder + SpeechRecognition together
   navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
     emmaChunks=[];
     var mt2=mime();
     emmaMr=new MediaRecorder(stream,mt2?{mimeType:mt2}:{});
     emmaMr.ondataavailable=function(e){if(e.data&&e.data.size>0)emmaChunks.push(e.data);};
     emmaMr.start(250);emmaRec=true;
-    if(btn){btn.classList.add('rec');btn.innerHTML='&#9632; Stop speaking';}
+    if(btn){btn.classList.add('rec');btn.innerHTML='<span class="stop-sq"></span> Stop speaking';}
     if(status)status.textContent='Listening...';
     window._emmaTranscript='';
-    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
     if(SR){
       function startSR(){
         try{
@@ -1022,13 +1060,39 @@ function emmaStartRec(){
 }
 
 function emmaStopRec(){
-  if(!emmaMr)return;emmaRec=false;
-  if(window._emmaSR){try{window._emmaSR.onend=null;window._emmaSR.stop();}catch(e){}}
-  emmaMr.stop();emmaMr.stream.getTracks().forEach(function(t){t.stop();});
+  emmaRec=false;
+  if(window._emmaSR){try{window._emmaSR.onend=null;window._emmaSR.onerror=null;window._emmaSR.stop();}catch(e){}}
   var btn=document.getElementById('emmaMicBtn');
   var status=document.getElementById('emmaStatus');
   if(btn){btn.classList.remove('rec');btn.innerHTML='&#127908; Tap to speak';btn.disabled=true;btn.style.opacity='0.5';}
   if(status)status.textContent='Processing...';
+  // Mobile: no MediaRecorder, process transcript directly
+  var isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if(isMobile||!emmaMr){
+    setTimeout(function(){
+      var transcript=window._emmaTranscript||'';
+      if(!transcript){
+        if(btn){btn.disabled=false;btn.style.opacity='1';}
+        if(status)status.textContent='Could not hear you. Try again.';
+        return;
+      }
+      if(btn){btn.disabled=false;btn.style.opacity='1';}
+      var count=1;
+      if(status)status.textContent='Heard: "'+transcript.slice(0,40)+(transcript.length>40?'...':'')+'" — sending in '+count+'...';
+      window._emmaSendTimer=setInterval(function(){
+        count--;
+        if(count>0){
+          if(status)status.textContent='Heard: "'+transcript.slice(0,40)+(transcript.length>40?'...':'')+'" — sending in '+count+'...';
+        } else {
+          clearInterval(window._emmaSendTimer);
+          emmaSubmit(transcript);
+        }
+      },750);
+    },300);
+    return;
+  }
+  // Desktop: stop MediaRecorder and process
+  emmaMr.stop();emmaMr.stream.getTracks().forEach(function(t){t.stop();});
   emmaMr.onstop=function(){
     setTimeout(function(){
       var transcript=window._emmaTranscript||'';
@@ -1037,7 +1101,6 @@ function emmaStopRec(){
         if(status)status.textContent='Could not hear you. Try again.';
         return;
       }
-      // Show countdown
       if(btn){btn.disabled=false;btn.style.opacity='1';}
       var count=1;
       if(status)status.textContent='Heard: "'+transcript.slice(0,40)+(transcript.length>40?'...':'')+'" — sending in '+count+'...';
@@ -1261,7 +1324,7 @@ function speakCoach(btn){
   // If already cached, play instantly
   if(window._coachAudioUrl){
     window._coachAudio=new Audio(window._coachAudioUrl);
-    btn.innerHTML='&#9209;&#65039;';btn.classList.add('playing');
+    btn.innerHTML='<span class="stop-sq"></span>';btn.classList.add('playing');
     window._coachAudio.play();
     window._coachAudio.onended=function(){
       window._coachAudio=null;
@@ -1280,7 +1343,7 @@ function speakCoach(btn){
       var url=URL.createObjectURL(b);
       window._coachAudioUrl=url;// Cache it
       window._coachAudio=new Audio(url);
-      btn.innerHTML='&#9209;&#65039;';btn.classList.remove('loading');btn.classList.add('playing');
+      btn.innerHTML='<span class="stop-sq"></span>';btn.classList.remove('loading');btn.classList.add('playing');
       window._coachAudio.play();
       window._coachAudio.onended=function(){
         window._coachAudio=null;
