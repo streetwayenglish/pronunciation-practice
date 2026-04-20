@@ -935,6 +935,9 @@ function emmaCallClaude(sysPrompt,cb){
   });
 }
 
+// Single reusable audio element for Emma — fixes iOS mobile audio after first turn
+if(!window._emmaAudioEl){window._emmaAudioEl=new Audio();window._emmaAudioEl.preload='auto';}
+
 function emmaSpeak(text,retry){
   var status=document.getElementById('emmaStatus');
   if(status)status.textContent='Emma is speaking...';
@@ -942,18 +945,20 @@ function emmaSpeak(text,retry){
     .then(function(r){if(!r.ok)throw new Error(r.status);return r.blob();})
     .then(function(b){
       var url=URL.createObjectURL(b);
-      if(emmaAudio){emmaAudio.pause();}
-      emmaAudio=new Audio(url);
-      function done(){URL.revokeObjectURL(url);emmaAudio=null;var s=document.getElementById('emmaStatus');if(s)s.textContent='Your turn — tap to speak';var btn=document.getElementById('emmaMicBtn');if(btn){btn.disabled=false;btn.style.opacity='1';}}
-      emmaAudio.onended=done;
-      emmaAudio.onerror=done;
-      var p=emmaAudio.play();
-      if(p!==undefined)p.catch(done);
+      var el=window._emmaAudioEl;
+      if(window._emmaAudioUrl){URL.revokeObjectURL(window._emmaAudioUrl);}
+      window._emmaAudioUrl=url;
+      el.src=url;
+      function done(){
+        var s=document.getElementById('emmaStatus');if(s)s.textContent='Your turn — tap to speak';
+        var btn=document.getElementById('emmaMicBtn');if(btn){btn.disabled=false;btn.style.opacity='1';}
+      }
+      el.onended=done;el.onerror=done;
+      var p=el.play();
+      if(p!==undefined)p.catch(function(){setTimeout(function(){el.play().catch(done);},200);});
     }).catch(function(){
-      var s=document.getElementById('emmaStatus');
-      if(s)s.textContent='Your turn — tap to speak';
-      var btn=document.getElementById('emmaMicBtn');
-      if(btn){btn.disabled=false;btn.style.opacity='1';}
+      var s=document.getElementById('emmaStatus');if(s)s.textContent='Your turn — tap to speak';
+      var btn=document.getElementById('emmaMicBtn');if(btn){btn.disabled=false;btn.style.opacity='1';}
     });
 }
 
@@ -981,7 +986,7 @@ function emmaStartRec(){
     emmaMr=new MediaRecorder(stream,mt2?{mimeType:mt2}:{});
     emmaMr.ondataavailable=function(e){if(e.data&&e.data.size>0)emmaChunks.push(e.data);};
     emmaMr.start(250);emmaRec=true;
-    if(btn){btn.classList.add('rec');btn.innerHTML='⏹ Stop speaking';}
+    if(btn){btn.classList.add('rec');btn.innerHTML='&#9632; Stop speaking';}
     if(status)status.textContent='Listening...';
     window._emmaTranscript='';
     var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -1009,7 +1014,7 @@ function emmaStopRec(){
   emmaMr.stop();emmaMr.stream.getTracks().forEach(function(t){t.stop();});
   var btn=document.getElementById('emmaMicBtn');
   var status=document.getElementById('emmaStatus');
-  if(btn){btn.classList.remove('rec');btn.innerHTML='🎤 Tap to speak';btn.disabled=true;btn.style.opacity='0.5';}
+  if(btn){btn.classList.remove('rec');btn.innerHTML='&#127908; Tap to speak';btn.disabled=true;btn.style.opacity='0.5';}
   if(status)status.textContent='Processing...';
   emmaMr.onstop=function(){
     setTimeout(function(){
@@ -1021,7 +1026,7 @@ function emmaStopRec(){
       }
       // Show countdown
       if(btn){btn.disabled=false;btn.style.opacity='1';}
-      var count=2;
+      var count=1;
       if(status)status.textContent='Heard: "'+transcript.slice(0,40)+(transcript.length>40?'...':'')+'" — sending in '+count+'...';
       window._emmaSendTimer=setInterval(function(){
         count--;
@@ -1032,7 +1037,7 @@ function emmaStopRec(){
           emmaSubmit(transcript);
         }
       },750);
-    },800);
+    },300);
   };
 }
 
@@ -1050,6 +1055,72 @@ function emmaSubmit(transcript){
     emmaAddBubble('emma',text);
     emmaSpeak(text);
   });
+}
+
+function downloadReport(){
+  var r=window._lastReport;
+  if(!r)return;
+  var date=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  var mistakesHtml=r.mistakes.map(function(m){
+    return '<div style="margin-bottom:14px;padding-left:14px;border-left:3px solid #c0392b;">'+
+      '<div style="font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:3px;">'+m.title+'</div>'+
+      '<div style="font-size:13px;color:#555;line-height:1.6;">'+m.detail+'</div>'+
+    '</div>';
+  }).join('');
+  var improvementsHtml=r.improvements.map(function(i){
+    return '<div style="margin-bottom:14px;padding-left:14px;border-left:3px solid #f5c842;">'+
+      '<div style="font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:3px;">'+i.title+'</div>'+
+      '<div style="font-size:13px;color:#555;line-height:1.6;">'+i.detail+'</div>'+
+    '</div>';
+  }).join('');
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8">'+
+    '<title>Emma Conversation Report — '+date+'</title>'+
+    '<style>'+
+      'body{font-family:Georgia,serif;max-width:620px;margin:40px auto;padding:0 24px;color:#1a1a1a;}'+
+      'h1{font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:4px;}'+
+      'h2{font-size:24px;font-weight:700;margin:0 0 6px;}'+
+      '.date{font-size:12px;color:#aaa;margin-bottom:28px;}'+
+      '.score-box{display:flex;align-items:center;gap:16px;background:#f7f7f5;border-radius:12px;padding:16px;margin-bottom:28px;}'+
+      '.score-circle{width:54px;height:54px;border-radius:50%;background:#1a1a1a;color:#f5c842;font-size:20px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}'+
+      '.section-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#aaa;margin-bottom:12px;}'+
+      '.section{margin-bottom:28px;}'+
+      '.positive{background:#f0faf2;border-radius:10px;padding:14px 16px;}'+
+      '.positive p{font-size:13px;color:#2d7a3a;line-height:1.6;margin:0;}'+
+      '.footer{margin-top:40px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#bbb;text-align:center;}'+
+    '</style></head><body>'+
+    '<h1>Street Way English</h1>'+
+    '<h2>'+r.headline+'</h2>'+
+    '<div class="date">Conversation Report — '+date+'</div>'+
+    '<div class="score-box">'+
+      '<div class="score-circle">'+r.score+'</div>'+
+      '<div>'+
+        '<div style="font-size:14px;font-weight:600;margin-bottom:3px;">Overall Performance</div>'+
+        '<div style="font-size:13px;color:#666;">'+r.summary+'</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="section">'+
+      '<div class="section-label">Common Mistakes</div>'+
+      mistakesHtml+
+    '</div>'+
+    '<div class="section">'+
+      '<div class="section-label">Focus On</div>'+
+      improvementsHtml+
+    '</div>'+
+    '<div class="section positive">'+
+      '<div class="section-label" style="color:#2d7a3a;margin-bottom:8px;">Well Done</div>'+
+      '<p>'+r.positive+'</p>'+
+    '</div>'+
+    '<div class="footer">Generated by Street Way English &bull; Emma AI Coach</div>'+
+  '</body></html>';
+  var blob=new Blob([html],{type:'text/html'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download='emma-report-'+date.replace(/ /g,'-')+'.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 function emmaEnd(){
@@ -1090,54 +1161,46 @@ function emmaEnd(){
     var r=JSON.parse(text);
     // Build report HTML
     var mistakesHtml=r.mistakes.map(function(m){
-      return '<div style="display:flex;gap:12px;margin-bottom:14px;align-items:flex-start;">'+
-        '<div style="width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:6px;"></div>'+
-        '<div>'+
-          '<div style="font-size:14px;font-weight:600;color:var(--white);margin-bottom:2px;">'+m.title+'</div>'+
-          '<div style="font-size:13px;color:var(--g400);line-height:1.5;">'+m.detail+'</div>'+
-        '</div>'+
+      return '<div style="padding-left:12px;border-left:2.5px solid #c0392b;margin-bottom:12px;">'+
+        '<div style="font-size:14px;font-weight:600;color:#0a0a0a;margin-bottom:3px;">'+m.title+'</div>'+
+        '<div style="font-size:13px;color:#777;line-height:1.55;">'+m.detail+'</div>'+
       '</div>';
     }).join('');
     var improvementsHtml=r.improvements.map(function(i){
-      return '<div style="display:flex;gap:12px;margin-bottom:14px;align-items:flex-start;">'+
-        '<div style="width:6px;height:6px;border-radius:50%;background:var(--yellow);flex-shrink:0;margin-top:6px;"></div>'+
-        '<div>'+
-          '<div style="font-size:14px;font-weight:600;color:var(--white);margin-bottom:2px;">'+i.title+'</div>'+
-          '<div style="font-size:13px;color:var(--g400);line-height:1.5;">'+i.detail+'</div>'+
-        '</div>'+
+      return '<div style="padding-left:12px;border-left:2.5px solid #f5c842;margin-bottom:12px;">'+
+        '<div style="font-size:14px;font-weight:600;color:#0a0a0a;margin-bottom:3px;">'+i.title+'</div>'+
+        '<div style="font-size:13px;color:#777;line-height:1.55;">'+i.detail+'</div>'+
       '</div>';
     }).join('');
     area.innerHTML=renderModeTabs()+
-      '<div class="card">'+
-        '<div style="margin-bottom:1.5rem;">'+
-          '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g400);margin-bottom:6px;">Conversation Report</div>'+
-          '<div style="font-size:22px;font-weight:700;color:var(--white);">'+r.headline+'</div>'+
-        '</div>'+
-        // Overall score
-        '<div style="display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.04);border-radius:12px;padding:14px;margin-bottom:1.5rem;">'+
-          '<div style="width:52px;height:52px;border-radius:50%;background:rgba(245,200,66,.15);border:2px solid rgba(245,200,66,.4);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:var(--yellow);flex-shrink:0;">'+r.score+'</div>'+
+      '<div style="background:#fafaf8;border:1px solid #e8e8e4;border-radius:16px;padding:24px;margin-bottom:1rem;">'+
+        // Top: grade badge + headline + summary
+        '<div style="display:flex;gap:14px;align-items:center;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid #eeede8;">'+
+          '<div style="width:52px;height:52px;border-radius:12px;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#f5c842;flex-shrink:0;">'+r.score+'</div>'+
           '<div>'+
-            '<div style="font-size:14px;font-weight:600;color:var(--white);">Overall Performance</div>'+
-            '<div style="font-size:12px;color:var(--g400);margin-top:2px;">'+r.summary+'</div>'+
+            '<div style="font-size:17px;font-weight:700;color:#0a0a0a;line-height:1.25;margin-bottom:3px;">'+r.headline+'</div>'+
+            '<div style="font-size:12px;color:#888;line-height:1.5;">'+r.summary+'</div>'+
           '</div>'+
         '</div>'+
         // Mistakes
-        '<div style="margin-bottom:1.5rem;">'+
-          '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g400);margin-bottom:12px;">Common Mistakes</div>'+
+        '<div style="margin-bottom:18px;">'+
+          '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#aaa;margin-bottom:10px;">Common mistakes</div>'+
           mistakesHtml+
         '</div>'+
         // Improvements
-        '<div style="margin-bottom:1.5rem;">'+
-          '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g400);margin-bottom:12px;">Focus On</div>'+
+        '<div style="margin-bottom:18px;">'+
+          '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#aaa;margin-bottom:10px;">Focus on</div>'+
           improvementsHtml+
         '</div>'+
         // Positive
-        '<div style="background:rgba(45,122,58,.1);border:1px solid rgba(45,122,58,.2);border-radius:12px;padding:14px;margin-bottom:1.5rem;">'+
-          '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#4caf50;margin-bottom:6px;">Well done</div>'+
-          '<div style="font-size:13px;color:rgba(255,255,255,.8);line-height:1.5;">'+r.positive+'</div>'+
+        '<div style="padding-left:12px;border-left:2.5px solid #2d7a3a;margin-bottom:20px;">'+
+          '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#2d7a3a;margin-bottom:4px;">Well done</div>'+
+          '<div style="font-size:13px;color:#555;line-height:1.55;">'+r.positive+'</div>'+
         '</div>'+
-        '<button class="ab" onclick="renderEmma()">Start new conversation</button>'+
+        '<button class="ab" onclick="renderEmma()" style="margin-bottom:10px;">Start new conversation</button>'+
+        '<button class="ab" style="background:#0a0a0a;color:#fafaf8;" onclick="downloadReport()">&#8681; Download Report</button>'+
       '</div>';
+    window._lastReport=r;
   })
   .catch(function(e){
     area.innerHTML=renderModeTabs()+
