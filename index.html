@@ -360,7 +360,7 @@ function doSpeak(){
     .then(function(b){
       var url=URL.createObjectURL(b);
       laudio=new Audio(url);
-      btn.innerHTML='&#9209;&#65038;';btn.style.opacity='1';btn.classList.add('sp');
+      btn.innerHTML='&#9632;';btn.style.opacity='1';btn.classList.add('sp');
       laudio.play();
       laudio.onended=function(){laudio=null;var b2=document.getElementById('lbtn');if(b2){b2.innerHTML='&#128266;';b2.classList.remove('sp');}URL.revokeObjectURL(url);};
     })
@@ -990,21 +990,34 @@ function emmaStartRec(){
     if(status)status.textContent='Listening...';
     window._emmaTranscript='';
     var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(SR){try{
-      window._emmaSR=new SR();window._emmaSR.continuous=true;window._emmaSR.interimResults=true;window._emmaSR.lang='en-US';
-      window._emmaSR.onresult=function(e){
-        var final='',interim='';
-        for(var i=e.resultIndex;i<e.results.length;i++){
-          if(e.results[i].isFinal)final+=e.results[i][0].transcript;
-          else interim+=e.results[i][0].transcript;
-        }
-        window._emmaTranscript=(window._emmaTranscript||'')+final;
-        if(status)status.textContent='Listening: '+(window._emmaTranscript||interim||'...');
-      };
-      window._emmaSR.onerror=function(){};
-      window._emmaSR.onend=function(){if(emmaRec&&window._emmaSR)try{window._emmaSR.start();}catch(e){}};
-      window._emmaSR.start();
-    }catch(e){}}
+    if(SR){
+      function startSR(){
+        try{
+          if(window._emmaSR){try{window._emmaSR.onend=null;window._emmaSR.onerror=null;window._emmaSR.stop();}catch(e){}}
+          window._emmaSR=new SR();
+          window._emmaSR.continuous=true;
+          window._emmaSR.interimResults=true;
+          window._emmaSR.lang='en-US';
+          window._emmaSR.onresult=function(e){
+            var final='',interim='';
+            for(var i=e.resultIndex;i<e.results.length;i++){
+              if(e.results[i].isFinal)final+=e.results[i][0].transcript;
+              else interim+=e.results[i][0].transcript;
+            }
+            window._emmaTranscript=(window._emmaTranscript||'')+final;
+            if(status)status.textContent='Listening: '+(window._emmaTranscript||interim||'...');
+          };
+          window._emmaSR.onerror=function(e){
+            if(e.error==='no-speech'||e.error==='audio-capture'||e.error==='network'){
+              if(emmaRec)setTimeout(startSR,200);
+            }
+          };
+          window._emmaSR.onend=function(){if(emmaRec)setTimeout(startSR,150);};
+          window._emmaSR.start();
+        }catch(e){}
+      }
+      startSR();
+    }
   }).catch(function(e){if(status)status.textContent='Mic error: '+e.message;});
 }
 
