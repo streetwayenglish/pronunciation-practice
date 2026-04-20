@@ -25,7 +25,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--white);color:var(--black)
 .pf{height:100%;background:var(--yellow);border-radius:2px;transition:width .4s}
 .pl{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--g400);white-space:nowrap}
 .card{background:#222222;border-radius:var(--r);padding:2rem;margin-bottom:1rem;position:relative;overflow:hidden}
-.card::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:var(--black);border-radius:50%;opacity:.04;pointer-events:none}
+.card::before{display:none}
+.card::after{display:none}
 .cl{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--yellow);margin-bottom:12px}
 .sr{display:flex;align-items:flex-start;gap:12px}
 .snt{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;color:var(--white);line-height:1.3;margin-bottom:1.5rem;flex:1}
@@ -193,7 +194,8 @@ button{-webkit-appearance:none}
 .mode-tab{padding:10px 20px;background:none;border:none;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--g400);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px}
 .mode-tab.active{color:var(--black);border-bottom-color:var(--yellow)}
 .mc-card{background:#222222;border-radius:var(--r);padding:2rem;margin-bottom:1rem;position:relative;overflow:hidden}
-.mc-card::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:var(--yellow);border-radius:50%;opacity:.06;pointer-events:none}
+.mc-card::before{display:none}
+.mc-card::after{display:none}
 .mc-qnum{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--yellow);margin-bottom:12px}
 .mc-question{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--white);line-height:1.3;margin-bottom:1.5rem}
 .mc-listen-btn{width:44px;height:44px;border-radius:50%;background:var(--yellow);color:var(--black);border:none;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem;transition:transform .15s;position:relative;z-index:2}
