@@ -354,7 +354,7 @@ function doSpeak(){
   var btn=document.getElementById('lbtn');
   if(!btn)return;
   if(laudio){laudio.pause();laudio=null;btn.innerHTML='&#128266;';btn.classList.remove('sp');btn.style.opacity='1';return;}
-  btn.innerHTML='&#9203;&#65038;';btn.style.opacity='0.6';
+  btn.innerHTML='&#9203;&#65039;';btn.style.opacity='0.6';
   fetch(W+'/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:SENTS[cur]})})
     .then(function(r){if(!r.ok)throw new Error(r.status);return r.blob();})
     .then(function(b){
@@ -390,7 +390,7 @@ function doStart(){
       mr.ondataavailable=function(e){if(e.data&&e.data.size>0)chunks.push(e.data);};
       mr.start(250);rec=true;
       var b=document.getElementById('mbtn'),l=document.getElementById('mlbl');
-      if(b){b.classList.add('rec');b.innerHTML='&#9209;&#65038;';}
+      if(b){b.classList.add('rec');b.innerHTML='&#9209;&#65039;';}
       if(l)l.textContent='Recording... tap to stop';
       var t=document.getElementById('tbox');
       if(t)t.innerHTML='<span class="ph">Listening...</span>';
@@ -464,7 +464,7 @@ function togglePlayRec(btn){
   }
   if(window._recUrl){
     window._recAudio=new Audio(window._recUrl);
-    btn.innerHTML='&#9209;&#65038;';btn.classList.add('playing');
+    btn.innerHTML='&#9209;&#65039;';btn.classList.add('playing');
     window._recAudio.play();
     window._recAudio.onended=function(){btn.innerHTML='&#9654;';btn.classList.remove('playing');};
   }
@@ -638,13 +638,13 @@ function renderMC(){
 function mcSpeak(btn){
   if(mcAudio&&!mcAudio.paused){mcAudio.pause();mcAudio=null;btn.innerHTML='&#128266;';return;}
   var q=MCQS[mcCur];
-  btn.innerHTML='&#9203;&#65038;';btn.style.opacity='0.6';
+  btn.innerHTML='&#9203;&#65039;';btn.style.opacity='0.6';
   fetch(W+'/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:q.question})})
     .then(function(r){return r.blob();})
     .then(function(b){
       var url=URL.createObjectURL(b);
       mcAudio=new Audio(url);
-      btn.innerHTML='&#9209;&#65038;';btn.style.opacity='1';
+      btn.innerHTML='&#9209;&#65039;';btn.style.opacity='1';
       mcAudio.play();
       mcAudio.onended=function(){mcAudio=null;btn.innerHTML='&#128266;';URL.revokeObjectURL(url);};
     }).catch(function(){btn.innerHTML='&#128266;';btn.style.opacity='1';});
@@ -660,7 +660,7 @@ function mcStartRec(){
       mcMr.ondataavailable=function(e){if(e.data&&e.data.size>0)mcChunks.push(e.data);};
       mcMr.start(250);mcRec=true;
       var b=document.getElementById('mcMicBtn'),l=document.getElementById('mcMicLbl');
-      if(b){b.classList.add('rec');b.innerHTML='&#9209;&#65038;';}
+      if(b){b.classList.add('rec');b.innerHTML='&#9209;&#65039;';}
       if(l)l.textContent='Recording... tap to stop';
       var t=document.getElementById('mcTbox');if(t)t.innerHTML='<span class="ph">Listening...</span>';
       window._transcript='';
@@ -1261,7 +1261,7 @@ function speakCoach(btn){
   // If already cached, play instantly
   if(window._coachAudioUrl){
     window._coachAudio=new Audio(window._coachAudioUrl);
-    btn.innerHTML='&#9209;&#65038;';btn.classList.add('playing');
+    btn.innerHTML='&#9209;&#65039;';btn.classList.add('playing');
     window._coachAudio.play();
     window._coachAudio.onended=function(){
       window._coachAudio=null;
@@ -1272,7 +1272,7 @@ function speakCoach(btn){
   }
   // Fetch from ElevenLabs
   btn._fetching=true;
-  btn.innerHTML='&#9203;&#65038;';btn.classList.add('loading');btn.style.opacity='0.7';
+  btn.innerHTML='&#9203;&#65039;';btn.classList.add('loading');btn.style.opacity='0.7';
   fetch(W+'/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:window._coachText,lang:'pt'})})
     .then(function(r){if(!r.ok)throw new Error(r.status);return r.blob();})
     .then(function(b){
@@ -1280,7 +1280,7 @@ function speakCoach(btn){
       var url=URL.createObjectURL(b);
       window._coachAudioUrl=url;// Cache it
       window._coachAudio=new Audio(url);
-      btn.innerHTML='&#9209;&#65038;';btn.classList.remove('loading');btn.classList.add('playing');
+      btn.innerHTML='&#9209;&#65039;';btn.classList.remove('loading');btn.classList.add('playing');
       window._coachAudio.play();
       window._coachAudio.onended=function(){
         window._coachAudio=null;
