@@ -938,7 +938,7 @@ function emmaCallClaude(sysPrompt,cb){
 function emmaSpeak(text,retry){
   var status=document.getElementById('emmaStatus');
   if(status)status.textContent='Emma is speaking...';
-  fetch(W+'/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text,voice:'emma'})})
+  fetch(W+'/emma-speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text})})
     .then(function(r){if(!r.ok)throw new Error(r.status);return r.blob();})
     .then(function(b){
       var url=URL.createObjectURL(b);
