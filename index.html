@@ -911,13 +911,6 @@ function emmaStartConvo(){
     '6) Never use bullet points or formal language. '+
     '7) Start by introducing yourself briefly, then immediately ask about their work, daily routine, or what their day has been like — make it feel like catching up with a friend.';
   emmaHistory=[{role:'user',content:'[Start the conversation - introduce yourself and begin]'}];
-  // Pre-acquire mic on mobile to keep stream alive between turns
-  var isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  if(isMobile&&!window._emmaMicStream){
-    navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
-      window._emmaMicStream=stream;
-    }).catch(function(){});
-  }
   emmaCallClaude(sysPrompt,function(text){
     emmaHistory.push({role:'assistant',content:text});
     emmaAddBubble('emma',text);
@@ -959,6 +952,9 @@ function emmaSpeak(text,retry){
       window._emmaAudioUrl=url;
       el.src=url;
       function done(){
+        // Kill old SR instance — iOS SR dies during audio playback, must recreate fresh
+        if(window._emmaSR){try{window._emmaSR.onend=null;window._emmaSR.onerror=null;window._emmaSR.stop();}catch(e){}}
+        window._emmaSR=null;
         var s=document.getElementById('emmaStatus');if(s)s.textContent='Your turn — tap to speak';
         var btn=document.getElementById('emmaMicBtn');if(btn){btn.disabled=false;btn.style.opacity='1';}
       }
@@ -1210,8 +1206,6 @@ function downloadReport(){
 function emmaEnd(){
   if(emmaAudio){emmaAudio.pause();emmaAudio=null;}
   if(emmaRec)emmaStopRec();
-  // Release held mic stream on mobile
-  if(window._emmaMicStream){window._emmaMicStream.getTracks().forEach(function(t){t.stop();});window._emmaMicStream=null;}
   var history=emmaHistory.slice();
   emmaHistory=[];
   var area=document.getElementById('area');
