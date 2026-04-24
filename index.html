@@ -1032,66 +1032,65 @@ function emmaAddBubble(who,text){
 }
 
 function emmaToggleRec(){
-  if(window._emmaSendTimer){clearInterval(window._emmaSendTimer);window._emmaSendTimer=null;window._emmaTranscript='';var s=document.getElementById('emmaStatus');if(s)s.textContent='Recording cancelled. Tap to try again.';}
   emmaRec?emmaStopRec():emmaStartRec();
 }
 
 function emmaStartRec(){
   var btn=document.getElementById('emmaMicBtn');
   var status=document.getElementById('emmaStatus');
-  if(window._emmaSR){try{window._emmaSR.onend=null;window._emmaSR.onerror=null;window._emmaSR.stop();}catch(e){}}
-  window._emmaSR=null;
-  window._emmaTranscript='';
   navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
     emmaChunks=[];
     var mt2=mime();
     emmaMr=new MediaRecorder(stream,mt2?{mimeType:mt2}:{});
     emmaMr.ondataavailable=function(e){if(e.data&&e.data.size>0)emmaChunks.push(e.data);};
-    emmaMr.start(250);emmaRec=true;
+    emmaMr.start(250);
+    emmaRec=true;
     if(btn){btn.classList.add('rec');btn.innerHTML='<span class="stop-sq"></span> Stop speaking';}
-    if(status)status.textContent='Listening...';
-    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(SR){try{
-      window._emmaSR=new SR();
-      window._emmaSR.continuous=true;window._emmaSR.interimResults=true;window._emmaSR.lang='en-US';
-      window._emmaSR.onresult=function(e){
-        var final='',interim='';
-        for(var i=e.resultIndex;i<e.results.length;i++){
-          if(e.results[i].isFinal)final+=e.results[i][0].transcript;
-          else interim+=e.results[i][0].transcript;
-        }
-        window._emmaTranscript=(window._emmaTranscript||'')+final;
-        if(status)status.textContent='Listening: '+(window._emmaTranscript||interim||'...');
-      };
-      window._emmaSR.onerror=function(){};
-      window._emmaSR.onend=function(){if(emmaRec&&window._emmaSR){try{window._emmaSR.start();}catch(e){}}};
-      window._emmaSR.start();
-    }catch(e){}}
+    if(status)status.textContent='Listening... tap stop when done';
   }).catch(function(e){if(status)status.textContent='Mic error: '+e.message;});
 }
 
 function emmaStopRec(){
-  if(!emmaMr)return;
+  if(!emmaMr||!emmaRec)return;
   emmaRec=false;
-  if(window._emmaSR){try{window._emmaSR.onend=null;window._emmaSR.onerror=null;window._emmaSR.stop();}catch(e){}}
-  window._emmaSR=null;
-  emmaMr.stop();emmaMr.stream.getTracks().forEach(function(t){t.stop();});
+  emmaMr.stop();
+  emmaMr.stream.getTracks().forEach(function(t){t.stop();});
   var btn=document.getElementById('emmaMicBtn');
   var status=document.getElementById('emmaStatus');
   if(btn){btn.classList.remove('rec');btn.innerHTML='&#127908; Tap to speak';btn.disabled=true;btn.style.opacity='0.5';}
-  if(status)status.textContent='Processing...';
+  if(status)status.textContent='Transcribing...';
   emmaMr.onstop=function(){
-    setTimeout(function(){
-      var transcript=window._emmaTranscript||'';
-      if(!transcript){
-        if(btn){btn.disabled=false;btn.style.opacity='1';}
-        if(status)status.textContent='Could not hear you. Try again.';
-        return;
-      }
+    var mt2=emmaMr.mimeType||'audio/webm';
+    var blob=new Blob(emmaChunks,{type:mt2});
+    if(blob.size<1000){
       if(btn){btn.disabled=false;btn.style.opacity='1';}
-      if(status)status.textContent='Heard: "'+transcript.slice(0,40)+(transcript.length>40?'...':'')+'"';
-      emmaSubmit(transcript);
-    },300);
+      if(status)status.textContent='Could not hear you. Tap to try again.';
+      return;
+    }
+    var reader=new FileReader();
+    reader.onloadend=function(){
+      var b64=reader.result.split(',')[1];
+      fetch(W+'/transcribe',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({audio:b64,mimeType:mt2})
+      })
+      .then(function(r){return r.json();})
+      .then(function(d){
+        var transcript=(d.text||'').trim();
+        if(!transcript){
+          if(btn){btn.disabled=false;btn.style.opacity='1';}
+          if(status)status.textContent='Could not hear you. Tap to try again.';
+          return;
+        }
+        emmaSubmit(transcript);
+      })
+      .catch(function(){
+        if(btn){btn.disabled=false;btn.style.opacity='1';}
+        if(status)status.textContent='Error. Tap to try again.';
+      });
+    };
+    reader.readAsDataURL(blob);
   };
 }
 
