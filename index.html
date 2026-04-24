@@ -289,6 +289,38 @@ var emmaHistory=[];var emmaAudio=null;var emmaRec=false;var emmaMr=null;var emma
 var scores=JSON.parse(localStorage.getItem('ps')||'{}');
 var cur=0,mr=null,chunks=[],rec=false,laudio=null,mt='';
 
+// Audio cache for pronunciation tab — preloaded when tab opens
+var _sentAudioCache={};
+var _sentAudioLoading={};
+
+function preloadSentenceAudio(){
+  _sentAudioCache={};
+  _sentAudioLoading={};
+  SENTS.forEach(function(s,i){
+    _sentAudioLoading[i]=true;
+    fetch(W+'/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:s})})
+      .then(function(r){if(!r.ok)throw new Error(r.status);return r.blob();})
+      .then(function(b){_sentAudioCache[i]=URL.createObjectURL(b);_sentAudioLoading[i]=false;})
+      .catch(function(){_sentAudioLoading[i]=false;});
+  });
+}
+
+// Audio cache for speaking tab — preloaded when tab opens
+var _mcAudioCache={};
+var _mcAudioLoading={};
+
+function preloadMCAudio(){
+  _mcAudioCache={};
+  _mcAudioLoading={};
+  MCQS.forEach(function(q,i){
+    _mcAudioLoading[i]=true;
+    fetch(W+'/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:q.question})})
+      .then(function(r){if(!r.ok)throw new Error(r.status);return r.blob();})
+      .then(function(b){_mcAudioCache[i]=URL.createObjectURL(b);_mcAudioLoading[i]=false;})
+      .catch(function(){_mcAudioLoading[i]=false;});
+  });
+}
+
 function mime(){
   var t=['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg'];
   for(var i=0;i<t.length;i++) if(typeof MediaRecorder!=='undefined'&&MediaRecorder.isTypeSupported(t[i])) return t[i];
@@ -315,8 +347,8 @@ function renderModeTabs(){
 }
 function switchMode(m){
   appMode=m;
-  if(m==='sentences') render();
-  else if(m==='mc') renderMC();
+  if(m==='sentences'){preloadSentenceAudio();render();}
+  else if(m==='mc'){preloadMCAudio();renderMC();}
   else renderEmma();
 }
 function render(){
@@ -356,11 +388,22 @@ function doSpeak(){
   var btn=document.getElementById('lbtn');
   if(!btn)return;
   if(laudio){laudio.pause();laudio=null;btn.innerHTML='&#128266;';btn.classList.remove('sp');btn.style.opacity='1';return;}
+  // Use cached audio if available
+  if(_sentAudioCache[cur]){
+    var url=_sentAudioCache[cur];
+    laudio=new Audio(url);
+    btn.innerHTML='<span class="stop-sq"></span>';btn.style.opacity='1';btn.classList.add('sp');
+    laudio.play();
+    laudio.onended=function(){laudio=null;var b2=document.getElementById('lbtn');if(b2){b2.innerHTML='&#128266;';b2.classList.remove('sp');}};
+    return;
+  }
+  // Fallback: fetch if not cached yet
   btn.innerHTML='&#9203;&#65039;';btn.style.opacity='0.6';
   fetch(W+'/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:SENTS[cur]})})
     .then(function(r){if(!r.ok)throw new Error(r.status);return r.blob();})
     .then(function(b){
       var url=URL.createObjectURL(b);
+      _sentAudioCache[cur]=url;
       laudio=new Audio(url);
       btn.innerHTML='<span class="stop-sq"></span>';btn.style.opacity='1';btn.classList.add('sp');
       laudio.play();
@@ -639,12 +682,23 @@ function renderMC(){
 
 function mcSpeak(btn){
   if(mcAudio&&!mcAudio.paused){mcAudio.pause();mcAudio=null;btn.innerHTML='&#128266;';return;}
+  // Use cached audio if available
+  if(_mcAudioCache[mcCur]){
+    var url=_mcAudioCache[mcCur];
+    mcAudio=new Audio(url);
+    btn.innerHTML='<span class="stop-sq"></span>';btn.style.opacity='1';
+    mcAudio.play();
+    mcAudio.onended=function(){mcAudio=null;btn.innerHTML='&#128266;';};
+    return;
+  }
+  // Fallback: fetch if not cached yet
   var q=MCQS[mcCur];
   btn.innerHTML='&#9203;&#65039;';btn.style.opacity='0.6';
   fetch(W+'/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:q.question})})
     .then(function(r){return r.blob();})
     .then(function(b){
       var url=URL.createObjectURL(b);
+      _mcAudioCache[mcCur]=url;
       mcAudio=new Audio(url);
       btn.innerHTML='<span class="stop-sq"></span>';btn.style.opacity='1';
       mcAudio.play();
@@ -940,21 +994,21 @@ function emmaCallClaude(sysPrompt,cb){
 // Single reusable audio element for Emma — fixes iOS mobile audio after first turn
 if(!window._emmaAudioEl){window._emmaAudioEl=new Audio();window._emmaAudioEl.preload='auto';}
 
-function emmaSpeak(text){
+function emmaSpeak(text,retry){
   var status=document.getElementById('emmaStatus');
   if(status)status.textContent='Emma is speaking...';
-  var el=window._emmaAudioEl;
   fetch(W+'/emma-speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text})})
-    .then(function(r){
-      if(!r.ok)throw new Error(r.status);
-      return r.blob();
-    })
+    .then(function(r){if(!r.ok)throw new Error(r.status);return r.blob();})
     .then(function(b){
       var url=URL.createObjectURL(b);
+      var el=window._emmaAudioEl;
       if(window._emmaAudioUrl){URL.revokeObjectURL(window._emmaAudioUrl);}
       window._emmaAudioUrl=url;
       el.src=url;
       function done(){
+        // Kill old SR instance — iOS SR dies during audio playback, must recreate fresh
+        if(window._emmaSR){try{window._emmaSR.onend=null;window._emmaSR.onerror=null;window._emmaSR.stop();}catch(e){}}
+        window._emmaSR=null;
         var s=document.getElementById('emmaStatus');if(s)s.textContent='Your turn — tap to speak';
         var btn=document.getElementById('emmaMicBtn');if(btn){btn.disabled=false;btn.style.opacity='1';}
       }
@@ -978,65 +1032,75 @@ function emmaAddBubble(who,text){
 }
 
 function emmaToggleRec(){
+  if(window._emmaSendTimer){clearInterval(window._emmaSendTimer);window._emmaSendTimer=null;window._emmaTranscript='';var s=document.getElementById('emmaStatus');if(s)s.textContent='Recording cancelled. Tap to try again.';}
   emmaRec?emmaStopRec():emmaStartRec();
 }
 
 function emmaStartRec(){
   var btn=document.getElementById('emmaMicBtn');
   var status=document.getElementById('emmaStatus');
+  if(window._emmaSR){try{window._emmaSR.onend=null;window._emmaSR.onerror=null;window._emmaSR.stop();}catch(e){}}
+  window._emmaSR=null;
+  window._emmaTranscript='';
   navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
     emmaChunks=[];
     var mt2=mime();
     emmaMr=new MediaRecorder(stream,mt2?{mimeType:mt2}:{});
     emmaMr.ondataavailable=function(e){if(e.data&&e.data.size>0)emmaChunks.push(e.data);};
-    emmaMr.start(250);
-    emmaRec=true;
+    emmaMr.start(250);emmaRec=true;
     if(btn){btn.classList.add('rec');btn.innerHTML='<span class="stop-sq"></span> Stop speaking';}
-    if(status)status.textContent='Listening... tap stop when done';
+    if(status)status.textContent='Listening...';
+    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(SR){try{
+      window._emmaSR=new SR();
+      window._emmaSR.continuous=true;window._emmaSR.interimResults=true;window._emmaSR.lang='en-US';
+      window._emmaSR.onresult=function(e){
+        var final='',interim='';
+        for(var i=e.resultIndex;i<e.results.length;i++){
+          if(e.results[i].isFinal)final+=e.results[i][0].transcript;
+          else interim+=e.results[i][0].transcript;
+        }
+        window._emmaTranscript=(window._emmaTranscript||'')+final;
+        if(status)status.textContent='Listening: '+(window._emmaTranscript||interim||'...');
+      };
+      window._emmaSR.onerror=function(){};
+      window._emmaSR.onend=function(){if(emmaRec&&window._emmaSR){try{window._emmaSR.start();}catch(e){}}};
+      window._emmaSR.start();
+    }catch(e){}}
   }).catch(function(e){if(status)status.textContent='Mic error: '+e.message;});
 }
 
 function emmaStopRec(){
-  if(!emmaMr||!emmaRec)return;
+  if(!emmaMr)return;
   emmaRec=false;
-  emmaMr.stop();
-  emmaMr.stream.getTracks().forEach(function(t){t.stop();});
+  if(window._emmaSR){try{window._emmaSR.onend=null;window._emmaSR.onerror=null;window._emmaSR.stop();}catch(e){}}
+  window._emmaSR=null;
+  emmaMr.stop();emmaMr.stream.getTracks().forEach(function(t){t.stop();});
   var btn=document.getElementById('emmaMicBtn');
   var status=document.getElementById('emmaStatus');
   if(btn){btn.classList.remove('rec');btn.innerHTML='&#127908; Tap to speak';btn.disabled=true;btn.style.opacity='0.5';}
-  if(status)status.textContent='Transcribing...';
+  if(status)status.textContent='Processing...';
   emmaMr.onstop=function(){
-    var mt2=emmaMr.mimeType||'audio/webm';
-    var blob=new Blob(emmaChunks,{type:mt2});
-    if(blob.size<1000){
-      if(btn){btn.disabled=false;btn.style.opacity='1';}
-      if(status)status.textContent='Could not hear you. Tap to try again.';
-      return;
-    }
-    var reader=new FileReader();
-    reader.onloadend=function(){
-      var b64=reader.result.split(',')[1];
-      fetch(W+'/transcribe',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({audio:b64,mimeType:mt2})
-      })
-      .then(function(r){return r.json();})
-      .then(function(d){
-        var transcript=(d.text||'').trim();
-        if(!transcript){
-          if(btn){btn.disabled=false;btn.style.opacity='1';}
-          if(status)status.textContent='Could not hear you. Tap to try again.';
-          return;
-        }
-        emmaSubmit(transcript);
-      })
-      .catch(function(){
+    setTimeout(function(){
+      var transcript=window._emmaTranscript||'';
+      if(!transcript){
         if(btn){btn.disabled=false;btn.style.opacity='1';}
-        if(status)status.textContent='Error. Tap to try again.';
-      });
-    };
-    reader.readAsDataURL(blob);
+        if(status)status.textContent='Could not hear you. Try again.';
+        return;
+      }
+      if(btn){btn.disabled=false;btn.style.opacity='1';}
+      var count=1;
+      if(status)status.textContent='Heard: "'+transcript.slice(0,40)+(transcript.length>40?'...':'')+'" — sending in '+count+'...';
+      window._emmaSendTimer=setInterval(function(){
+        count--;
+        if(count>0){
+          if(status)status.textContent='Heard: "'+transcript.slice(0,40)+(transcript.length>40?'...':'')+'" — sending in '+count+'...';
+        } else {
+          clearInterval(window._emmaSendTimer);
+          emmaSubmit(transcript);
+        }
+      },750);
+    },300);
   };
 }
 
@@ -1046,6 +1110,7 @@ function emmaSubmit(transcript){
   if(btn){btn.disabled=true;btn.style.opacity='0.5';}
   emmaAddBubble('student',transcript);
   emmaHistory.push({role:'user',content:transcript});
+  window._emmaTranscript='';
   if(status)status.textContent='Emma is thinking...';
   var sysPrompt='You are Emma, a friendly American English conversation coach having a natural spoken conversation with a Brazilian student. Topic: '+emmaTopic+'. Speak like a real person — use natural fillers like "um", "well", "you know", "hmm", "I mean", "actually". Keep responses VERY SHORT — 1 sentence, 2 max. If the student makes a grammar mistake, naturally use the correct form in your reply without pointing it out. Ask one question to keep the conversation flowing. Never use bullet points or formal language. Be warm, genuine and encouraging.';
   emmaCallClaude(sysPrompt,function(text){
@@ -1697,8 +1762,8 @@ if(navigator.permissions&&navigator.permissions.query){
   }).catch(function(){});
 }
 
-fetch(W+'/sentences').then(function(r){return r.json();}).then(function(d){if(Array.isArray(d)&&d.length>0){SENTS.length=0;d.forEach(function(s){SENTS.push(s);});render();}}).catch(function(){});
-fetch(W+'/mc').then(function(r){return r.json();}).then(function(d){if(Array.isArray(d)&&d.length>0){MCQS=d;}}).catch(function(){});
+fetch(W+'/sentences').then(function(r){return r.json();}).then(function(d){if(Array.isArray(d)&&d.length>0){SENTS.length=0;d.forEach(function(s){SENTS.push(s);});render();preloadSentenceAudio();}}).catch(function(){});
+fetch(W+'/mc').then(function(r){return r.json();}).then(function(d){if(Array.isArray(d)&&d.length>0){MCQS=d;preloadMCAudio();}}).catch(function(){});
 render();
 </script>
 <div class="wpop" id="wpop" onclick="closeWordPopup(event)"><div class="wpop-box" id="wpopBox"></div></div>
