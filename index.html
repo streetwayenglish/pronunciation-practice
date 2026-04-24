@@ -1089,17 +1089,8 @@ function emmaStopRec(){
         return;
       }
       if(btn){btn.disabled=false;btn.style.opacity='1';}
-      var count=1;
-      if(status)status.textContent='Heard: "'+transcript.slice(0,40)+(transcript.length>40?'...':'')+'" — sending in '+count+'...';
-      window._emmaSendTimer=setInterval(function(){
-        count--;
-        if(count>0){
-          if(status)status.textContent='Heard: "'+transcript.slice(0,40)+(transcript.length>40?'...':'')+'" — sending in '+count+'...';
-        } else {
-          clearInterval(window._emmaSendTimer);
-          emmaSubmit(transcript);
-        }
-      },750);
+      if(status)status.textContent='Heard: "'+transcript.slice(0,40)+(transcript.length>40?'...':'')+'"';
+      emmaSubmit(transcript);
     },300);
   };
 }
