@@ -989,8 +989,8 @@ function renderEmma(){
   // Unlock on first click (iOS) and start convo
   document.body.addEventListener('click',function _init(){
     document.body.removeEventListener('click',_init);
+    window._vidIdle.currentTime=0;
     window._vidIdle.play().catch(function(){});
-    window._vidSpeaking.play().catch(function(){});
     if(emmaHistory.length===0) emmaStartConvo();
   },{once:true});
   if(emmaHistory.length>0){
@@ -1008,8 +1008,8 @@ function renderEmma(){
     var btn=document.getElementById('emmaMicBtn');
     if(btn){btn.disabled=false;btn.style.opacity='1';}
     // Re-init videos on re-render
+    window._vidIdle.currentTime=0;
     window._vidIdle.play().catch(function(){});
-    window._vidSpeaking.play().catch(function(){});
     emmaSyncVideoState();
   }
 }
@@ -1056,6 +1056,8 @@ function emmaStateIdle(){
   if(!wrap||!vidIdle)return;
   window._emmaTransitioning=false;
   if(vidTransition){vidTransition.onended=null;vidTransition.pause();}
+  if(vidSpeaking){vidSpeaking.pause();vidSpeaking.currentTime=0;}
+  if(vidIdle){vidIdle.currentTime=0;vidIdle.play().catch(function(){});}
   if(vidIdle)vidIdle.style.opacity='1';
   if(vidTransition)vidTransition.style.opacity='0';
   if(vidSpeaking)vidSpeaking.style.opacity='0';
