@@ -673,7 +673,7 @@ function doAnalyze(){
           '</div>'+
           '<div class="hr"></div>'+
           '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'+
-            '<div class="fbt" style="margin-bottom:0">Coach de IA</div>'+
+            '<div class="fbt" style="margin-bottom:0">Coach of IA</div>'+
             '<button class="coach-audio-btn" id="coachAudioBtn" onclick="speakCoach(this)" title="Ouvir feedback">&#128266;</button>'+
           '</div>'+
           '<div class="coach-wrap">'+coachHtml+'</div>'+
@@ -1295,7 +1295,7 @@ function emmaSubmit(transcript){
   var sysPrompt='You are Emma, a friendly American English conversation coach having a natural spoken conversation with a Brazilian student. Topic: '+emmaTopic+'. '+
     'IMPORTANT: Respond ONLY with a JSON object, no markdown, no backticks. Format: {"correction":{"original":"exact wrong phrase the student said","fixed":"the correct version"},"reply":"your conversational reply"} '+
     'If the student made NO grammar or vocabulary mistake, set correction to null: {"correction":null,"reply":"your reply"} '+
-    'Rules for correction: Only correct clear grammar/vocabulary errors (wrong tense, wrong verb form, wrong preposition, wrong word). Do NOT correct pronunciation or minor word choice. Be warm — start the reply naturally after correcting. '+
+    'Rules for correction: The transcript is literal — treat it exactly as written, do not assume the student meant something else. Correct clear grammar/vocabulary errors (wrong tense, wrong verb form, wrong preposition, wrong word). Do NOT correct pronunciation or minor word choice. Be warm — start the reply naturally after correcting. '+
     'Rules for reply: 1-2 sentences max. Ask one question to keep conversation going. Be natural and friendly. Never use bullet points.';
   emmaCallClaude(sysPrompt,function(raw){
     var parsed;
@@ -1367,20 +1367,20 @@ function downloadReport(){
       '.footer{margin-top:32px;padding-top:14px;border-top:1px solid #e8e8e8;font-size:11px;color:#bbb;text-align:center;}'+
       '.print-btn{display:block;margin:0 auto 24px;padding:10px 24px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;}'+
     '</style></head><body>'+
-    '<button class="print-btn no-print" onclick="window.print()">&#128438; Save as PDF</button>'+
+    '<button class="print-btn no-print" onclick="window.print()">&#128438; Salvar como PDF</button>'+
     '<h1>Street Way English</h1>'+
     '<h2>'+r.headline+'</h2>'+
-    '<div class="date">Conversation Report — '+date+'</div>'+
+    '<div class="date">Relatório of Conversa — '+date+'</div>'+
     '<div class="score-box">'+
       '<div class="score-circle">'+r.score+'</div>'+
       '<div>'+
-        '<div style="font-size:14px;font-weight:600;margin-bottom:3px;">Overall Performance</div>'+
+        '<div style="font-size:14px;font-weight:600;margin-bottom:3px;">Desempenho geral</div>'+
         '<div style="font-size:13px;color:#666;">'+r.summary+'</div>'+
       '</div>'+
     '</div>'+
-    '<div class="section"><div class="section-label">Common Mistakes</div>'+mistakesHtml+'</div>'+
-    '<div class="section"><div class="section-label">Focus On</div>'+improvementsHtml+'</div>'+
-    '<div class="section positive"><div class="section-label" style="color:#2d7a3a;margin-bottom:6px;">Well Done</div><p>'+r.positive+'</p></div>'+
+    '<div class="section"><div class="section-label">Erros Comuns</div>'+mistakesHtml+'</div>'+
+    '<div class="section"><div class="section-label">Foque Nisso</div>'+improvementsHtml+'</div>'+
+    '<div class="section positive"><div class="section-label" style="color:#2d7a3a;margin-bottom:6px;">Muito Bem</div><p>'+r.positive+'</p></div>'+
     '<div class="footer">Street Way English &bull; Emma AI Coach</div>'+
   '</body></html>';
   _openPrintWindow(html,'emma-report');
@@ -1416,7 +1416,7 @@ function downloadTranscript(){
       '.print-btn{display:block;width:100%;padding:12px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:14px;cursor:pointer;margin-bottom:28px;font-weight:600;}'+
       '.footer{margin-top:32px;padding-top:14px;border-top:1px solid #e8e8e8;font-size:11px;color:#bbb;text-align:center;}'+
     '<\/style><\/head><body>'+
-    '<button class="print-btn no-print" onclick="window.print()">📄 Save as PDF<\/button>'+
+    '<button class="print-btn no-print" onclick="window.print()">📄 Salvar como PDF<\/button>'+
     '<h1>Street Way English<\/h1>'+
     '<h2>Conversation Transcript<\/h2>'+
     '<div class="meta">Topic: '+topic+' &bull; '+date+'<\/div>'+
@@ -1537,7 +1537,7 @@ function downloadExercises(){
         if(chosen>=0){lockQuestion(qi,chosen,exercises[qi].answer);interimText='';return;}
       }
       activeRec=null;interimText='';
-      if(!answered[qi]&&hint)hint.textContent='Could not match — try again or tap an option';
+      if(!answered[qi]&&hint)hint.textContent='Could not match — tente of novo ou toque numa opção';
     };
     try{rec.start();}catch(e){
       showStop(qi,false);activeRec=null;
@@ -1592,7 +1592,7 @@ function downloadExercises(){
     '</div>';
   });
 
-  html+='<button class="ab" onclick="renderEmma()" style="margin-top:4px;margin-bottom:24px;">Start new conversation</button></div>';
+  html+='<button class="ab" onclick="renderEmma()" style="margin-top:4px;margin-bottom:24px;">Nova conversa</button></div>';
 
   area.innerHTML=html;
 
@@ -1616,15 +1616,15 @@ function emmaEnd(){
   var area=document.getElementById('area');
   area.innerHTML=renderModeTabs()+
     '<div class="card" style="text-align:center;padding:3rem 2rem;">'+
-      '<div style="font-size:13px;color:var(--g400);margin-bottom:8px;">Generating your report...</div>'+
-      '<div style="font-size:16px;font-weight:600;color:var(--yellow);animation:fade 1.5s ease-in-out infinite;">Analyzing conversation...</div>'+
+      '<div style="font-size:13px;color:var(--g400);margin-bottom:8px;">Gerando seu relatório...</div>'+
+      '<div style="font-size:16px;font-weight:600;color:var(--yellow);animation:fade 1.5s ease-in-out infinite;">Analisando a conversa...</div>'+
     '</div>';
   if(history.length<3){
     area.innerHTML=renderModeTabs()+
       '<div class="card" style="text-align:center;padding:3rem 2rem;">'+
         '<div style="font-size:40px;margin-bottom:1rem;">&#128075;</div>'+
-        '<div style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:8px;">Conversation ended</div>'+
-        '<div style="font-size:13px;color:var(--g400);margin-bottom:2rem;">Have a longer conversation to get your report!</div>'+
+        '<div style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:8px;">Conversa encerrada</div>'+
+        '<div style="font-size:13px;color:var(--g400);margin-bottom:2rem;">Tenha uma conversa mais longa para gerar o relatório!</div>'+
         '<button class="ab" onclick="renderEmma()">Try again</button>'+
       '</div>';
     return;
@@ -1634,8 +1634,8 @@ function emmaEnd(){
   window._lastTopic=emmaTopic;
   var reportPrompt='Analyze this English conversation between a Brazilian student and coach Emma. Conversation: '+convoText+' '+
     'Respond ONLY with a single JSON object, no markdown, no backticks. Format: '+
-    '{"headline":"short encouraging title","score":"A/B/C/D","summary":"one sentence assessment",'+
-    '"mistakes":[{"title":"mistake name","detail":"specific example from conversation + correction"}],'+
+    '{"headline":"título encorajador curto em português","score":"A/B/C/D","summary":"uma frase of avaliação em português",'+
+    '"mistakes":[{"title":"nome do erro em português","detail":"exemplo específico da conversa + correção, manter frases em inglês como estão"},]'+
     '"improvements":[{"title":"focus area","detail":"specific actionable advice"}],'+
     '"positive":"what the student did well",'+
     '"exercises":[{"question":"complete the sentence / choose the correct form","options":["opt A","opt B","opt C","opt D"],"answer":0,"tip":"brief grammar explanation"}]}'+
@@ -1643,7 +1643,7 @@ function emmaEnd(){
   fetch(W+'/emma-chat',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({system:'You are an English coach. Respond ONLY with valid JSON, nothing else.',messages:[{role:'user',content:reportPrompt}],topic:'report',max_tokens:1400})
+    body:JSON.stringify({system:'You are an English coach writing a report for a Brazilian student. Respond ONLY with valid JSON, nothing else. Write ALL text fields in Brazilian Portuguese, EXCEPT: keep any English words, phrases, or sentences used as examples exactly in English (do not translate them). This includes the headline, summary, mistake titles, mistake details, improvement titles, improvement details, and the positive field.',messages:[{role:'user',content:reportPrompt}],topic:'report',max_tokens:1400})
   })
   .then(function(r){return r.json();})
   .then(function(d){
@@ -1672,18 +1672,18 @@ function emmaEnd(){
           '</div>'+
         '</div>'+
         '<div style="margin-bottom:18px;">'+
-          '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#aaa;margin-bottom:10px;">Common mistakes</div>'+
+          '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#aaa;margin-bottom:10px;">Erros comuns</div>'+
           mistakesHtml+
         '</div>'+
         '<div style="margin-bottom:18px;">'+
-          '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#aaa;margin-bottom:10px;">Focus on</div>'+
+          '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#aaa;margin-bottom:10px;">Foque nisso</div>'+
           improvementsHtml+
         '</div>'+
         '<div style="padding-left:12px;border-left:2.5px solid #2d7a3a;margin-bottom:20px;">'+
-          '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#2d7a3a;margin-bottom:4px;">Well done</div>'+
+          '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#2d7a3a;margin-bottom:4px;">Muito bem</div>'+
           '<div style="font-size:13px;color:#555;line-height:1.55;">'+r.positive+'</div>'+
         '</div>'+
-        '<button class="ab" onclick="renderEmma()" style="margin-bottom:10px;">Start new conversation</button>'+
+        '<button class="ab" onclick="renderEmma()" style="margin-bottom:10px;">Nova conversa</button>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px;">'+
           '<button class="ab" style="background:#0a0a0a;color:#fafaf8;font-size:12px;padding:10px 6px;" onclick="downloadReport()">&#128196; Report</button>'+
           '<button class="ab" style="background:#0a0a0a;color:#fafaf8;font-size:12px;padding:10px 6px;" onclick="downloadTranscript()">&#128172; Transcript</button>'+
@@ -1695,9 +1695,9 @@ function emmaEnd(){
   .catch(function(){
     area.innerHTML=renderModeTabs()+
       '<div class="card" style="text-align:center;padding:3rem 2rem;">'+
-        '<div style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:8px;">Great conversation!</div>'+
-        '<div style="font-size:13px;color:var(--g400);margin-bottom:2rem;">Keep practicing every day.</div>'+
-        '<button class="ab" onclick="renderEmma()">Start new conversation</button>'+
+        '<div style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:8px;">Ótima conversa!</div>'+
+        '<div style="font-size:13px;color:var(--g400);margin-bottom:2rem;">Continue praticando todo dia.</div>'+
+        '<button class="ab" onclick="renderEmma()">Nova conversa</button>'+
       '</div>';
   });
 }
