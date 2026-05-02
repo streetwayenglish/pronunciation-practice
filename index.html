@@ -371,23 +371,23 @@ button{-webkit-appearance:none}
 
   /* LIVE badge — top left over video */
   body.tab-conversation .emma-live {
-    position: static;
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 20;
     margin: 0;
-    padding: 2px 7px;
-    background: transparent;
-    border: none;
-    display: inline-flex;
+    padding: 5px;
+    background: rgba(0,0,0,.4);
+    border: 1px solid rgba(76,175,80,.3);
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
   }
-  body.tab-conversation .emma-live-txt {
-    display: block;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: .06em;
-    color: #4caf50;
-  }
-  body.tab-conversation .emma-live-dot { width: 6px; height: 6px; }
+  body.tab-conversation .emma-live-txt { display: none; }
+  body.tab-conversation .emma-live-dot { width: 8px; height: 8px; flex-shrink: 0; }
 
   /* End button — bottom right of footer, ghost style */
   body.tab-conversation .emma-top .emma-end-top {
@@ -424,14 +424,17 @@ button{-webkit-appearance:none}
     display: none !important;
   }
 
-  /* Name — static inside identity row below video */
+  /* Name — bottom left of video */
   body.tab-conversation .emma-name {
-    position: static;
-    font-size: 18px;
+    position: absolute;
+    bottom: 14px;
+    left: 16px;
+    font-size: 22px;
     font-weight: 700;
     letter-spacing: -.01em;
     margin: 0;
-    text-shadow: none;
+    text-shadow: 0 2px 20px rgba(0,0,0,.9);
+    z-index: 10;
     line-height: 1;
   }
   body.tab-conversation .emma-role { display: none; }
@@ -1237,16 +1240,16 @@ function renderEmma(){
   // Unlock on first click (iOS) and start convo
   document.body.addEventListener('click',function _init(){
     document.body.removeEventListener('click',_init);
-    // Unlock idle video
+    // Play all videos inside gesture — keeps them running so opacity swap works
     window._vidIdle.currentTime=0;
     window._vidIdle.play().catch(function(){});
-    // Unlock speaking video — must happen inside gesture for iOS
     if(window._vidSpeaking){
       window._vidSpeaking.currentTime=0;
-      window._vidSpeaking.play().then(function(){
-        window._vidSpeaking.pause();
-        window._vidSpeaking.currentTime=0;
-      }).catch(function(){});
+      window._vidSpeaking.play().catch(function(){});
+    }
+    if(window._vidTransition){
+      window._vidTransition.currentTime=0;
+      window._vidTransition.play().catch(function(){});
     }
     // Unlock audio element — create it here inside gesture
     if(!window._emmaAudioEl){
@@ -1299,13 +1302,12 @@ function emmaStateSpeaking(){
   // On mobile skip transition video — direct crossfade to avoid iOS freeze
   var isMobile=window.innerWidth<=600;
   if(isMobile){
+    // Videos are already playing from first-tap unlock — just swap opacity
     vidSpeaking.currentTime=0;
     vidSpeaking.style.opacity='1';
     vidIdle.style.opacity='0';
     vidTransition.style.opacity='0';
     window._emmaTransitioning=false;
-    var sp=vidSpeaking.play();
-    if(sp&&sp.catch)sp.catch(function(){});
   } else {
     vidTransition.currentTime=0;
     vidTransition.play().catch(function(){});
@@ -1334,8 +1336,14 @@ function emmaStateIdle(){
   if(!wrap||!vidIdle)return;
   window._emmaTransitioning=false;
   if(vidTransition){vidTransition.onended=null;vidTransition.pause();}
-  if(vidSpeaking){vidSpeaking.pause();vidSpeaking.currentTime=0;}
-  if(vidIdle){vidIdle.currentTime=0;vidIdle.play().catch(function(){});}
+  if(window.innerWidth<=600){
+    // Mobile: videos always running, just swap opacity
+    if(vidSpeaking){vidSpeaking.style.opacity='0';}
+    if(vidIdle){vidIdle.currentTime=0;vidIdle.style.opacity='1';}
+  } else {
+    if(vidSpeaking){vidSpeaking.pause();vidSpeaking.currentTime=0;}
+    if(vidIdle){vidIdle.currentTime=0;vidIdle.play().catch(function(){});}
+  }
   if(vidIdle)vidIdle.style.opacity='1';
   if(vidTransition)vidTransition.style.opacity='0';
   if(vidSpeaking)vidSpeaking.style.opacity='0';
