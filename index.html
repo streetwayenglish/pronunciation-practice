@@ -309,10 +309,10 @@ button{-webkit-appearance:none}
   body.tab-conversation .main { padding: 0; }
   body.tab-conversation .pb { display: none; }
 
-  /* 1. Replace bg image with gradient on mobile */
+  /* 1. Card bg pure dark — gradient lives only in video fade */
   body.tab-conversation .emma-card {
     background-image: none;
-    background: linear-gradient(180deg, #1a1200 0%, #0a0800 60%, #050400 100%);
+    background: #050403;
   }
 
   /* 2. Disable glow animation on mobile */
@@ -344,6 +344,7 @@ button{-webkit-appearance:none}
     padding: 0;
     position: relative;
     flex-shrink: 0;
+    border-bottom: none !important;
   }
 
   /* Video — full width, taller on mobile */
@@ -363,8 +364,8 @@ button{-webkit-appearance:none}
     content: '';
     position: absolute;
     bottom: 0; left: 0; right: 0;
-    height: 55%;
-    background: linear-gradient(transparent, #120e05);
+    height: 20%;
+    background: linear-gradient(transparent 0%, rgba(5,4,3,.9) 80%, #050403 100%);
     pointer-events: none;
     z-index: 5;
   }
@@ -469,7 +470,7 @@ button{-webkit-appearance:none}
   /* Footer */
   body.tab-conversation .emma-footer {
     padding: 8px 14px 36px;
-    border-top: 1px solid rgba(255,255,255,.08);
+    border-top: none;
     flex-shrink: 0;
   }
   body.tab-conversation .emma-status { font-size: 10px; margin-bottom: 8px; }
@@ -1302,14 +1303,12 @@ function emmaStateSpeaking(){
   if(window._emmaTransitioning)return;
   window._emmaTransitioning=true;
   wrap.classList.add('speaking');
-  // On mobile skip transition video — direct crossfade to avoid iOS freeze
   var isMobile=window.innerWidth<=600;
   if(isMobile){
-    // Videos are already playing from first-tap unlock — just swap opacity
-    vidSpeaking.currentTime=0;
-    vidSpeaking.style.opacity='1';
-    vidIdle.style.opacity='0';
-    vidTransition.style.opacity='0';
+    // Mobile: opacity swap only — no play/pause/currentTime touches
+    if(vidSpeaking)vidSpeaking.style.opacity='1';
+    if(vidIdle)vidIdle.style.opacity='0';
+    if(vidTransition)vidTransition.style.opacity='0';
     window._emmaTransitioning=false;
   } else {
     vidTransition.currentTime=0;
@@ -1338,12 +1337,14 @@ function emmaStateIdle(){
   var vidSpeaking=window._vidSpeaking;
   if(!wrap||!vidIdle)return;
   window._emmaTransitioning=false;
-  if(vidTransition){vidTransition.onended=null;vidTransition.pause();}
   if(window.innerWidth<=600){
-    // Mobile: videos always running, just swap opacity
-    if(vidSpeaking){vidSpeaking.style.opacity='0';}
-    if(vidIdle){vidIdle.currentTime=0;vidIdle.style.opacity='1';}
+    // Mobile: opacity swap only — never pause or seek videos
+    if(vidSpeaking)vidSpeaking.style.opacity='0';
+    if(vidTransition)vidTransition.style.opacity='0';
+    if(vidIdle)vidIdle.style.opacity='1';
+    window._emmaTransitioning=false;
   } else {
+    if(vidTransition){vidTransition.onended=null;vidTransition.pause();}
     if(vidSpeaking){vidSpeaking.pause();vidSpeaking.currentTime=0;}
     if(vidIdle){vidIdle.currentTime=0;vidIdle.play().catch(function(){});}
   }
