@@ -371,25 +371,23 @@ button{-webkit-appearance:none}
 
   /* LIVE badge — top left over video */
   body.tab-conversation .emma-live {
-    position: absolute;
-    top: 14px;
-    left: 14px;
-    z-index: 20;
+    position: static;
     margin: 0;
-    padding: 6px;
-    background: rgba(0,0,0,.4);
-    border: 1px solid rgba(76,175,80,.3);
-    border-radius: 50%;
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    width: 24px;
-    height: 24px;
-    display: flex;
+    padding: 2px 7px;
+    background: transparent;
+    border: none;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
+    gap: 4px;
   }
-  body.tab-conversation .emma-live-txt { display: none; }
-  body.tab-conversation .emma-live-dot { width: 8px; height: 8px; }
+  body.tab-conversation .emma-live-txt {
+    display: block;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    color: #4caf50;
+  }
+  body.tab-conversation .emma-live-dot { width: 6px; height: 6px; }
 
   /* End button — bottom right of footer, ghost style */
   body.tab-conversation .emma-top .emma-end-top {
@@ -426,30 +424,17 @@ button{-webkit-appearance:none}
     display: none !important;
   }
 
-  /* Name — bottom left of video */
+  /* Name — static inside identity row below video */
   body.tab-conversation .emma-name {
-    position: absolute;
-    bottom: 30px;
-    left: 16px;
-    font-size: 22px;
+    position: static;
+    font-size: 18px;
     font-weight: 700;
     letter-spacing: -.01em;
     margin: 0;
-    text-shadow: 0 2px 20px rgba(0,0,0,.9);
-    z-index: 10;
+    text-shadow: none;
     line-height: 1;
   }
-  /* Role — just below name */
-  body.tab-conversation .emma-role {
-    position: absolute;
-    bottom: 14px;
-    left: 16px;
-    margin: 0;
-    font-size: 10px;
-    color: rgba(255,255,255,.45);
-    z-index: 10;
-    line-height: 1;
-  }
+  body.tab-conversation .emma-role { display: none; }
 
   /* Content area flex */
   body.tab-conversation .emma-content {
@@ -497,6 +482,15 @@ button{-webkit-appearance:none}
   /* Hide the end button from controls row (it's repositioned in emma-top) */
   body.tab-conversation .emma-end-footer {
     display: none;
+  }
+
+  /* Zoom Emma in — more conversational, brings her closer */
+  body.tab-conversation #vidIdle,
+  body.tab-conversation #vidTransition,
+  body.tab-conversation #vidSpeaking {
+    transform: scale(1.18);
+    transform-origin: center 35%;
+    object-position: center 25%;
   }
 }
 </style>
@@ -1310,10 +1304,8 @@ function emmaStateSpeaking(){
     vidIdle.style.opacity='0';
     vidTransition.style.opacity='0';
     window._emmaTransitioning=false;
-    // Small delay helps iOS honour play() outside gesture handler
-    setTimeout(function(){
-      vidSpeaking.play().catch(function(){});
-    },50);
+    var sp=vidSpeaking.play();
+    if(sp&&sp.catch)sp.catch(function(){});
   } else {
     vidTransition.currentTime=0;
     vidTransition.play().catch(function(){});
