@@ -1222,6 +1222,14 @@ function renderEmma(){
     document.body.removeEventListener('click',_init);
     window._vidIdle.currentTime=0;
     window._vidIdle.play().catch(function(){});
+    // Pre-unlock Audio element for iOS — must happen inside user gesture
+    if(!window._emmaAudioUnlocked){
+      var silentAudio=new Audio();
+      silentAudio.src='data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAEAAABIADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV6urq6urq6urq6urq6urq6urq6urq6urq6v////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAAAAAAAAAAAASDs90hvAAAAAAAAAAAAAAAAAAAA//OEZAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAA';
+      silentAudio.play().then(function(){
+        window._emmaAudioUnlocked=true;
+      }).catch(function(){});
+    }
     if(emmaHistory.length===0) emmaStartConvo();
   },{once:true});
   if(emmaHistory.length>0){
@@ -1267,11 +1275,14 @@ function emmaStateSpeaking(){
   var isMobile=window.innerWidth<=600;
   if(isMobile){
     vidSpeaking.currentTime=0;
-    vidSpeaking.play().catch(function(){});
     vidSpeaking.style.opacity='1';
     vidIdle.style.opacity='0';
     vidTransition.style.opacity='0';
     window._emmaTransitioning=false;
+    // Small delay helps iOS honour play() outside gesture handler
+    setTimeout(function(){
+      vidSpeaking.play().catch(function(){});
+    },50);
   } else {
     vidTransition.currentTime=0;
     vidTransition.play().catch(function(){});
@@ -1368,9 +1379,12 @@ function emmaSpeak(text){
     if(turnId!==_emmaSpeakId)return;
     if(_emmaAudio){_emmaAudio.pause();_emmaAudio.src='';_emmaAudio=null;}
     var url=URL.createObjectURL(blob);
-    var audio=new Audio();
+    // Reuse a single persistent Audio element (better iOS compatibility)
+    if(!window._emmaAudioEl){window._emmaAudioEl=new Audio();}
+    var audio=window._emmaAudioEl;
     _emmaAudio=audio;
     audio.src=url;
+    audio.load();
     audio.onended=function(){
       if(turnId!==_emmaSpeakId)return;
       URL.revokeObjectURL(url);
