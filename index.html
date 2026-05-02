@@ -487,13 +487,16 @@ button{-webkit-appearance:none}
     display: none;
   }
 
-  /* Zoom Emma in — more conversational, brings her closer */
+  /* Zoom Emma in — applied to wrap, NOT video elements (transform on video breaks iOS) */
+  body.tab-conversation .emma-video-wrap {
+    transform: scale(1.18);
+    transform-origin: center 35%;
+  }
+  /* Remove opacity transition on videos on mobile — transition can freeze iOS video */
   body.tab-conversation #vidIdle,
   body.tab-conversation #vidTransition,
   body.tab-conversation #vidSpeaking {
-    transform: scale(1.18);
-    transform-origin: center 35%;
-    object-position: center 25%;
+    transition: none !important;
   }
 }
 </style>
