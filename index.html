@@ -194,6 +194,30 @@ button{-webkit-appearance:none}
 .emma-bubble-wrap{flex:1;padding:16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;max-height:200px;backdrop-filter:blur(30px) brightness(0.6);-webkit-backdrop-filter:blur(30px) brightness(0.6);background:rgba(0,0,0,0.15);}
 .emma-bubble{padding:12px 16px;font-size:14px;line-height:1.6;max-width:82%;}
 .emma-bubble.emma{background:rgba(30,30,30,.75);border:1px solid rgba(255,255,255,.12);border-radius:4px 16px 16px 16px;color:rgba(255,255,255,.95);}
+.emma-correction{
+  align-self:flex-start;
+  background:#1a1a2e;
+  border:1px solid #f5c842;
+  border-radius:10px;
+  padding:7px 12px;
+  font-size:12px;
+  color:#f5c842;
+  margin-bottom:2px;
+  max-width:88%;
+  line-height:1.5;
+}
+.emma-correction .corr-label{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:#b89a20;
+  margin-bottom:3px;
+}
+.emma-correction .corr-fix{
+  font-weight:600;
+  color:#f5e07a;
+}
 .emma-bubble.student{background:rgba(180,140,0,.5);border:1px solid rgba(245,200,66,.4);border-radius:16px 4px 16px 16px;color:#fff;align-self:flex-end;}
 .emma-footer{padding:12px 16px 20px;background:rgba(0,0,0,.2);border-top:1px solid rgba(255,255,255,.08);backdrop-filter:blur(30px) brightness(0.6);-webkit-backdrop-filter:blur(30px) brightness(0.6);}
 .emma-status{font-size:11px;color:rgba(255,255,255,.4);text-align:center;margin-bottom:10px;min-height:18px;}
@@ -312,6 +336,31 @@ var SENTS=[
 var done=JSON.parse(localStorage.getItem('pd')||'{}');
 var appMode='sentences';var mcCur=0;var mcAudio=null;var mcScores=[];
 var emmaHistory=[];var emmaAudio=null;var emmaRec=false;var emmaMr=null;var emmaChunks=[];var emmaTopic='';
+
+// ── DEV: test exercises without a conversation ────────────────────────────────
+window.testExercises=function(){
+  window._lastReport={
+    headline:'Test Session',score:'B',summary:'Test mode.',
+    mistakes:[{title:'Test mistake',detail:'Example detail.'}],
+    improvements:[{title:'Test area',detail:'Example advice.'}],
+    positive:'Good effort!',
+    exercises:[
+      {question:'Choose the correct form: "She ___ to work every day."',options:['go','goes','going','gone'],answer:1,tip:'"She" is third person singular, so we add -s: goes.'},
+      {question:'Which sentence is correct?',options:['I have went there.','I have gone there.','I went there yesterday.','I going there.'],answer:2,tip:'Use simple past (went) for finished actions with a time reference like "yesterday".'},
+      {question:'Complete: "How long ___ you been studying English?"',options:['have','has','did','do'],answer:0,tip:'Use "have" with "you" in present perfect questions.'},
+      {question:'Choose the right preposition: "I am good ___ English."',options:['in','at','on','with'],answer:1,tip:'"Good at" is the correct collocation for skills.'},
+      {question:'Which is the correct question form?',options:['What you do on weekends?','What do you do on weekends?','What you doing on weekends?','What does you do on weekends?'],answer:1,tip:'Questions need auxiliary "do/does": What do you do...?'}
+    ]
+  };
+  window._lastHistory=[
+    {role:'assistant',content:'Hi! How has your day been so far?'},
+    {role:'user',content:'My day not be good.'},
+    {role:'assistant',content:'Oh no, sorry to hear that! What happened?'}
+  ];
+  window._lastTopic='Test conversation';
+  downloadExercises();
+};
+// Run window.testExercises() in the browser console to test
 var scores=JSON.parse(localStorage.getItem('ps')||'{}');
 var cur=0,mr=null,chunks=[],rec=false,laudio=null,mt='';
 
@@ -1096,7 +1145,7 @@ function emmaCallClaude(sysPrompt,cb){
   fetch(W+'/emma-chat',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({system:sysPrompt,messages:emmaHistory,topic:emmaTopic})
+    body:JSON.stringify({system:sysPrompt,messages:emmaHistory,topic:emmaTopic,max_tokens:300})
   })
   .then(function(r){return r.json();})
   .then(function(d){
@@ -1148,6 +1197,18 @@ function emmaSpeak(text){
     var btn=document.getElementById('emmaMicBtn');
     if(btn){btn.disabled=false;btn.style.opacity='1';}
   });
+}
+
+function emmaAddCorrectionBubble(original,correction){
+  var wrap=document.getElementById('emmaBubbles');
+  if(!wrap)return;
+  var div=document.createElement('div');
+  div.className='emma-correction';
+  div.innerHTML='<div class="corr-label">&#9998; Quick correction</div>'+
+    '<div>You said: <span style="color:#aaa;text-decoration:line-through;">'+original+'</span></div>'+
+    '<div>Better: <span class="corr-fix">'+correction+'</span></div>';
+  wrap.appendChild(div);
+  wrap.scrollTop=wrap.scrollHeight;
 }
 
 function emmaAddBubble(who,text){
@@ -1231,13 +1292,46 @@ function emmaSubmit(transcript){
   emmaHistory.push({role:'user',content:transcript});
   window._emmaTranscript='';
   if(status)status.textContent='Emma is thinking...';
-  var sysPrompt='You are Emma, a friendly American English conversation coach having a natural spoken conversation with a Brazilian student. Topic: '+emmaTopic+'. Speak like a real person — use natural fillers like "um", "well", "you know", "hmm", "I mean", "actually". Keep responses VERY SHORT — 1 sentence, 2 max. If the student makes a grammar mistake, naturally use the correct form in your reply without pointing it out. Ask one question to keep the conversation flowing. Never use bullet points or formal language. Be warm, genuine and encouraging.';
-  emmaCallClaude(sysPrompt,function(text){
-    emmaHistory.push({role:'assistant',content:text});
-    emmaAddBubble('emma',text);
+  var sysPrompt='You are Emma, a friendly American English conversation coach having a natural spoken conversation with a Brazilian student. Topic: '+emmaTopic+'. '+
+    'IMPORTANT: Respond ONLY with a JSON object, no markdown, no backticks. Format: {"correction":{"original":"exact wrong phrase the student said","fixed":"the correct version"},"reply":"your conversational reply"} '+
+    'If the student made NO grammar or vocabulary mistake, set correction to null: {"correction":null,"reply":"your reply"} '+
+    'Rules for correction: Only correct clear grammar/vocabulary errors (wrong tense, wrong verb form, wrong preposition, wrong word). Do NOT correct pronunciation or minor word choice. Be warm — start the reply naturally after correcting. '+
+    'Rules for reply: 1-2 sentences max. Ask one question to keep conversation going. Be natural and friendly. Never use bullet points.';
+  emmaCallClaude(sysPrompt,function(raw){
+    var parsed;
+    try{
+      // Strip markdown fences, leading/trailing whitespace
+      var clean=raw.replace(/^```json\s*/,'').replace(/```\s*$/,'').trim();
+      // Find the JSON object boundaries robustly
+      var start=clean.indexOf('{');
+      var end=clean.lastIndexOf('}');
+      if(start>=0&&end>start)clean=clean.slice(start,end+1);
+      parsed=JSON.parse(clean);
+    }catch(e){
+      // Fallback: no correction, show raw as reply
+      parsed={correction:null,reply:raw.replace(/```json|```/g,'').replace(/\{[\s\S]*\}/,'').trim()||raw};
+    }
+    var reply=(parsed&&parsed.reply)||raw;
+    var spoken='';
+    if(parsed&&parsed.correction&&parsed.correction.original&&parsed.correction.fixed){
+      emmaAddCorrectionBubble(parsed.correction.original,parsed.correction.fixed);
+      spoken='Oh, just a quick note — instead of "'+parsed.correction.original+'", we say "'+parsed.correction.fixed+'". ';
+    }
+    spoken+=reply;
+    emmaHistory.push({role:'assistant',content:reply});
+    emmaAddBubble('emma',reply);
     emmaStateSpeaking();
-    emmaSpeak(text);
+    emmaSpeak(spoken);
   });
+}
+
+function _openPrintWindow(htmlContent,filename){
+  var blob=new Blob([htmlContent],{type:'text/html'});
+  var url=URL.createObjectURL(blob);
+  var w=window.open(url,'_blank');
+  if(!w)return;
+  // cleanup after a while
+  setTimeout(function(){URL.revokeObjectURL(url);},60000);
 }
 
 function downloadReport(){
@@ -1251,26 +1345,29 @@ function downloadReport(){
     '</div>';
   }).join('');
   var improvementsHtml=r.improvements.map(function(i){
-    return '<div style="margin-bottom:14px;padding-left:14px;border-left:3px solid #f5c842;">'+
+    return '<div style="margin-bottom:14px;padding-left:14px;border-left:3px solid #e6aa00;">'+
       '<div style="font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:3px;">'+i.title+'</div>'+
       '<div style="font-size:13px;color:#555;line-height:1.6;">'+i.detail+'</div>'+
     '</div>';
   }).join('');
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8">'+
-    '<title>Emma Conversation Report — '+date+'</title>'+
+    '<title>Emma Report — '+date+'</title>'+
     '<style>'+
+      '@media print{body{margin:0;padding:24px;}.no-print{display:none;}}'+
       'body{font-family:Georgia,serif;max-width:620px;margin:40px auto;padding:0 24px;color:#1a1a1a;}'+
-      'h1{font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:4px;}'+
-      'h2{font-size:24px;font-weight:700;margin:0 0 6px;}'+
-      '.date{font-size:12px;color:#aaa;margin-bottom:28px;}'+
-      '.score-box{display:flex;align-items:center;gap:16px;background:#f7f7f5;border-radius:12px;padding:16px;margin-bottom:28px;}'+
-      '.score-circle{width:54px;height:54px;border-radius:50%;background:#1a1a1a;color:#f5c842;font-size:20px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}'+
-      '.section-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#aaa;margin-bottom:12px;}'+
-      '.section{margin-bottom:28px;}'+
-      '.positive{background:#f0faf2;border-radius:10px;padding:14px 16px;}'+
+      'h1{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#aaa;margin-bottom:4px;}'+
+      'h2{font-size:22px;font-weight:700;margin:0 0 4px;}'+
+      '.date{font-size:12px;color:#bbb;margin-bottom:24px;}'+
+      '.score-box{display:flex;align-items:center;gap:14px;background:#f7f7f5;border-radius:10px;padding:14px;margin-bottom:24px;}'+
+      '.score-circle{width:50px;height:50px;border-radius:10px;background:#1a1a1a;color:#f5c842;font-size:19px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}'+
+      '.section-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#bbb;margin-bottom:10px;}'+
+      '.section{margin-bottom:24px;}'+
+      '.positive{background:#f0faf2;border-radius:8px;padding:12px 14px;}'+
       '.positive p{font-size:13px;color:#2d7a3a;line-height:1.6;margin:0;}'+
-      '.footer{margin-top:40px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#bbb;text-align:center;}'+
+      '.footer{margin-top:32px;padding-top:14px;border-top:1px solid #e8e8e8;font-size:11px;color:#bbb;text-align:center;}'+
+      '.print-btn{display:block;margin:0 auto 24px;padding:10px 24px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;}'+
     '</style></head><body>'+
+    '<button class="print-btn no-print" onclick="window.print()">&#128438; Save as PDF</button>'+
     '<h1>Street Way English</h1>'+
     '<h2>'+r.headline+'</h2>'+
     '<div class="date">Conversation Report — '+date+'</div>'+
@@ -1281,31 +1378,234 @@ function downloadReport(){
         '<div style="font-size:13px;color:#666;">'+r.summary+'</div>'+
       '</div>'+
     '</div>'+
-    '<div class="section">'+
-      '<div class="section-label">Common Mistakes</div>'+
-      mistakesHtml+
-    '</div>'+
-    '<div class="section">'+
-      '<div class="section-label">Focus On</div>'+
-      improvementsHtml+
-    '</div>'+
-    '<div class="section positive">'+
-      '<div class="section-label" style="color:#2d7a3a;margin-bottom:8px;">Well Done</div>'+
-      '<p>'+r.positive+'</p>'+
-    '</div>'+
-    '<div class="footer">Generated by Street Way English &bull; Emma AI Coach</div>'+
+    '<div class="section"><div class="section-label">Common Mistakes</div>'+mistakesHtml+'</div>'+
+    '<div class="section"><div class="section-label">Focus On</div>'+improvementsHtml+'</div>'+
+    '<div class="section positive"><div class="section-label" style="color:#2d7a3a;margin-bottom:6px;">Well Done</div><p>'+r.positive+'</p></div>'+
+    '<div class="footer">Street Way English &bull; Emma AI Coach</div>'+
   '</body></html>';
-  var blob=new Blob([html],{type:'text/html'});
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement('a');
-  a.href=url;
-  a.download='emma-report-'+date.replace(/ /g,'-')+'.html';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  _openPrintWindow(html,'emma-report');
 }
 
+function downloadTranscript(){
+  var history=window._lastHistory;
+  if(!history||!history.length)return;
+  var date=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  var topic=window._lastTopic||'Conversation';
+  var bubblesHtml=history.map(function(m){
+    if(m.role==='assistant'){
+      return '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;">'+
+        '<div style="width:28px;height:28px;border-radius:50%;background:#1a1a1a;color:#f5c842;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">E</div>'+
+        '<div style="background:#f4f4f2;border-radius:4px 14px 14px 14px;padding:10px 14px;font-size:13px;color:#1a1a1a;line-height:1.6;max-width:82%;">'+m.content+'</div>'+
+      '</div>';
+    } else if(m.content.indexOf('[Start')===-1){
+      return '<div style="display:flex;justify-content:flex-end;margin-bottom:14px;">'+
+        '<div style="background:#1a1a1a;border-radius:14px 4px 14px 14px;padding:10px 14px;font-size:13px;color:#fff;line-height:1.6;max-width:82%;">'+m.content+'</div>'+
+      '</div>';
+    }
+    return '';
+  }).join('');
+  var pageHtml='<!DOCTYPE html><html><head><meta charset="UTF-8">'+
+    '<meta name="viewport" content="width=device-width,initial-scale=1">'+
+    '<title>Transcript — '+date+'<\/title>'+
+    '<style>'+
+      '@media print{.no-print{display:none;}body{padding:24px;}}'+
+      'body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;max-width:580px;margin:40px auto;padding:0 24px;color:#1a1a1a;background:#fff;}'+
+      'h1{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#aaa;margin-bottom:4px;}'+
+      'h2{font-size:20px;font-weight:700;margin-bottom:4px;}'+
+      '.meta{font-size:12px;color:#bbb;margin-bottom:28px;}'+
+      '.print-btn{display:block;width:100%;padding:12px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:14px;cursor:pointer;margin-bottom:28px;font-weight:600;}'+
+      '.footer{margin-top:32px;padding-top:14px;border-top:1px solid #e8e8e8;font-size:11px;color:#bbb;text-align:center;}'+
+    '<\/style><\/head><body>'+
+    '<button class="print-btn no-print" onclick="window.print()">📄 Save as PDF<\/button>'+
+    '<h1>Street Way English<\/h1>'+
+    '<h2>Conversation Transcript<\/h2>'+
+    '<div class="meta">Topic: '+topic+' &bull; '+date+'<\/div>'+
+    bubblesHtml+
+    '<div class="footer">Street Way English &bull; Emma AI Coach<\/div>'+
+  '<\/body><\/html>';
+  _openPrintWindow(pageHtml,'emma-transcript');
+}
+function downloadExercises(){
+  var r=window._lastReport;
+  if(!r||!r.exercises)return;
+  var area=document.getElementById('area');
+  var date=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+
+  function normalise(s){return s.toLowerCase().replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim();}
+  function bestMatch(trans,options){
+    var t=normalise(trans);
+    var best=-1,bestScore=0;
+    for(var i=0;i<options.length;i++){
+      var opt=normalise(options[i]);
+      if(t===opt||t.indexOf(opt)>=0||opt.indexOf(t)>=0)return i;
+      var optW=opt.split(' ').filter(function(w){return w.length>2;});
+      var tW=t.split(' ');
+      var hits=optW.filter(function(w){return tW.indexOf(w)>=0;}).length;
+      var score=optW.length>0?hits/optW.length:0;
+      if(score>bestScore){bestScore=score;best=i;}
+    }
+    return bestScore>=0.6?best:-1;
+  }
+
+  var exercises=r.exercises;
+  var answered=new Array(exercises.length).fill(false);
+  var correct=0;
+  var activeRec=null;
+  var interimText=''; // accumulates interim speech for stop-button use
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  var hasSR=!!SR;
+
+  function lockQuestion(qi,chosen,ans){
+    if(answered[qi])return;
+    answered[qi]=true;
+    if(chosen===ans)correct++;
+    for(var i=0;i<exercises[qi].options.length;i++){
+      var el=document.getElementById('exopt-'+qi+'-'+i);
+      if(!el)continue;
+      el.style.pointerEvents='none';
+      if(i===ans){el.style.background='#f0faf2';el.style.borderColor='#2d7a3a';el.style.color='#2d7a3a';el.style.fontWeight='600';}
+      else if(i===chosen){el.style.background='#fff0f0';el.style.borderColor='#c0392b';el.style.color='#c0392b';}
+    }
+    var tip=document.getElementById('extip-'+qi);if(tip)tip.style.display='block';
+    var mic=document.getElementById('exmic-'+qi);
+    if(mic){mic.disabled=true;mic.textContent='✓';mic.style.background='#2d7a3a';mic.style.color='#fff';}
+    showStop(qi,false);
+    var hint=document.getElementById('exhint-'+qi);
+    if(hint)hint.textContent=chosen===ans?'Correct! Well done.':'Correct answer: '+exercises[qi].options[ans];
+    updateScore();
+  }
+
+  function updateScore(){
+    var done=answered.filter(Boolean).length;
+    var bar=document.getElementById('exscorebar');if(bar)bar.style.display='flex';
+    var circle=document.getElementById('exscorecircle');if(circle)circle.textContent=correct+'/'+done;
+    var label=document.getElementById('exscorelabel');
+    if(label){
+      if(done<exercises.length){label.textContent=done+' of '+exercises.length+' answered';}
+      else{var pct=Math.round(correct/exercises.length*100);label.textContent=pct+'% — '+(pct>=80?'Great job!':pct>=60?'Keep practicing!':'Review the tips');}
+    }
+  }
+
+  function showStop(qi,show){
+    var stopBtn=document.getElementById('exstop-'+qi);
+    var micBtn=document.getElementById('exmic-'+qi);
+    if(stopBtn)stopBtn.style.display=show?'inline-flex':'none';
+    if(micBtn)micBtn.style.display=show?'none':'inline-flex';
+  }
+
+  function startListen(qi){
+    if(answered[qi])return;
+    if(activeRec){try{activeRec.stop();}catch(e){}activeRec=null;}
+    interimText='';
+    var mic=document.getElementById('exmic-'+qi);
+    var hint=document.getElementById('exhint-'+qi);
+    if(hint)hint.textContent='Listening... say the answer out loud';
+    showStop(qi,true);
+    var rec=new SR();
+    rec.lang='en-US';
+    rec.interimResults=true; // KEY: get partials so stop-button has something to work with
+    rec.maxAlternatives=5;
+    activeRec=rec;
+    rec.onresult=function(e){
+      // Accumulate best interim + final transcripts
+      var finals='';var interims='';
+      for(var i=0;i<e.results.length;i++){
+        if(e.results[i].isFinal)finals+=e.results[i][0].transcript+' ';
+        else interims+=e.results[i][0].transcript+' ';
+      }
+      interimText=(finals||interims).trim();
+      if(hint&&interimText)hint.textContent='Heard: "'+interimText+'"';
+      // If we have a final result, process it immediately
+      if(finals.trim()){
+        var chosen=bestMatch(finals.trim(),exercises[qi].options);
+        if(chosen>=0){
+          activeRec=null;
+          try{rec.stop();}catch(e){}
+          lockQuestion(qi,chosen,exercises[qi].answer);
+        }
+      }
+    };
+    rec.onerror=function(e){
+      showStop(qi,false);activeRec=null;interimText='';
+      if(hint)hint.textContent=e.error==='not-allowed'?'Mic blocked — tap an option instead':'Mic error — tap an option instead';
+    };
+    rec.onend=function(){
+      showStop(qi,false);
+      // If we never matched via onresult, try interimText on end
+      if(activeRec===null&&interimText){
+        var chosen=bestMatch(interimText,exercises[qi].options);
+        if(chosen>=0){lockQuestion(qi,chosen,exercises[qi].answer);interimText='';return;}
+      }
+      activeRec=null;interimText='';
+      if(!answered[qi]&&hint)hint.textContent='Could not match — try again or tap an option';
+    };
+    try{rec.start();}catch(e){
+      showStop(qi,false);activeRec=null;
+      if(hint)hint.textContent='Could not start mic — tap an option instead';
+    }
+  }
+
+  function stopListen(qi){
+    var currentInterim=interimText;
+    if(activeRec){try{activeRec.stop();}catch(e){}activeRec=null;}
+    showStop(qi,false);
+    // Try to match whatever we heard before stopping
+    if(currentInterim){
+      var chosen=bestMatch(currentInterim,exercises[qi].options);
+      if(chosen>=0){lockQuestion(qi,chosen,exercises[qi].answer);interimText='';return;}
+    }
+    var hint=document.getElementById('exhint-'+qi);
+    if(hint)hint.textContent=currentInterim?'Could not match "'+currentInterim+'" — try again or tap':'Tap mic and say the answer out loud';
+    interimText='';
+  }
+
+  // ── Build HTML (light theme matching screenshot) ──────────────────────────
+  var html=renderModeTabs()+
+    '<div style="max-width:620px;margin:0 auto;padding:24px 20px;">'+
+    '<div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#aaa;margin-bottom:4px;">Street Way English</div>'+
+    '<div style="font-size:22px;font-weight:700;color:#1a1a1a;margin-bottom:4px;">Practice Exercises</div>'+
+    '<div style="font-size:12px;color:#bbb;margin-bottom:20px;">Based on your conversation &bull; '+date+'</div>'+
+    '<div id="exscorebar" style="display:none;background:#fff;border:1px solid #e8e8e4;border-radius:12px;padding:14px;margin-bottom:16px;align-items:center;gap:12px;">'+
+      '<div id="exscorecircle" style="width:44px;height:44px;border-radius:9px;background:#1a1a1a;color:#f5c842;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">-</div>'+
+      '<div><div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:2px;">Score</div><div id="exscorelabel" style="font-size:12px;color:#888;">Answering...</div></div>'+
+    '</div>';
+
+  exercises.forEach(function(ex,qi){
+    var optsHtml=ex.options.map(function(o,oi){
+      var safeO=o.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      return '<div id="exopt-'+qi+'-'+oi+'" onclick="window._exTap('+qi+','+oi+')" style="margin-bottom:6px;padding:10px 14px;border-radius:9px;border:1.5px solid #e0e0da;font-size:13px;color:#333;cursor:pointer;display:flex;align-items:center;gap:10px;transition:border-color .15s;">'+
+        '<div style="width:22px;height:22px;border-radius:50%;background:#f0f0ed;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;color:#555;">'+String.fromCharCode(65+oi)+'</div>'+
+        safeO+'</div>';
+    }).join('');
+    var micHtml=hasSR
+      ?'<div style="display:flex;align-items:center;gap:8px;margin-top:14px;">'+
+          '<button id="exmic-'+qi+'" onclick="window._exListen('+qi+')" style="width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;background:#1a1a1a;color:#fff;font-size:16px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">🎤</button>'+
+          '<button id="exstop-'+qi+'" onclick="window._exStop('+qi+')" style="display:none;width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;background:#c0392b;color:#fff;font-size:13px;font-weight:700;align-items:center;justify-content:center;flex-shrink:0;">■</button>'+
+          '<span id="exhint-'+qi+'" style="font-size:12px;color:#888;">Tap mic and say the answer out loud</span>'+
+        '</div>'
+      :'<div style="font-size:11px;color:#bbb;margin-top:10px;">⚠️ Mic not available — tap an option above</div>';
+    html+='<div style="background:#fff;border:1px solid #e8e8e4;border-radius:14px;padding:18px;margin-bottom:14px;">'+
+      '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#bbb;margin-bottom:6px;">Question '+(qi+1)+' of '+exercises.length+'</div>'+
+      '<div style="font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:14px;line-height:1.4;">'+ex.question+'</div>'+
+      optsHtml+micHtml+
+      '<div id="extip-'+qi+'" style="display:none;margin-top:10px;font-size:12px;color:#2d7a3a;padding:9px 12px;background:#f0faf2;border-radius:8px;line-height:1.5;">'+ex.tip+'</div>'+
+    '</div>';
+  });
+
+  html+='<button class="ab" onclick="renderEmma()" style="margin-top:4px;margin-bottom:24px;">Start new conversation</button></div>';
+
+  area.innerHTML=html;
+
+  window._exStop=function(qi){stopListen(qi);};
+  window._exTap=function(qi,oi){
+    if(answered[qi])return;
+    if(activeRec){try{activeRec.stop();}catch(e){}activeRec=null;}
+    lockQuestion(qi,oi,exercises[qi].answer);
+  };
+  window._exListen=function(qi){startListen(qi);};
+
+  var sb=document.getElementById('exscorebar');if(sb)sb.style.display='none';
+}
 function emmaEnd(){
   if(emmaAudio){emmaAudio.pause();emmaAudio=null;}
   if(emmaRec)emmaStopRec();
@@ -1330,11 +1630,20 @@ function emmaEnd(){
     return;
   }
   var convoText=history.map(function(m){return (m.role==='user'?'Student: ':'Emma: ')+m.content;}).join(' | ');
-  var reportPrompt='Based on this English conversation between a Brazilian student and coach Emma, generate a JSON report. Conversation: '+convoText+' Respond ONLY with JSON, no markdown: {"headline":"short encouraging title","score":"A/B/C/D","summary":"one sentence assessment","mistakes":[{"title":"mistake","detail":"specific example and fix"}],"improvements":[{"title":"focus area","detail":"specific advice"}],"positive":"what student did well"}. Max 3 mistakes, 3 improvements. Be kind and practical.';
+  window._lastHistory=history;
+  window._lastTopic=emmaTopic;
+  var reportPrompt='Analyze this English conversation between a Brazilian student and coach Emma. Conversation: '+convoText+' '+
+    'Respond ONLY with a single JSON object, no markdown, no backticks. Format: '+
+    '{"headline":"short encouraging title","score":"A/B/C/D","summary":"one sentence assessment",'+
+    '"mistakes":[{"title":"mistake name","detail":"specific example from conversation + correction"}],'+
+    '"improvements":[{"title":"focus area","detail":"specific actionable advice"}],'+
+    '"positive":"what the student did well",'+
+    '"exercises":[{"question":"complete the sentence / choose the correct form","options":["opt A","opt B","opt C","opt D"],"answer":0,"tip":"brief grammar explanation"}]}'+
+    ' Rules: max 3 mistakes, max 3 improvements. Generate 5 exercises based on the grammar mistakes and vocabulary topics from this conversation — mix sentence completion and error correction formats. answer is the 0-based index of the correct option. Be kind and practical.';
   fetch(W+'/emma-chat',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({system:'You are an English coach generating a student performance report. Respond ONLY with valid JSON.',messages:[{role:'user',content:reportPrompt}],topic:'report',max_tokens:800})
+    body:JSON.stringify({system:'You are an English coach. Respond ONLY with valid JSON, nothing else.',messages:[{role:'user',content:reportPrompt}],topic:'report',max_tokens:1400})
   })
   .then(function(r){return r.json();})
   .then(function(d){
@@ -1375,7 +1684,11 @@ function emmaEnd(){
           '<div style="font-size:13px;color:#555;line-height:1.55;">'+r.positive+'</div>'+
         '</div>'+
         '<button class="ab" onclick="renderEmma()" style="margin-bottom:10px;">Start new conversation</button>'+
-        '<button class="ab" style="background:#0a0a0a;color:#fafaf8;" onclick="downloadReport()">&#8681; Download Report</button>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px;">'+
+          '<button class="ab" style="background:#0a0a0a;color:#fafaf8;font-size:12px;padding:10px 6px;" onclick="downloadReport()">&#128196; Report</button>'+
+          '<button class="ab" style="background:#0a0a0a;color:#fafaf8;font-size:12px;padding:10px 6px;" onclick="downloadTranscript()">&#128172; Transcript</button>'+
+          '<button class="ab" style="background:#1a1a2e;color:#f5c842;border:1px solid #f5c842;font-size:12px;padding:10px 6px;" onclick="downloadExercises()">&#9997; Exercises</button>'+
+        '</div>'+
       '</div>';
     window._lastReport=r;
   })
