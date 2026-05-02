@@ -309,6 +309,26 @@ button{-webkit-appearance:none}
   body.tab-conversation .main { padding: 0; }
   body.tab-conversation .pb { display: none; }
 
+  /* 1. Replace bg image with gradient on mobile */
+  body.tab-conversation .emma-card {
+    background-image: none;
+    background: linear-gradient(180deg, #1a1200 0%, #0a0800 60%, #050400 100%);
+  }
+
+  /* 2. Disable glow animation on mobile */
+  body.tab-conversation .emma-video-wrap.speaking {
+    animation: none;
+  }
+
+  /* 4. Bubble wrap — use full available space, no max-height cap */
+  body.tab-conversation .emma-bubble-wrap {
+    flex: 1;
+    max-height: none;
+    padding: 10px 14px;
+    gap: 8px;
+    overflow-y: auto;
+  }
+
   /* Card — full bleed, full height */
   body.tab-conversation .emma-card {
     border-radius: 0;
@@ -1243,22 +1263,33 @@ function emmaStateSpeaking(){
   if(window._emmaTransitioning)return;
   window._emmaTransitioning=true;
   wrap.classList.add('speaking');
-  vidTransition.currentTime=0;
-  vidTransition.play().catch(function(){});
-  vidIdle.style.opacity='1';
-  vidSpeaking.style.opacity='0';
-  vidTransition.style.opacity='1';
-  vidTransition.onended=function(){
-    vidTransition.onended=null;
+  // On mobile skip transition video — direct crossfade to avoid iOS freeze
+  var isMobile=window.innerWidth<=600;
+  if(isMobile){
     vidSpeaking.currentTime=0;
     vidSpeaking.play().catch(function(){});
     vidSpeaking.style.opacity='1';
-    setTimeout(function(){
-      vidTransition.style.opacity='0';
-      vidIdle.style.opacity='0';
-      window._emmaTransitioning=false;
-    },650);
-  };
+    vidIdle.style.opacity='0';
+    vidTransition.style.opacity='0';
+    window._emmaTransitioning=false;
+  } else {
+    vidTransition.currentTime=0;
+    vidTransition.play().catch(function(){});
+    vidIdle.style.opacity='1';
+    vidSpeaking.style.opacity='0';
+    vidTransition.style.opacity='1';
+    vidTransition.onended=function(){
+      vidTransition.onended=null;
+      vidSpeaking.currentTime=0;
+      vidSpeaking.play().catch(function(){});
+      vidSpeaking.style.opacity='1';
+      setTimeout(function(){
+        vidTransition.style.opacity='0';
+        vidIdle.style.opacity='0';
+        window._emmaTransitioning=false;
+      },650);
+    };
+  }
 }
 
 function emmaStateIdle(){
