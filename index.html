@@ -169,7 +169,7 @@ button{-webkit-appearance:none}
 .emma-card > *{position:relative;z-index:1;}
 .emma-content{display:flex;flex-direction:column;flex:1;background:rgba(0,0,0,0);}
 .emma-top{
-  text-align:center;padding:18px 20px 14px;
+  text-align:left;padding:16px 20px 16px;
   border-bottom:1px solid rgba(255,255,255,.1);
   backdrop-filter:blur(30px) brightness(0.6);
   -webkit-backdrop-filter:blur(30px) brightness(0.6);
@@ -186,9 +186,9 @@ button{-webkit-appearance:none}
   0%,100%{box-shadow:0 0 0 3px rgba(245,200,66,.7),0 8px 32px rgba(0,0,0,.5)}
   50%{box-shadow:0 0 0 9px rgba(245,200,66,0),0 8px 32px rgba(0,0,0,.5)}
 }
-.emma-name{font-size:18px;font-weight:700;color:#fff;margin-top:12px;}
-.emma-role{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px;}
-.emma-live{display:inline-flex;align-items:center;gap:5px;margin-top:8px;background:rgba(76,175,80,.2);border:1px solid rgba(76,175,80,.4);border-radius:20px;padding:4px 10px;}
+.emma-identity{display:flex;align-items:center;justify-content:flex-start;padding:10px 0 0;}.emma-name-row{display:flex;align-items:center;gap:8px;}.emma-name{font-size:20px;font-weight:700;color:#fff;letter-spacing:-.02em;line-height:1;}
+.emma-role{display:none;}
+.emma-live{display:inline-flex;align-items:center;gap:4px;background:rgba(76,175,80,.15);border:1px solid rgba(76,175,80,.3);border-radius:6px;padding:3px 7px;}
 .emma-live-dot{width:5px;height:5px;border-radius:50%;background:#4caf50;animation:rp 2s infinite;}
 .emma-live-txt{font-size:10px;color:#4caf50;font-weight:600;letter-spacing:.05em;}
 .emma-bubble-wrap{flex:1;padding:16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;max-height:200px;backdrop-filter:blur(30px) brightness(0.6);-webkit-backdrop-filter:blur(30px) brightness(0.6);background:rgba(0,0,0,0.15);}
@@ -224,6 +224,7 @@ button{-webkit-appearance:none}
 .emma-mic{flex:1;padding:14px;background:var(--yellow);color:var(--black);border:none;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'DM Sans',sans-serif;}
 .emma-mic.rec{background:var(--red);color:#fff;}
 .emma-mic:disabled{opacity:.4;cursor:not-allowed;}
+.emma-end-top{display:none;}
 .emma-end{padding:14px 16px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.1);border-radius:14px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
 
 /* AI Generator */
@@ -302,63 +303,77 @@ button{-webkit-appearance:none}
 /* ── MOBILE: Conversation tab — V3 Immersive ─────────────────────────────── */
 @media (max-width: 600px) {
 
-  /* Hide header entirely on conversation tab */
+  /* Hide header + mode tabs on conversation tab */
   body.tab-conversation .hdr { display: none; }
-  body.tab-conversation .tabs { display: none; }
+  body.tab-conversation .mode-tabs { display: none; }
   body.tab-conversation .main { padding: 0; }
+  body.tab-conversation .pb { display: none; }
 
   /* Card — full bleed, full height */
   body.tab-conversation .emma-card {
     border-radius: 0;
     margin: 0;
-    min-height: 100dvh;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     border: none;
-    position: relative;
   }
 
-  /* Video — takes top 58% */
+  /* emma-top is the video container — make it position:relative for absolute children */
   body.tab-conversation .emma-top {
     padding: 0;
     position: relative;
     flex-shrink: 0;
   }
+
+  /* Video — full width, taller on mobile */
   body.tab-conversation .emma-video-wrap {
     aspect-ratio: unset;
-    height: 56vw;
-    min-height: 220px;
-    max-height: 58vh;
+    height: 58vw;
+    min-height: 230px;
+    max-height: 55vh;
     border-radius: 0;
     border: none;
     width: 100%;
+    position: relative;
+  }
+
+  /* Fade video bottom into card bg */
+  body.tab-conversation .emma-video-wrap::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 55%;
+    background: linear-gradient(transparent, #120e05);
+    pointer-events: none;
+    z-index: 5;
   }
 
   /* LIVE badge — top left over video */
   body.tab-conversation .emma-live {
     position: absolute;
-    top: 44px;
+    top: 14px;
     left: 14px;
     z-index: 20;
     margin: 0;
     padding: 5px 10px;
-    background: rgba(0,0,0,.4);
-    border: 1px solid rgba(76,175,80,.35);
+    background: rgba(0,0,0,.5);
+    border: 1px solid rgba(76,175,80,.4);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
   }
   body.tab-conversation .emma-live-txt { font-size: 9px; }
 
-  /* End button — top right, ghost pill */
-  body.tab-conversation .emma-end {
+  /* End button — top right ghost pill, inside emma-top */
+  body.tab-conversation .emma-top .emma-end-top {
+    display: block;
     position: absolute;
-    top: 44px;
+    top: 14px;
     right: 14px;
     z-index: 20;
     padding: 6px 14px;
-    background: rgba(0,0,0,.35);
-    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(0,0,0,.4);
+    border: 1px solid rgba(255,255,255,.15);
     border-radius: 20px;
     font-size: 10px;
     font-weight: 600;
@@ -368,50 +383,43 @@ button{-webkit-appearance:none}
     letter-spacing: .04em;
   }
 
-  /* Name — floats at bottom of video */
+  /* Name — bottom left of video */
   body.tab-conversation .emma-name {
     position: absolute;
-    bottom: 14px;
+    bottom: 30px;
     left: 16px;
     font-size: 22px;
     font-weight: 700;
     letter-spacing: -.01em;
     margin: 0;
-    text-shadow: 0 2px 20px rgba(0,0,0,.8);
+    text-shadow: 0 2px 20px rgba(0,0,0,.9);
     z-index: 10;
+    line-height: 1;
   }
+  /* Role — just below name */
   body.tab-conversation .emma-role {
     position: absolute;
     bottom: 14px;
     left: 16px;
-    margin-top: 26px;
+    margin: 0;
     font-size: 10px;
-    color: rgba(255,255,255,.4);
+    color: rgba(255,255,255,.45);
     z-index: 10;
+    line-height: 1;
   }
 
-  /* Fade bottom of video into bg */
-  body.tab-conversation .emma-video-wrap::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 50%;
-    background: linear-gradient(transparent, var(--emma-bg, #120e05));
-    pointer-events: none;
-    z-index: 5;
-  }
-
-  /* Content area — flex column fills remaining space */
+  /* Content area flex */
   body.tab-conversation .emma-content {
     display: flex;
     flex-direction: column;
     flex: 1;
   }
 
-  /* Bubbles grow to fill space */
+  /* Bubbles — compact, scrollable, max 40% of screen */
   body.tab-conversation .emma-bubble-wrap {
-    flex: 1;
-    max-height: none;
+    flex: 0 0 auto;
+    max-height: 38vh;
+    min-height: 80px;
     padding: 10px 14px;
     gap: 8px;
     overflow-y: auto;
@@ -427,18 +435,15 @@ button{-webkit-appearance:none}
   body.tab-conversation .emma-correction .corr-wrong { font-size: 10px; }
   body.tab-conversation .emma-correction .corr-fix { font-size: 12px; }
 
-  /* Footer — anchored, accounts for home indicator */
+  /* Footer */
   body.tab-conversation .emma-footer {
     padding: 8px 14px 36px;
     border-top: 1px solid rgba(255,255,255,.08);
     flex-shrink: 0;
   }
-  body.tab-conversation .emma-status {
-    font-size: 10px;
-    margin-bottom: 8px;
-  }
+  body.tab-conversation .emma-status { font-size: 10px; margin-bottom: 8px; }
 
-  /* Mic — full width, tall tap target */
+  /* Mic button */
   body.tab-conversation .emma-mic {
     padding: 16px 20px;
     font-size: 14px;
@@ -446,8 +451,8 @@ button{-webkit-appearance:none}
     flex: 1;
   }
 
-  /* Hide controls wrapper end button (it's repositioned above) */
-  body.tab-conversation .emma-controls .emma-end {
+  /* Hide the end button from controls row (it's repositioned in emma-top) */
+  body.tab-conversation .emma-end-footer {
     display: none;
   }
 }
@@ -1163,16 +1168,20 @@ function renderEmma(){
             '<video id="vidTransition" playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 15%;opacity:0;transition:opacity 0.6s cubic-bezier(0.4,0,0.2,1)"></video>'+
             '<video id="vidSpeaking" playsinline muted loop style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 15%;opacity:0;transition:opacity 0.6s cubic-bezier(0.4,0,0.2,1)"></video>'+
           '</div>'+
-          '<div class="emma-name">Emma</div>'+
-          '<div class="emma-role">Conversation Coach</div>'+
-          '<div class="emma-live"><div class="emma-live-dot"></div><div class="emma-live-txt">LIVE</div></div>'+
+          '<div class="emma-identity">'+
+            '<div class="emma-name-row">'+
+              '<div class="emma-name">Emma</div>'+
+              '<div class="emma-live"><div class="emma-live-dot"></div><div class="emma-live-txt">LIVE</div></div>'+
+            '</div>'+
+          '</div>'+
+          '<button class="emma-end emma-end-top" onclick="emmaEnd()">End</button>'+
         '</div>'+
         '<div class="emma-bubble-wrap" id="emmaBubbles"></div>'+
         '<div class="emma-footer">'+
           '<div class="emma-status" id="emmaStatus">Tap anywhere to start...</div>'+
           '<div class="emma-controls">'+
             '<button class="emma-mic" id="emmaMicBtn" onclick="emmaToggleRec()" disabled>&#127897; Tap to speak</button>'+
-            '<button class="emma-end" onclick="emmaEnd()">End</button>'+
+            '<button class="emma-end emma-end-footer" onclick="emmaEnd()">End</button>'+
           '</div>'+
         '</div>'+
       '</div>'+
@@ -1241,6 +1250,8 @@ function emmaStateSpeaking(){
   vidTransition.style.opacity='1';
   vidTransition.onended=function(){
     vidTransition.onended=null;
+    vidSpeaking.currentTime=0;
+    vidSpeaking.play().catch(function(){});
     vidSpeaking.style.opacity='1';
     setTimeout(function(){
       vidTransition.style.opacity='0';
@@ -1346,7 +1357,6 @@ function emmaSpeak(text){
       var btn=document.getElementById('emmaMicBtn');
       if(btn){btn.disabled=false;btn.style.opacity='1';}
     };
-    if(window._vidSpeaking)window._vidSpeaking.play().catch(function(){});
     audio.play().catch(function(){
       URL.revokeObjectURL(url);
       _emmaAudio=null;
