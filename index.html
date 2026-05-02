@@ -376,15 +376,22 @@ button{-webkit-appearance:none}
     left: 14px;
     z-index: 20;
     margin: 0;
-    padding: 5px 10px;
-    background: rgba(0,0,0,.5);
-    border: 1px solid rgba(76,175,80,.4);
+    padding: 6px;
+    background: rgba(0,0,0,.4);
+    border: 1px solid rgba(76,175,80,.3);
+    border-radius: 50%;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  body.tab-conversation .emma-live-txt { font-size: 9px; }
+  body.tab-conversation .emma-live-txt { display: none; }
+  body.tab-conversation .emma-live-dot { width: 8px; height: 8px; }
 
-  /* End button — top right ghost pill, inside emma-top */
+  /* End button — bottom right of footer, ghost style */
   body.tab-conversation .emma-top .emma-end-top {
     display: block;
     position: absolute;
@@ -401,6 +408,22 @@ button{-webkit-appearance:none}
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     letter-spacing: .04em;
+  }
+  /* Move end to footer on mobile */
+  body.tab-conversation .emma-end-footer {
+    display: block !important;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 20px;
+    padding: 8px 18px;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255,255,255,.35);
+    letter-spacing: .04em;
+    flex: 0 0 auto;
+  }
+  body.tab-conversation .emma-top .emma-end-top {
+    display: none !important;
   }
 
   /* Name — bottom left of video */
@@ -1220,16 +1243,24 @@ function renderEmma(){
   // Unlock on first click (iOS) and start convo
   document.body.addEventListener('click',function _init(){
     document.body.removeEventListener('click',_init);
+    // Unlock idle video
     window._vidIdle.currentTime=0;
     window._vidIdle.play().catch(function(){});
-    // Pre-unlock Audio element for iOS — must happen inside user gesture
-    if(!window._emmaAudioUnlocked){
-      var silentAudio=new Audio();
-      silentAudio.src='data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAEAAABIADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV6urq6urq6urq6urq6urq6urq6urq6urq6v////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAAAAAAAAAAAASDs90hvAAAAAAAAAAAAAAAAAAAA//OEZAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAA';
-      silentAudio.play().then(function(){
-        window._emmaAudioUnlocked=true;
+    // Unlock speaking video — must happen inside gesture for iOS
+    if(window._vidSpeaking){
+      window._vidSpeaking.currentTime=0;
+      window._vidSpeaking.play().then(function(){
+        window._vidSpeaking.pause();
+        window._vidSpeaking.currentTime=0;
       }).catch(function(){});
     }
+    // Unlock audio element — create it here inside gesture
+    if(!window._emmaAudioEl){
+      window._emmaAudioEl=new Audio();
+    }
+    var a=window._emmaAudioEl;
+    a.src='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+    a.play().catch(function(){});
     if(emmaHistory.length===0) emmaStartConvo();
   },{once:true});
   if(emmaHistory.length>0){
@@ -1377,36 +1408,36 @@ function emmaSpeak(text){
   .then(function(r){if(!r.ok)throw new Error(r.status);return r.blob();})
   .then(function(blob){
     if(turnId!==_emmaSpeakId)return;
-    if(_emmaAudio){_emmaAudio.pause();_emmaAudio.src='';_emmaAudio=null;}
+    // Stop any current audio
+    if(_emmaAudio){
+      _emmaAudio.onended=null;
+      _emmaAudio.onerror=null;
+      _emmaAudio.pause();
+      _emmaAudio=null;
+    }
     var url=URL.createObjectURL(blob);
-    // Reuse a single persistent Audio element (better iOS compatibility)
-    if(!window._emmaAudioEl){window._emmaAudioEl=new Audio();}
-    var audio=window._emmaAudioEl;
+    // Always use the pre-created element (unlocked during first tap)
+    var audio=window._emmaAudioEl||new Audio();
+    window._emmaAudioEl=audio;
     _emmaAudio=audio;
+    // Clear old handlers before assigning new ones
+    audio.onended=null;
+    audio.onerror=null;
+    var localTurn=turnId;
+    function onDone(){
+      if(localTurn!==_emmaSpeakId)return;
+      URL.revokeObjectURL(url);
+      _emmaAudio=null;
+      emmaStateIdle();
+      var s=document.getElementById('emmaStatus');if(s)s.textContent='Your turn — tap to speak';
+      var btn=document.getElementById('emmaMicBtn');
+      if(btn){btn.disabled=false;btn.style.opacity='1';}
+    }
+    audio.onended=onDone;
+    audio.onerror=function(){URL.revokeObjectURL(url);_emmaAudio=null;emmaStateIdle();};
     audio.src=url;
-    audio.load();
-    audio.onended=function(){
-      if(turnId!==_emmaSpeakId)return;
-      URL.revokeObjectURL(url);
-      _emmaAudio=null;
-      emmaStateIdle();
-      var s=document.getElementById('emmaStatus');if(s)s.textContent='Your turn — tap to speak';
-      var btn=document.getElementById('emmaMicBtn');
-      if(btn){btn.disabled=false;btn.style.opacity='1';}
-    };
-    audio.onerror=function(){
-      URL.revokeObjectURL(url);
-      _emmaAudio=null;
-      emmaStateIdle();
-      var s=document.getElementById('emmaStatus');if(s)s.textContent='Your turn — tap to speak';
-      var btn=document.getElementById('emmaMicBtn');
-      if(btn){btn.disabled=false;btn.style.opacity='1';}
-    };
-    audio.play().catch(function(){
-      URL.revokeObjectURL(url);
-      _emmaAudio=null;
-      emmaStateIdle();
-    });
+    var p=audio.play();
+    if(p&&p.catch)p.catch(function(){onDone();});
   })
   .catch(function(){
     emmaStateIdle();
@@ -1415,20 +1446,6 @@ function emmaSpeak(text){
     if(btn){btn.disabled=false;btn.style.opacity='1';}
   });
 }
-
-function emmaAddCorrectionBubble(original,correction){
-  var wrap=document.getElementById('emmaBubbles');
-  if(!wrap)return;
-  var div=document.createElement('div');
-  div.className='emma-correction';
-  var safeOrig=original.replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  var safeCorr=correction.replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  div.innerHTML='<span class="corr-wrong">“'+safeOrig+'”</span>'+
-    '<span class="corr-fix">“'+safeCorr+'”</span>';
-  wrap.appendChild(div);
-  wrap.scrollTop=wrap.scrollHeight;
-}
-
 function emmaAddBubble(who,text){
   var wrap=document.getElementById('emmaBubbles');
   if(!wrap)return;
