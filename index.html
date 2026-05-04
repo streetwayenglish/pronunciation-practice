@@ -225,6 +225,16 @@ button{-webkit-appearance:none}
 .emma-mic.rec{background:var(--red);color:#fff;}
 .emma-mic:disabled{opacity:.4;cursor:not-allowed;}
 .emma-end-top{display:none;}
+.emma-back{
+  padding:12px 14px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;
+  font-size:14px;color:rgba(255,255,255,.4);
+  cursor:pointer;flex-shrink:0;
+  transition:all .2s;
+}
+.emma-back:hover{background:rgba(255,255,255,.1);color:#fff;}
 .emma-end{padding:14px 16px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.1);border-radius:14px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
 
 /* AI Generator */
@@ -500,10 +510,353 @@ button{-webkit-appearance:none}
     transition: none !important;
   }
 }
+
+/* ── TOPIC SELECTION PAGE ──────────────────────────────────────────────── */
+.topic-page{
+  display:none;
+  background:#fafaf8;
+  font-family:'DM Sans',sans-serif;
+  min-height:100vh;
+}
+body.show-topics .topic-page{ display:flex; align-items:center; min-height:100vh; }
+body.show-topics .hdr,
+body.show-topics .main{ display:none; }
+
+.tp-inner{
+  padding:72px 10% 64px;
+  width:100%;
+}
+
+.pa-top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:60px;}
+.pa-brand{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#bbb;margin-bottom:14px;}
+.pa-title{font-family:'Fraunces',serif;font-size:54px;font-weight:900;color:#111;line-height:1.0;}
+.pa-title em{font-style:italic;color:#f5c842;}
+.pa-right{text-align:right;}
+.pa-count{font-family:'Fraunces',serif;font-size:96px;font-weight:300;color:#e8e4dc;line-height:1;letter-spacing:-.04em;}
+.pa-count-label{font-size:11px;color:#bbb;letter-spacing:.14em;text-transform:uppercase;margin-top:-6px;}
+
+.pa-list{display:flex;flex-direction:column;gap:0;}
+.pa-item{
+  display:flex;align-items:center;
+  padding:26px 0;
+  border-bottom:1px solid #ece8e0;
+  cursor:pointer;gap:0;
+  transition:all .2s;
+  position:relative;
+}
+.pa-item:first-child{border-top:1px solid #ece8e0;}
+.pa-item:hover .pa-item-title{color:#f5c842;}
+.pa-item:hover .pa-item-arrow{transform:translateX(4px);}
+
+.pa-item-num{
+  font-family:'Fraunces',serif;
+  font-size:16px;font-weight:300;font-style:italic;
+  color:#ccc;width:64px;flex-shrink:0;
+}
+.pa-item-category{
+  font-size:10px;font-weight:700;letter-spacing:.13em;
+  text-transform:uppercase;color:#bbb;
+  width:150px;flex-shrink:0;
+}
+.pa-item-title{
+  font-family:'Fraunces',serif;
+  font-size:32px;font-weight:700;
+  color:#111;flex:1;
+  transition:color .2s;line-height:1;
+}
+.pa-item-sub{
+  font-size:12px;color:#aaa;
+  width:260px;flex-shrink:0;text-align:right;
+  line-height:1.4;padding-right:28px;
+}
+.pa-item-arrow{
+  font-size:18px;color:#ccc;
+  transition:transform .2s;flex-shrink:0;
+}
+.pa-item-start{
+  background:#111;color:#fafaf8;
+  border:none;border-radius:9px;
+  padding:11px 24px;font-size:11px;font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;
+  cursor:pointer;font-family:'DM Sans',sans-serif;
+  flex-shrink:0;
+}
+
+@media(max-width:600px){
+  /* Topic page fills screen on mobile */
+  body.show-topics .topic-page{ min-height:100vh; align-items:flex-start; }
+
+  .tp-inner{
+    padding:48px 24px 56px;
+  }
+
+  /* Stack header: brand + title top, counter below */
+  .pa-top{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:0;
+    margin-bottom:40px;
+  }
+  .pa-brand{ font-size:9px; margin-bottom:10px; }
+  .pa-title{ font-size:42px; line-height:.95; }
+  .pa-right{
+    text-align:left;
+    margin-top:12px;
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+  .pa-count{ font-size:52px; }
+  .pa-count-label{ font-size:9px; margin-top:0; }
+
+  /* List rows */
+  .pa-item{ padding:20px 0; }
+  .pa-item-num{ width:36px; font-size:13px; }
+  .pa-item-category{ width:100px; font-size:9px; letter-spacing:.1em; }
+  .pa-item-title{ font-size:22px; }
+  .pa-item-sub{ display:none; }
+  .pa-item-arrow{ font-size:16px; }
+  .pa-item-start{
+    padding:10px 18px;
+    font-size:10px;
+    border-radius:8px;
+  }
+}
+
+/* ── TOPIC SELECTION PAGE ──────────────────────────────────────────────── */
+.topic-page{
+  display:none;
+  min-height:100vh;
+  background:#fff;
+  font-family:'DM Sans',sans-serif;
+}
+body.show-topics .topic-page{ display:block; }
+body.show-topics .hdr,
+body.show-topics .main{ display:none; }
+
+.topic-page-inner{
+  max-width:960px;
+  margin:0 auto;
+  padding:64px 48px 80px;
+  display:grid;
+  grid-template-columns:320px 1fr;
+  gap:0;
+  min-height:100vh;
+}
+
+/* Left column */
+.tp-left{
+  padding-right:64px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  border-right:1px solid #ece8e0;
+}
+.tp-brand{
+  font-size:9px;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;
+  color:#bbb;margin-bottom:12px;
+}
+.tp-headline{
+  font-family:'Fraunces',serif;
+  font-size:40px;font-weight:900;
+  color:#111;line-height:1.0;
+  letter-spacing:-.02em;margin-bottom:16px;
+}
+.tp-headline em{
+  font-style:italic;font-weight:300;color:#bbb;
+}
+.tp-sub{
+  font-size:12px;color:#aaa;
+  line-height:1.7;max-width:260px;
+  margin-bottom:40px;
+}
+.tp-stats{display:flex;flex-direction:column;gap:12px;margin-bottom:40px;}
+.tp-stat-num{
+  font-family:'Fraunces',serif;
+  font-size:34px;font-weight:700;
+  color:#e8e4dc;line-height:1;
+  letter-spacing:-.02em;
+}
+.tp-stat-label{
+  font-size:9px;color:#bbb;
+  letter-spacing:.1em;text-transform:uppercase;
+  margin-top:1px;
+}
+.tp-cta{
+  width:100%;padding:14px;
+  background:#111;color:#fff;
+  border:none;border-radius:10px;
+  font-family:'DM Sans',sans-serif;
+  font-size:12px;font-weight:700;
+  letter-spacing:.03em;cursor:pointer;
+  transition:background .2s;
+  display:none;
+}
+.tp-cta:hover{background:#333;}
+.tp-cta.visible{display:block;}
+
+/* Right column */
+.tp-right{padding-left:64px;}
+.tp-right-label{
+  font-size:9px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:#bbb;margin-bottom:16px;
+}
+.tp-list{display:flex;flex-direction:column;}
+.tp-item{
+  display:flex;align-items:center;gap:16px;
+  padding:18px 0;
+  border-bottom:1px solid #ece8e0;
+  cursor:pointer;
+  transition:padding-left .2s;
+  position:relative;
+}
+.tp-item:first-child{border-top:1px solid #ece8e0;}
+.tp-item:hover{padding-left:8px;}
+.tp-item-num{
+  font-family:'Fraunces',serif;
+  font-size:12px;font-style:italic;font-weight:300;
+  color:#ccc;width:22px;flex-shrink:0;
+}
+.tp-item-content{flex:1;}
+.tp-item-cat{
+  font-size:9px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:#bbb;margin-bottom:3px;
+  transition:color .2s;
+}
+.tp-item-title{
+  font-family:'Fraunces',serif;
+  font-size:22px;font-weight:700;
+  color:#111;line-height:1.1;
+  transition:color .15s;
+}
+.tp-item-sub{
+  font-size:10px;color:#aaa;
+  margin-top:2px;line-height:1.4;
+  opacity:0;transition:opacity .15s;
+  max-height:0;overflow:hidden;
+  transition:opacity .2s, max-height .2s;
+}
+.tp-item:hover .tp-item-sub{opacity:1;max-height:40px;}
+.tp-item-right{
+  display:flex;align-items:center;
+  gap:12px;flex-shrink:0;
+}
+.tp-item-units{
+  font-size:10px;color:#ccc;
+  opacity:0;transition:opacity .15s;
+  letter-spacing:.04em;
+}
+.tp-item:hover .tp-item-units{opacity:1;}
+.tp-item-arrow{
+  font-size:15px;color:#ccc;
+  transition:color .15s, transform .15s;
+}
+.tp-item:hover .tp-item-arrow{
+  transform:translateX(4px);
+}
+
+/* Per-topic gold on hover */
+.tp-t1:hover .tp-item-title{color:#f5c842;}
+.tp-t1:hover .tp-item-cat{color:#c9940a;}
+.tp-t1:hover .tp-item-arrow{color:#f5c842;}
+.tp-t2:hover .tp-item-title{color:#f5c842;}
+.tp-t2:hover .tp-item-cat{color:#c9940a;}
+.tp-t2:hover .tp-item-arrow{color:#f5c842;}
+.tp-t3:hover .tp-item-title{color:#f5c842;}
+.tp-t3:hover .tp-item-cat{color:#c9940a;}
+.tp-t3:hover .tp-item-arrow{color:#f5c842;}
+.tp-t4:hover .tp-item-title{color:#f5c842;}
+.tp-t4:hover .tp-item-cat{color:#c9940a;}
+.tp-t4:hover .tp-item-arrow{color:#f5c842;}
+.tp-t5:hover .tp-item-title{color:#f5c842;}
+.tp-t5:hover .tp-item-cat{color:#c9940a;}
+.tp-t5:hover .tp-item-arrow{color:#f5c842;}
+
+/* ── MOBILE: Topic page ──────────────────────────────────────── */
+@media(max-width:600px){
+  .topic-page-inner{
+    grid-template-columns:1fr;
+    padding:52px 24px 60px;
+    gap:0;
+    min-height:auto;
+  }
+  .tp-left{
+    border-right:none;
+    border-bottom:1px solid #ece8e0;
+    padding-right:0;
+    padding-bottom:32px;
+    margin-bottom:32px;
+    justify-content:flex-start;
+  }
+  .tp-headline{font-size:36px;}
+  .tp-stats{flex-direction:row;gap:28px;}
+  .tp-stat-num{font-size:28px;}
+  .tp-cta.visible{display:block;margin-top:20px;}
+  .tp-right{padding-left:0;}
+  .tp-item{padding:16px 0;}
+  .tp-item-title{font-size:20px;}
+  .tp-item-sub{opacity:0 !important;max-height:0 !important;}
+  .tp-item-units{opacity:1;}
+}
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,400;1,9..144,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 <div id="tov" style="display:none" class="tov"></div>
+<div class="topic-page" id="topicPage">
+  <div class="tp-inner">
+    <div class="pa-top">
+      <div>
+        <div class="pa-brand">Street Way English · Emma</div>
+        <div class="pa-title">Choose your<br><em>path.</em></div>
+      </div>
+      <div class="pa-right">
+        <div class="pa-count">05</div>
+        <div class="pa-count-label">Topics available</div>
+      </div>
+    </div>
+    <div class="pa-list">
+      <div class="pa-item" onclick="selectAndStart('Conversation')">
+        <div class="pa-item-num">i.</div>
+        <div class="pa-item-category">Foundation</div>
+        <div class="pa-item-title">Conversation</div>
+        <div class="pa-item-sub">Fluency focused · Build real confidence</div>
+        <button class="pa-item-start" onclick="event.stopPropagation();selectAndStart('Conversation')">Start here</button>
+      </div>
+      <div class="pa-item" onclick="selectAndStart('Business English')">
+        <div class="pa-item-num">ii.</div>
+        <div class="pa-item-category">Professional</div>
+        <div class="pa-item-title">Business English</div>
+        <div class="pa-item-sub">Meetings, emails, presentations</div>
+        <div class="pa-item-arrow">→</div>
+      </div>
+      <div class="pa-item" onclick="selectAndStart('Travel English')">
+        <div class="pa-item-num">iii.</div>
+        <div class="pa-item-category">Lifestyle</div>
+        <div class="pa-item-title">Travel English</div>
+        <div class="pa-item-sub">Airports, hotels, local life</div>
+        <div class="pa-item-arrow">→</div>
+      </div>
+      <div class="pa-item" onclick="selectAndStart('Job Interview')">
+        <div class="pa-item-num">iv.</div>
+        <div class="pa-item-category">Career</div>
+        <div class="pa-item-title">Job Interview</div>
+        <div class="pa-item-sub">Land the role you deserve</div>
+        <div class="pa-item-arrow">→</div>
+      </div>
+      <div class="pa-item" onclick="selectAndStart('The Bible in English')">
+        <div class="pa-item-num">v.</div>
+        <div class="pa-item-category">Faith</div>
+        <div class="pa-item-title">The Bible in English</div>
+        <div class="pa-item-sub">Genesis to Revelation</div>
+        <div class="pa-item-arrow">→</div>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="hdr">
   <img class="logo" src="https://streetwayenglish.github.io/pronunciation-practice/logo.png" alt="Street Way"/>
   <div class="ttl">Pronunciation Practice</div>
@@ -538,6 +891,45 @@ var cur=0,mr=null,chunks=[],rec=false,laudio=null,mt='';
 // Audio cache for pronunciation tab — preloaded when tab opens
 var _sentAudioCache={};
 var _sentAudioLoading={};
+
+// ── TOPIC SELECTION ─────────────────────────────────────────────────────────
+var _selectedTopic = null;
+
+function showTopicPage(){
+  document.body.classList.add('show-topics');
+  document.body.classList.remove('tab-conversation');
+}
+
+function selectAndStart(topicName){
+  window._lastTopic = topicName;
+  document.body.classList.remove('show-topics');
+  switchMode('emma');
+}
+
+function selectTopic(topicName, mode){
+  _selectedTopic = topicName;
+  window._lastTopic = topicName;
+  // Highlight selected item
+  var items = document.querySelectorAll('.tp-item');
+  items.forEach(function(el){ el.style.opacity = '0.4'; });
+  event.currentTarget.style.opacity = '1';
+  // Show CTA
+  var cta = document.getElementById('tp-cta-btn');
+  cta.classList.add('visible');
+  cta.textContent = 'Start ' + topicName + ' →';
+  // Update left panel
+  document.querySelector('.tp-headline').innerHTML = 'Your<br><em>' + topicName.toLowerCase() + '</em>';
+}
+
+function startSelectedTopic(){
+  if(!_selectedTopic) return;
+  document.body.classList.remove('show-topics');
+  // Reset item opacities
+  var items = document.querySelectorAll('.tp-item');
+  items.forEach(function(el){ el.style.opacity = '1'; });
+  switchMode('emma');
+}
+
 // ── DEV: test exercises without a conversation ────────────────────────────────
 window.testExercises=function(){
   window._lastReport={
@@ -1224,6 +1616,7 @@ function renderEmma(){
         '<div class="emma-footer">'+
           '<div class="emma-status" id="emmaStatus">Tap anywhere to start...</div>'+
           '<div class="emma-controls">'+
+            '<button class="emma-back" onclick="emmaEnd();showTopicPage()" title="Back to topics">←</button>'+
             '<button class="emma-mic" id="emmaMicBtn" onclick="emmaToggleRec()" disabled>&#127897; Tap to speak</button>'+
             '<button class="emma-end emma-end-footer" onclick="emmaEnd()">End</button>'+
           '</div>'+
@@ -2460,6 +2853,8 @@ if(navigator.permissions&&navigator.permissions.query){
 
 fetch(W+'/sentences').then(function(r){return r.json();}).then(function(d){if(Array.isArray(d)&&d.length>0){SENTS.length=0;d.forEach(function(s){SENTS.push(s);});render();preloadSentenceAudio();}}).catch(function(){});
 fetch(W+'/mc').then(function(r){return r.json();}).then(function(d){if(Array.isArray(d)&&d.length>0){MCQS=d;preloadMCAudio();}}).catch(function(){});
+// Show topic selection page on load
+showTopicPage();
 render();
 </script>
 <div class="wpop" id="wpop" onclick="closeWordPopup(event)"><div class="wpop-box" id="wpopBox"></div></div>
