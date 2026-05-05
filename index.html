@@ -939,8 +939,14 @@ function showTopicPage(){
 function selectAndStart(topicName){
   window._lastTopic = topicName;
   window._emmaTopic = topicName;
-  emmaTopic = topicName; // set directly so renderEmma doesn't fallback
+  emmaTopic = topicName;
   document.body.classList.remove('show-topics');
+  // Hide topic page directly
+  var tp = document.getElementById('topicPage');
+  if(tp) tp.style.display = 'none';
+  // Show main
+  var main = document.querySelector('.main');
+  if(main) main.style.display = '';
   showCurriculumProgress(topicName, function(){
     switchMode('emma');
   });
