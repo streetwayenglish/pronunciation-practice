@@ -604,6 +604,19 @@ body.show-topics .mode-tabs{ display:none; }
   flex-shrink:0;
 }
 
+@media(min-width:601px) and (max-width:1024px){
+  .tp-inner{ padding:48px 6% 56px; }
+  .pa-title{ font-size:42px; }
+  .pa-count{ font-size:72px; }
+  .pa-item{ padding:20px 0; }
+  .pa-item-title{ font-size:26px; }
+  .pa-item-num{ width:44px; }
+  .pa-item-category{ width:120px; }
+  .pa-item-sub{ width:200px; }
+  .cp-panel{ width:min(580px,88vw); }
+  .emma-bubble{ max-width:85%; }
+}
+
 @media(max-width:600px){
   /* Topic page fills screen on mobile */
   body.show-topics .topic-page{ min-height:100vh; align-items:flex-start; }
@@ -3461,7 +3474,8 @@ function emmaStartConvo(){
     '(3) Ask a question that pulls them back into the current scenario. '+
     'You do this EVERY TIME without exception, for ANY off-topic request — even topics within the same course. Your current unit is "'+unitTitle0+'". If the student asks about ANYTHING other than "'+unitTitle0+'", you say something like: "That sounds great — and it is actually coming up in a future session! But right now we are on '+unitTitle0+', so let us stay here:" then immediately continue the current scenario. One warm clause, then back to "'+unitTitle0+'" every single time. Never elaborate on the off-topic subject. '+
     'Teaching rules: '+
-    '1) Teach the target expressions one at a time, naturally woven into the scenario. Get the student to use each one before moving on. '+
+    '1) Stay on the current unit topic — but be flexible on approach. If the student prefers to discuss the story rather than role play, or wants you to explain rather than act, adapt. Topic is fixed, teaching method is flexible. '+
+    '2) Teach the target expressions one at a time, naturally woven into the conversation. Get the student to use each one before moving on. '+
     '2) Keep every response to 1-2 sentences max. One question at a time. '+
     '3) Speak naturally — warm, real. No bullet points, no stage directions like *smiles*. '+
     '4) Opening: one short sentence max, then your first line IN CHARACTER. No long introductions. '+
@@ -3670,16 +3684,23 @@ function emmaSubmit(transcript){
   var unit0 = getCurrentUnit(emmaTopic);
   if(unit0){
     var reqPatterns = [
-      /i want to talk about/i, /can we talk about/i, /lets talk about/i,
-      /let us talk about/i, /can we do something else/i, /how about we do/i,
-      /i would like to practice/i, /can you teach me about/i,
-      /i want to practice/i, /switch to/i, /can we switch/i,
-      /i prefer to/i, /i would rather/i,
-      /change the subject/i, /different topic/i,
-      /another situation/i, /other situation/i
+      /i want to talk about (.+)/i,
+      /can we talk about (.+)/i,
+      /lets talk about (.+)/i,
+      /let us talk about (.+)/i,
+      /can we switch to (.+)/i,
+      /switch to (.+) instead/i,
+      /i want to practice (.+) instead/i,
+      /can we do (.+) instead/i,
+      /how about (.+) instead/i,
+      /change the subject to/i,
+      /different topic/i
     ];
+    // Only trigger if the request contains a different subject — not just a preference about approach
     var isSwitchReq = reqPatterns.some(function(p){ return p.test(transcript); });
-    if(isSwitchReq){
+    // Extra check: if transcript contains "don't want" or "not want" it's a preference, not a switch
+    var isPreference = /don.t want|do not want|not want|instead of role|no role|without role|just tell|tell me the story|explain it/i.test(transcript);
+    if(isSwitchReq && !isPreference){
       var switchReply = 'Oh nice idea — but that comes up in a future session! Right now we are on ' + unit0.title + '. Back to it:';
       emmaAddBubble('emma', switchReply);
       emmaHistory.push({role:'assistant', content: switchReply});
