@@ -605,16 +605,26 @@ body.show-topics .mode-tabs{ display:none; }
 }
 
 @media(min-width:601px) and (max-width:1024px){
-  .tp-inner{ padding:48px 6% 56px; }
-  .pa-title{ font-size:42px; }
-  .pa-count{ font-size:72px; }
+  /* Topic selection */
+  .tp-inner{ padding:52px 8% 60px; width:100%; }
+  .pa-top{ margin-bottom:40px; }
+  .pa-title{ font-size:44px; }
+  .pa-count{ font-size:80px; }
   .pa-item{ padding:20px 0; }
-  .pa-item-title{ font-size:26px; }
-  .pa-item-num{ width:44px; }
-  .pa-item-category{ width:120px; }
-  .pa-item-sub{ width:200px; }
-  .cp-panel{ width:min(580px,88vw); }
-  .emma-bubble{ max-width:85%; }
+  .pa-item-title{ font-size:28px; }
+  .pa-item-num{ width:48px; font-size:14px; }
+  .pa-item-category{ width:130px; font-size:9px; }
+  .pa-item-sub{ width:220px; font-size:11px; padding-right:20px; }
+  .pa-item-start{ padding:10px 20px; font-size:10px; }
+  /* Progress panel */
+  .cp-panel{ width:min(600px,90vw); max-height:80vh; }
+  /* Emma card */
+  .emma-card{ max-width:100%; border-radius:16px; }
+  .emma-bubble{ max-width:82%; font-size:15px; }
+  .emma-controls{ padding:12px 16px; gap:10px; }
+  .emma-mic{ font-size:15px; padding:16px; }
+  /* Nav bar */
+  .emma-nav-bar{ padding:10px 16px 8px; }
 }
 
 @media(max-width:600px){
@@ -3467,8 +3477,9 @@ function emmaStartConvo(){
   var sysPrompt='You are Emma, an English coach. This session has ONE topic and ONE scenario — listed below. You will not deviate from it under any circumstances. '+
     'Topic: '+emmaTopic+'. Unit: '+unitTitle0+'. '+
     curriculumContext+
-    'Your identity this session: '+unitScenario0+' '+
-    'You are a method actor who never breaks character. When the student asks to discuss anything outside the current unit — whether it is a different Bible book, a different travel situation, a different business scenario, or anything else — you respond with exactly this structure: '+
+    'Your approach this session: '+unitScenario0+' '+
+    'IMPORTANT — TEACHING APPROACH: Your primary job is to teach English through conversation about the unit topic. You do NOT need to role play unless the scenario specifically calls for it and the student is comfortable. For Bible units especially — do NOT role play characters like journalists or disciples. Instead, have a natural conversation: ask the student what they know about the story, discuss it together, teach the expressions naturally through that discussion. If the student says they do not want to role play, immediately switch to a conversational teaching approach — discuss the topic together as coach and student. '+
+    'When the student asks to discuss anything outside the current unit — whether it is a different Bible book, a different travel situation, a different business scenario, or anything else — you respond with exactly this structure: '+
     '(1) Acknowledge warmly in one clause — "Oh, Revelation is fascinating!" or "Great idea about restaurants!" '+
     '(2) Immediately redirect — "but that is a future lesson. Right now we are on '+unitTitle0+', so let us stay here." '+
     '(3) Ask a question that pulls them back into the current scenario. '+
@@ -3477,8 +3488,8 @@ function emmaStartConvo(){
     '1) Stay on the current unit topic — but be flexible on approach. If the student prefers to discuss the story rather than role play, or wants you to explain rather than act, adapt. Topic is fixed, teaching method is flexible. '+
     '2) Teach the target expressions one at a time, naturally woven into the conversation. Get the student to use each one before moving on. '+
     '2) Keep every response to 1-2 sentences max. One question at a time. '+
-    '3) Speak naturally — warm, real. No bullet points, no stage directions like *smiles*. '+
-    '4) Opening: one short sentence max, then your first line IN CHARACTER. No long introductions. '+
+    '3) Speak naturally — warm, real. No bullet points. NEVER use asterisks or stage directions like *smiles*, *settles*, *leans*, *nods* or any physical description. Just speak. '+
+    '4) Opening: MAXIMUM 10 words. Then immediately ask the student a question. For Bible topics say something like: "The creation story — what do you already know about it?" Never describe your own posture or feelings. '+
     '5) When the student uses a target expression correctly, affirm it briefly and introduce the next one.';
 
   emmaHistory=[{role:'user',content:'[Start the conversation - introduce yourself and begin the scenario]'}];
