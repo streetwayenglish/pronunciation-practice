@@ -212,8 +212,8 @@ button{-webkit-appearance:none}
 .emma-live{display:inline-flex;align-items:center;gap:4px;background:rgba(76,175,80,.15);border:1px solid rgba(76,175,80,.3);border-radius:6px;padding:3px 7px;}
 .emma-live-dot{width:5px;height:5px;border-radius:50%;background:#4caf50;animation:rp 2s infinite;}
 .emma-live-txt{font-size:10px;color:#4caf50;font-weight:600;letter-spacing:.05em;}
-.emma-bubble-wrap{flex:1;padding:16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;max-height:340px;backdrop-filter:blur(30px) brightness(0.6);-webkit-backdrop-filter:blur(30px) brightness(0.6);background:rgba(0,0,0,0.15);}
-.emma-bubble{padding:12px 16px;font-size:14px;line-height:1.6;max-width:82%;}
+.emma-bubble-wrap{flex:1;padding:16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;max-height:340px;background:rgba(0,0,0,0.55);}
+.emma-bubble{padding:8px 12px;font-size:14px;line-height:1.5;max-width:82%;}
 .emma-bubble.emma{background:rgba(30,30,30,.75);border:1px solid rgba(255,255,255,.12);border-radius:4px 16px 16px 16px;color:rgba(255,255,255,.95);}
 
 .emma-expr-highlight{
@@ -250,7 +250,7 @@ button{-webkit-appearance:none}
 .emma-bubble.student{background:rgba(180,140,0,.5);border:1px solid rgba(245,200,66,.4);border-radius:16px 4px 16px 16px;color:#fff;align-self:flex-end;}
 .emma-footer{padding:12px 16px 20px;background:rgba(0,0,0,.2);border-top:1px solid rgba(255,255,255,.08);backdrop-filter:blur(30px) brightness(0.6);-webkit-backdrop-filter:blur(30px) brightness(0.6);}
 .emma-status{font-size:11px;color:rgba(255,255,255,.4);text-align:center;margin-bottom:10px;min-height:18px;}
-.emma-controls{display:flex;gap:8px;}
+.emma-controls{display:flex;gap:8px;align-items:center;}
 .emma-mic{flex:1;padding:14px;background:var(--yellow);color:var(--black);border:none;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'DM Sans',sans-serif;}
 .emma-mic.rec{background:var(--red);color:#fff;}
 .emma-mic:disabled{opacity:.4;cursor:not-allowed;}
@@ -846,6 +846,80 @@ body.show-topics .main{ display:none; }
   .tp-item-sub{opacity:0 !important;max-height:0 !important;}
   .tp-item-units{opacity:1;}
 }
+
+/* PRONUNCIATION PANEL */
+.pron-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:300;display:flex;align-items:flex-end;justify-content:center;}
+.pron-panel{background:#fdfdfc;border-radius:28px 28px 0 0;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;padding-bottom:40px;box-shadow:0 -4px 48px rgba(0,0,0,.12);}
+.pron-handle{width:36px;height:4px;border-radius:2px;background:rgba(0,0,0,.08);margin:14px auto 0;}
+.pron-top{padding:28px 28px 24px;display:flex;align-items:center;gap:20px;border-bottom:1px solid #f0ede8;}
+.pron-ring-wrap{position:relative;width:80px;height:80px;flex-shrink:0;}
+.pron-ring-wrap svg{transform:rotate(-90deg);}
+.pron-ring-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.pron-ring-num{font-size:22px;font-weight:700;letter-spacing:-1px;line-height:1;}
+.pron-ring-lbl{font-size:8px;color:rgba(0,0,0,.3);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-top:2px;}
+.pron-right{flex:1;}.pron-transcript{font-size:15px;font-weight:600;color:#111;line-height:1.45;margin-bottom:14px;}
+.pron-sub-scores{display:flex;gap:0;}
+.pron-sub{padding:0 14px 0 0;border-right:1px solid #f0ede8;margin-right:14px;}
+.pron-sub:last-child{border-right:none;margin-right:0;padding-right:0;}
+.pron-sub-num{font-size:16px;font-weight:700;color:#111;letter-spacing:-.3px;}
+.pron-sub-num span{font-size:11px;color:rgba(0,0,0,.3);font-weight:400;}
+.pron-sub-lbl{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(0,0,0,.28);margin-top:2px;}
+.pron-words-section{padding:22px 28px 28px;border-bottom:1px solid #f0ede8;}
+.pron-words-lbl{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(0,0,0,.22);margin-bottom:14px;}
+.pron-words-grid{display:flex;flex-wrap:wrap;gap:8px;}
+.pron-word-chip{display:inline-flex;flex-direction:column;align-items:center;gap:3px;padding:9px 16px;border-radius:12px;cursor:pointer;border:2px solid transparent;transition:border-color .12s;}
+.pron-word-chip.g{background:rgba(26,127,68,.09);border-color:rgba(26,127,68,.2);}
+.pron-word-chip.y{background:rgba(201,162,39,.1);border-color:rgba(201,162,39,.25);}
+.pron-word-chip.r{background:rgba(185,28,28,.09);border-color:rgba(185,28,28,.2);}
+.pron-word-chip.sel{border-color:rgba(0,0,0,.2)!important;}
+.pron-word-name{font-size:14px;font-weight:600;}
+.pron-word-name.g{color:#1a7f44;}.pron-word-name.y{color:#8a6d00;}.pron-word-name.r{color:#b91c1c;}
+.pron-word-pct{font-size:9px;font-weight:700;opacity:.7;}
+.pron-word-pct.g{color:#1a7f44;}.pron-word-pct.y{color:#8a6d00;}.pron-word-pct.r{color:#b91c1c;}
+.pron-detail{margin:20px 28px 20px;padding:16px;background:#fdfdfc;border-radius:14px;min-height:64px;border:1px solid #f0ede8;}
+.pron-detail-empty{font-size:12px;color:rgba(0,0,0,.28);}
+.pron-detail-good{font-size:13px;font-weight:700;color:#1a7f44;margin-bottom:4px;}
+.pron-detail-good-sub{font-size:12px;color:rgba(0,0,0,.4);line-height:1.5;}
+.pron-sounds-lbl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(0,0,0,.28);margin-bottom:8px;}
+.pron-sounds-row{display:flex;flex-wrap:wrap;gap:5px;}
+.pron-ph-chip{font-size:13px;font-weight:600;padding:5px 10px;border-radius:7px;display:inline-block;}
+.pron-ph-chip.g{background:rgba(26,127,68,.09);color:#1a7f44;border:1px solid rgba(26,127,68,.2);}
+.pron-ph-chip.y{background:rgba(201,162,39,.1);color:#8a6d00;border:1px solid rgba(201,162,39,.25);}
+.pron-ph-chip.r{background:rgba(185,28,28,.09);color:#b91c1c;border:1px solid rgba(185,28,28,.2);}
+.pron-ph-chip small{font-size:10px;opacity:.45;margin-left:3px;}
+.pron-tips-section{border-top:1px solid #f0ede8;padding-top:12px;margin-top:14px;display:flex;flex-direction:column;gap:8px;}
+.pron-tips-lbl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(0,0,0,.28);margin-bottom:2px;}
+.pron-tip-red{font-size:12px;color:rgba(0,0,0,.55);line-height:1.6;padding:8px 12px;background:rgba(185,28,28,.05);border-radius:8px;border-left:3px solid rgba(185,28,28,.25);}
+.pron-tip-amber{font-size:12px;color:rgba(0,0,0,.55);line-height:1.6;padding:8px 12px;background:rgba(201,162,39,.06);border-radius:8px;border-left:3px solid rgba(201,162,39,.3);}
+.pron-btns{display:flex;gap:10px;padding:0 28px;}
+.pron-btn-p{flex:1;padding:13px;border-radius:12px;background:#111;border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px;}
+.pron-btn-s{flex:1;padding:13px;border-radius:12px;background:#f5f4f0;border:none;color:rgba(0,0,0,.45);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px;}
+/* WORD PRACTICE */
+.word-practice{margin-top:14px;border-top:1px solid #f0ede8;padding-top:14px;}
+.word-practice-lbl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(0,0,0,.28);margin-bottom:10px;}
+.word-practice-name{font-size:20px;font-weight:700;color:#111;margin-bottom:12px;}
+.word-practice-btns{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
+.wp-btn{width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.wp-btn-play{background:rgba(0,0,0,.07);}
+.wp-btn-rec{background:#111;transition:background .2s;}
+.wp-btn-rec.recording{background:#b91c1c;}
+.wp-score{font-size:13px;font-weight:700;margin-left:4px;}
+.wp-tip{font-size:12px;color:rgba(0,0,0,.45);line-height:1.5;margin-top:6px;}
+/* SUGGESTION POPUP */
+.suggestion-popup{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:680px;z-index:200;background:#0e0e0e;border-radius:24px 24px 0 0;border-top:1px solid rgba(255,255,255,.07);padding-bottom:32px;animation:sug-in .28s cubic-bezier(.16,1,.3,1);}
+@keyframes sug-in{from{opacity:0;transform:translateX(-50%) translateY(18px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}@keyframes rowIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.suggestion-handle{width:32px;height:3px;border-radius:2px;background:rgba(255,255,255,.1);margin:12px auto 0;}.suggestion-header{padding:20px 24px 18px;border-bottom:1px solid rgba(255,255,255,.06);}.suggestion-lbl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.25);}
+.suggestion-option{padding:20px 24px;font-size:15px;color:rgba(255,255,255,.85);cursor:pointer;line-height:1.5;display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid rgba(255,255,255,.05);}
+.suggestion-close{font-size:11px;color:rgba(255,255,255,.2);text-align:center;padding:18px 24px 0;cursor:pointer;font-weight:600;letter-spacing:.06em;text-transform:uppercase;display:block;}
+/* HINT BUTTON */
+.emma-hint-btn{width:38px;height:38px;border-radius:50%;background:transparent;border:2px solid rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;opacity:.55;transition:opacity .2s;position:relative;align-self:center;}
+/* ONBOARDING ANIMATIONS */
+.pron-onboard-label{position:fixed;z-index:501;pointer-events:none;font-size:10px;font-weight:700;letter-spacing:.04em;color:#fff;background:rgba(0,0,0,.72);padding:4px 9px;border-radius:6px;white-space:nowrap;backdrop-filter:blur(6px);}
+@keyframes glowPulseGold{0%{box-shadow:0 0 0 0 rgba(201,162,39,.9)}50%{box-shadow:0 0 0 8px rgba(201,162,39,0)}100%{box-shadow:0 0 0 0 rgba(201,162,39,0)}}
+@keyframes glowPulseWhite{0%{box-shadow:0 0 0 0 rgba(255,255,255,.7)}50%{box-shadow:0 0 0 8px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
+@keyframes labelFadeIn{0%{opacity:0;transform:translateY(4px)}8%{opacity:1;transform:translateY(0)}85%{opacity:1}100%{opacity:0}}
+.glow-gold{animation:glowPulseGold 0.7s ease-in-out infinite!important;}
+.glow-white{animation:glowPulseWhite 0.7s ease-in-out infinite!important;}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,400;1,9..144,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
@@ -2556,13 +2630,15 @@ function showCurriculumProgress(topic, onStart){
       var isLocked = false; // DEV: all units unlocked for testing
 
       var cls = 'cp-unit' + (isDone?' done':isCurrent?' current':'');
-      var statusIcon = isDone ? '&#10003;' : (isCurrent ? '▶' : '');
+      var svgCheck = '<svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+      var svgPlay = '<svg width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7z" style="transform:translateX(1px)"/></svg>';
+      var statusIcon = isDone ? svgCheck : svgPlay;
       var tag = isDone ? '<span class="cp-unit-tag">Done</span>' :
                 isCurrent ? '<span class="cp-unit-tag">Current</span>' : '';
 
       levelsHtml +=
         '<div class="'+cls+'" onclick="cpSelectUnit('+unitNum+')" data-unit="'+unitNum+'">'+
-          '<div class="cp-unit-status">'+statusIcon+'</div>'+
+          '<div class="cp-unit-status" style="background:'+(isDone?'rgba(0,0,0,.25)':(isCurrent?'var(--yellow)':'rgba(0,0,0,.1)'))+';color:'+(isCurrent?'#000':'#fff')+'">'+ statusIcon+'</div>'+
           '<div class="cp-unit-content">'+
             '<div class="cp-unit-num">'+toRoman(unitNum)+'.</div>'+
             '<div class="cp-unit-title">'+unit.title+'</div>'+
@@ -3305,6 +3381,9 @@ function renderEmma(){
           '<div class="emma-status" id="emmaStatus">Tap anywhere to start...</div>'+
           '<div class="emma-controls">'+
             
+            '<div class="emma-hint-btn" id="emmaHintBtn" onclick="showSuggestion()">'+
+              '<div style="width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:rgba(255,255,255,.85);line-height:1;margin-top:-1px;font-family:-apple-system,sans-serif">?</div>'+
+            '</div>'+
             '<button class="emma-mic" id="emmaMicBtn" onclick="emmaToggleRec()" disabled>&#127897; Tap to speak</button>'+
             '<button class="emma-end emma-end-footer" onclick="emmaEnd()">End</button>'+
           '</div>'+
@@ -3478,7 +3557,10 @@ function emmaStartConvo(){
     'Topic: '+emmaTopic+'. Unit: '+unitTitle0+'. '+
     curriculumContext+
     'Your approach this session: '+unitScenario0+' '+
-    'IMPORTANT — TEACHING APPROACH: Your primary job is to teach English through conversation about the unit topic. You do NOT need to role play unless the scenario specifically calls for it and the student is comfortable. For Bible units especially — do NOT role play characters like journalists or disciples. Instead, have a natural conversation: ask the student what they know about the story, discuss it together, teach the expressions naturally through that discussion. If the student says they do not want to role play, immediately switch to a conversational teaching approach — discuss the topic together as coach and student. '+
+    'TEACHING APPROACH: Teach English through natural conversation about the unit topic. '+
+    'FLEXIBLE: The student can ask questions, request explanations, change the teaching approach, say they do not want to role play, ask for more detail, or engage in any way they choose — as long as the SUBJECT stays on the current unit. All of these are valid and you should adapt immediately: "can you tell me more about Noah?", "what happened next?", "explain that to me", "I prefer you just tell me the story", "can we discuss this differently?". These are NOT topic switches — they are engagement choices. '+
+    'FIXED: The only thing the student cannot do is switch to a completely different subject — a different Bible story, a different travel situation, a different business topic. If they explicitly name a different subject, redirect warmly: "That comes in a future session — right now we are on '+unitTitle0+'." '+
+    'For Bible units: start by asking what the student already knows about the story. Discuss it conversationally. Teach expressions through the discussion. Role play is optional — never force it. '+
     'When the student asks to discuss anything outside the current unit — whether it is a different Bible book, a different travel situation, a different business scenario, or anything else — you respond with exactly this structure: '+
     '(1) Acknowledge warmly in one clause — "Oh, Revelation is fascinating!" or "Great idea about restaurants!" '+
     '(2) Immediately redirect — "but that is a future lesson. Right now we are on '+unitTitle0+', so let us stay here." '+
@@ -3557,7 +3639,10 @@ function emmaSpeak(text){
       var btn=document.getElementById('emmaMicBtn');
       if(btn){btn.disabled=false;btn.style.opacity='1';}
     }
-    audio.onended=onDone;
+    audio.onended=function(){
+      onDone();
+      if(!window._sugOnboardShown){window._sugOnboardShown=true;setTimeout(showSuggestionOnboarding,300);}
+    };
     audio.onerror=function(){URL.revokeObjectURL(url);_emmaAudio=null;emmaStateIdle();};
     audio.src=url;
     var p=audio.play();
@@ -3588,14 +3673,277 @@ function emmaAddCorrectionBubble(original,correction){
   wrap.scrollTop=wrap.scrollHeight;
 }
 
+var _pronData={};var _pronBubbleCounter=0;var _pronAudio=null;window._sessionPronunciationData=[];
+
+function pronCls(s){return s>=80?'g':s>=65?'y':'r';}
+function pronColor(s){return s>=80?'#1a7f44':s>=65?'#8a6d00':'#b91c1c';}
+function pronRingColor(s){return s>=80?'#1a7f44':s>=65?'#c9a227':'#b91c1c';}
+function pronOffset(s){return Math.round(213-(Math.min(Math.max(s,0),100)/100)*213);}
+function pronFriendlyError(e){return {'Mispronunciation':'This word was difficult to understand. Try saying it more slowly and clearly.','Omission':'You skipped this word — make sure to say every word.','Insertion':'You added a word that was not in the sentence.'}[e]||null;}
+function pronFriendlyProsody(p){var t=[];if(p&&p.break==='UnexpectedBreak')t.push('You paused unexpectedly before this word. Try to keep the sentence flowing.');if(p&&p.intonation==='Monotone')t.push('Your voice sounded a bit flat here. Try raising your pitch on this word.');return t;}
+
+var _wpRecorder=null;var _wpWord=null;
+function pronSelectWord(bubbleId,idx){
+  console.log('[WP] pronSelectWord called, bubbleId='+bubbleId+' idx='+idx);
+  var data=_pronData[bubbleId];
+  console.log('[WP] data=',data);
+  if(!data){console.log('[WP] no data for bubble');return;}
+  // Allow tapping even without pronunciation — show practice UI
+  var word=data.pronunciation&&data.pronunciation.words&&data.pronunciation.words[idx];
+  if(!word){
+    // No Azure word data — build a minimal practice from transcript
+    console.log('[WP] no word data, using transcript');
+    var transcript=data.transcript||'';
+    var words=transcript.replace(/[?.!,]/g,'').split(' ').filter(Boolean);
+    if(!words[idx]){console.log('[WP] no word at idx '+idx);return;}
+    word={word:words[idx],accuracyScore:null,errorType:'None',prosody:{break:'None',intonation:'None'},phonemes:[]};
+  }
+  console.log('[WP] word=',word.word);
+  document.querySelectorAll('.pron-word-chip').forEach(function(c){c.classList.remove('sel');});
+  var chip=document.querySelector('[data-widx="'+idx+'"]');if(chip)chip.classList.add('sel');
+  var area=document.getElementById('pronDetail');if(!area)return;
+  var allGood=word.accuracyScore>=80&&!pronFriendlyError(word.errorType)&&pronFriendlyProsody(word.prosody).length===0;
+  if(allGood){area.innerHTML='<div class="pron-detail-good">"'+word.word+'" sounds great</div><div class="pron-detail-good-sub">Your pronunciation of this word is clear and natural.</div>';return;}
+  _wpWord=word.word;
+  var errTip=pronFriendlyError(word.errorType);
+  var prosTips=pronFriendlyProsody(word.prosody);
+  var tipsHtml='';
+  if(errTip||prosTips.length>0){tipsHtml='<div class="pron-tips-section"><div class="pron-tips-lbl">Tips</div>';if(errTip)tipsHtml+='<div class="pron-tip-red">'+errTip+'</div>';prosTips.forEach(function(t){tipsHtml+='<div class="pron-tip-amber">'+t+'</div>';});tipsHtml+='</div>';}
+  // Build word practice UI using DOM — avoids SVG/HTML parsing issues in Safari
+  var wp=document.createElement('div');
+  wp.className='word-practice';
+  wp.innerHTML='<div class="word-practice-lbl">Practice this word</div><div class="word-practice-name">'+word.word+'</div>';
+  var btns=document.createElement('div');btns.className='word-practice-btns';
+  var playBtn=document.createElement('button');
+  playBtn.className='wp-btn wp-btn-play';playBtn.id='wpPlayBtn';
+  playBtn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24"><path fill="rgba(0,0,0,.6)" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>';
+  playBtn.onclick=function(){wpPlayEmma();};
+  var recBtn=document.createElement('button');
+  recBtn.className='wp-btn wp-btn-rec';recBtn.id='wpRecBtn';
+  recBtn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24"><path fill="#fff" d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.3 6-6.72h-1.7z"/></svg>';
+  recBtn.onclick=function(){wpToggleRec();};
+  var scoreSpan=document.createElement('span');scoreSpan.className='wp-score';scoreSpan.id='wpScore';
+  btns.appendChild(playBtn);btns.appendChild(recBtn);btns.appendChild(scoreSpan);
+  wp.appendChild(btns);
+  var tipDiv=document.createElement('div');tipDiv.className='wp-tip';tipDiv.id='wpTip';
+  tipDiv.textContent='Listen to Emma, then record yourself saying just this word.';
+  wp.appendChild(tipDiv);
+  area.innerHTML='';
+  if(tipsHtml){var th=document.createElement('div');th.innerHTML=tipsHtml;area.appendChild(th);}
+  area.appendChild(wp);
+}
+
+function wpPlayEmma(){
+  if(!_wpWord)return;
+  var btn=document.getElementById('wpPlayBtn');
+  if(btn)btn.style.background='rgba(201,162,39,.15)';
+  fetch(W+'/emma-speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:_wpWord})})
+  .then(function(r){return r.arrayBuffer();})
+  .then(function(ab){var ctx=new (window.AudioContext||window.webkitAudioContext)();return ctx.decodeAudioData(ab).then(function(buf){var src=ctx.createBufferSource();src.buffer=buf;src.connect(ctx.destination);src.start();src.onended=function(){if(btn)btn.style.background='';};});})
+  .catch(function(){if(btn)btn.style.background='';});
+}
+
+function wpToggleRec(){
+  var recBtn=document.getElementById('wpRecBtn');
+  if(_wpRecorder&&_wpRecorder.state==='recording'){_wpRecorder.stop();return;}
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+    var chunks=[];
+    var mt=MediaRecorder.isTypeSupported('audio/mp4')?'audio/mp4':MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')?'audio/ogg;codecs=opus':'audio/webm';
+    _wpRecorder=new MediaRecorder(stream,{mimeType:mt});
+    _wpRecorder.ondataavailable=function(e){if(e.data.size>0)chunks.push(e.data);};
+    _wpRecorder.onstop=function(){
+      stream.getTracks().forEach(function(t){t.stop();});
+      if(recBtn)recBtn.classList.remove('recording');
+      var blob=new Blob(chunks,{type:mt});
+      var fr=new FileReader();
+      fr.onloadend=function(){
+        var b64=fr.result.split(',')[1];
+        var tip=document.getElementById('wpTip');if(tip)tip.textContent='Scoring...';
+        // WAV conversion then score
+        (function(audioB64,mimeType,targetWord,rawBlob){
+          var fr3=new FileReader();
+          fr3.onloadend=function(){
+            if(!fr3.result){wpScoreWithAudio(audioB64,mimeType,null,targetWord);return;}
+            try{
+              var actx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:16000});
+              actx.decodeAudioData(fr3.result,function(decoded){
+                var sr=16000,offCtx=new OfflineAudioContext(1,Math.ceil(decoded.duration*sr),sr);
+                var src=offCtx.createBufferSource();src.buffer=decoded;src.connect(offCtx.destination);src.start(0);
+                offCtx.startRendering().then(function(rendered){
+                  var s=rendered.getChannelData(0),dLen=s.length*2,ab=new ArrayBuffer(44+dLen),dv=new DataView(ab);
+                  function ws(o,str){for(var k=0;k<str.length;k++)dv.setUint8(o+k,str.charCodeAt(k));}
+                  ws(0,'RIFF');dv.setUint32(4,36+dLen,true);ws(8,'WAVE');ws(12,'fmt ');
+                  dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);
+                  dv.setUint32(24,sr,true);dv.setUint32(28,sr*2,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);
+                  ws(36,'data');dv.setUint32(40,dLen,true);
+                  for(var i=0,off=44;i<s.length;i++,off+=2){var v=Math.max(-1,Math.min(1,s[i]));dv.setInt16(off,v<0?v*0x8000:v*0x7FFF,true);}
+                  var wb=new Uint8Array(ab),cs=8192,wstr='';
+                  for(var j=0;j<wb.length;j+=cs)wstr+=String.fromCharCode.apply(null,wb.subarray(j,Math.min(j+cs,wb.length)));
+                  wpScoreWithAudio(audioB64,mimeType,btoa(wstr),targetWord);
+                }).catch(function(){wpScoreWithAudio(audioB64,mimeType,null,targetWord);});
+              },function(){wpScoreWithAudio(audioB64,mimeType,null,targetWord);});
+            }catch(e){wpScoreWithAudio(audioB64,mimeType,null,targetWord);}
+          };
+          fr3.readAsArrayBuffer(rawBlob);
+        })(b64,mt,_wpWord,blob);
+      };
+      fr.readAsDataURL(blob);
+    };
+    _wpRecorder.start();
+    if(recBtn)recBtn.classList.add('recording');
+    var tip=document.getElementById('wpTip');if(tip)tip.textContent='Recording... tap again to stop.';
+  }).catch(function(){});
+}
+
+function wpScoreWithAudio(audioB64,mimeType,wavB64,targetWord){
+  fetch(W+'/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:audioB64,mimeType:mimeType,wavB64:wavB64||null,referenceText:targetWord||''})})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    var scoreEl=document.getElementById('wpScore'),tipEl=document.getElementById('wpTip');
+    var score=0;
+    if(d.pronunciation&&d.pronunciation.words&&d.pronunciation.words.length>0){
+      var match=d.pronunciation.words.find(function(w){return w.word&&w.word.toLowerCase()===targetWord.toLowerCase();});
+      score=Math.round(match?match.accuracyScore:d.pronunciation.pronScore||0);
+    }
+    if(score>0){
+      if(scoreEl){scoreEl.textContent=score+'%';scoreEl.style.color=pronColor(score);}
+      if(tipEl){if(score>=80)tipEl.textContent='Ficou ótimo! Soou claro e natural.';else if(score>=65)tipEl.textContent='Quase lá! Ouça Emma mais uma vez e tente de novo.';else tipEl.textContent='Continue praticando! Foque em imitar o som da Emma.';}
+    }else{
+      if(scoreEl)scoreEl.textContent='';
+      if(tipEl)tipEl.textContent='Não conseguimos pontuar. Tente de novo mais perto do microfone.';
+    }
+  }).catch(function(){var t=document.getElementById('wpTip');if(t)t.textContent='Erro ao pontuar. Tente de novo.';});
+}
+
+function showPronunciationPanel(bubbleId){
+  var data=_pronData[bubbleId];if(!data)return;
+  var p=data.pronunciation;
+  var overall=Math.round(p?(p.pronScore||0):0),acc=Math.round(p?(p.accuracyScore||0):0),flu=Math.round(p?(p.fluencyScore||0):0),nat=Math.round(p?(p.prosodyScore||0):0);
+  var rc=pronRingColor(overall),nc=pronColor(overall),off=pronOffset(overall);
+  var hasW=p&&p.words&&p.words.length>0;
+  var wordHtml=hasW?(p.words||[]).map(function(w,i){var cls=pronCls(w.accuracyScore||100);var oc="pronSelectWord('" + bubbleId + "'," + i + ")";return '<span class="pron-word-chip '+cls+'" data-widx="'+i+'" onclick="'+oc+'"><span class="pron-word-name '+cls+'">'+w.word+'</span><span class="pron-word-pct '+cls+'">'+Math.round(w.accuracyScore||100)+'%</span></span>';}).join(''):'';
+  var subHtml='<div class="pron-sub"><div class="pron-sub-num">'+acc+'<span>%</span></div><div class="pron-sub-lbl">Accuracy</div></div><div class="pron-sub"><div class="pron-sub-num">'+flu+'<span>%</span></div><div class="pron-sub-lbl">Fluency</div></div>'+(nat?'<div class="pron-sub"><div class="pron-sub-num">'+nat+'<span>%</span></div><div class="pron-sub-lbl">Naturalness</div></div>':'');
+  var ov=document.createElement('div');ov.className='pron-overlay';ov.id='pronOverlay';ov.onclick=function(e){if(e.target===ov)closePronPanel();};
+  ov.innerHTML='<div class="pron-panel"><div class="pron-handle"></div><div class="pron-top"><div class="pron-ring-wrap"><svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" fill="none" stroke="#f0ede8" stroke-width="7"/><circle cx="40" cy="40" r="34" fill="none" stroke="'+rc+'" stroke-width="7" stroke-dasharray="213" stroke-dashoffset="'+off+'" stroke-linecap="round"/></svg><div class="pron-ring-inner"><span class="pron-ring-num" style="color:'+nc+'">'+overall+'</span><span class="pron-ring-lbl">score</span></div></div><div class="pron-right"><div class="pron-transcript">"'+data.transcript+'"</div><div class="pron-sub-scores">'+subHtml+'</div></div></div>'+(wordHtml?'<div class="pron-words-section"><div class="pron-words-lbl">Words</div><div class="pron-words-grid">'+wordHtml+'</div></div>':'')+'<div class="pron-detail" id="pronDetail"><span class="pron-detail-empty">Tap a word above to see what to improve</span></div><div class="pron-btns"><button class="pron-btn-p" id="pronBtnYou"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>Your recording</button><button class="pron-btn-s" id="pronBtnEmma"><svg width="12" height="12" viewBox="0 0 24 24" fill="rgba(0,0,0,.4)"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>Emma version</button></div></div>';
+  document.body.appendChild(ov);
+  var by=document.getElementById('pronBtnYou'),be=document.getElementById('pronBtnEmma');
+  if(by)by.onclick=function(){pronPlayStudent(bubbleId);};if(be)be.onclick=function(){pronPlayEmma(data.transcript);};
+}
+
+function pronPlayStudent(id){var data=_pronData[id];if(!data||!data.audioB64)return;if(_pronAudio){_pronAudio.pause();_pronAudio=null;}var raw=atob(data.audioB64),arr=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)arr[i]=raw.charCodeAt(i);var blob=new Blob([arr],{type:data.audioMime||'audio/mp4'});var url=URL.createObjectURL(blob);_pronAudio=new Audio(url);_pronAudio.play();_pronAudio.onended=function(){URL.revokeObjectURL(url);};}
+
+function pronPlayEmma(transcript){if(!transcript)return;var btn=document.getElementById('pronBtnEmma');if(btn){btn.style.color='#8a6d00';btn.style.background='rgba(201,162,39,.12)';}fetch(W+'/emma-speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:transcript})}).then(function(r){return r.arrayBuffer();}).then(function(ab){var ctx=new (window.AudioContext||window.webkitAudioContext)();return ctx.decodeAudioData(ab).then(function(buf){var src=ctx.createBufferSource();src.buffer=buf;src.connect(ctx.destination);src.start();src.onended=function(){if(btn){btn.style.color='';btn.style.background='';}}; });}).catch(function(){if(btn){btn.style.color='';btn.style.background='';}});}
+
+function closePronPanel(){var el=document.getElementById('pronOverlay');if(el)el.remove();if(_pronAudio){_pronAudio.pause();_pronAudio=null;}}
+
+function closeSuggestion(){var p=document.getElementById('suggestionPopup');if(p)p.remove();var b=document.getElementById('suggestionBdrop');if(b)b.remove();}
+
+function showSuggestion(){
+  if(document.getElementById('suggestionPopup'))return;
+  var lastEmma='';for(var i=emmaHistory.length-1;i>=0;i--){if(emmaHistory[i].role==='assistant'){lastEmma=emmaHistory[i].content;break;}}
+  if(!lastEmma)return;
+  var popup=document.createElement('div');popup.className='suggestion-popup';popup.id='suggestionPopup';var bdrop=document.createElement('div');bdrop.id='suggestionBdrop';bdrop.onclick=closeSuggestion;bdrop.style.cssText='position:fixed;inset:0;z-index:199;background:rgba(0,0,0,.65);';document.body.appendChild(bdrop);
+  popup.innerHTML='<div class="suggestion-handle"></div><div class="suggestion-header"><div class="suggestion-lbl">Como você pode responder</div></div><div id="suggestionOptions"><div style="padding:20px 24px;font-size:14px;color:rgba(255,255,255,.3)">Carregando...</div></div><div class="suggestion-close" onclick="closeSuggestion()">Dispensar</div>';
+  document.body.appendChild(popup);
+  fetch(W+'/emma-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:(window._emmaSystem||'')+' Give 2 short natural English responses the student could say. Return ONLY a JSON array of 2 strings.',messages:emmaHistory.concat([{role:'user',content:'Suggest 2 responses.'}]),max_tokens:100})})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    try{
+      var opts=JSON.parse((d.text||'').replace(/```json|```/g,'').trim());
+      var el=document.getElementById('suggestionOptions');
+      if(el&&Array.isArray(opts)){el.innerHTML=opts.slice(0,2).map(function(o,i){return '<div class="suggestion-option" style="animation:rowIn .2s ease '+(i*0.08)+'s both;" onclick="useSuggestion(this)"><span style="flex:1">'+o+'</span><span style="font-size:18px;color:rgba(255,255,255,.15);flex-shrink:0">→</span></div>';}).join('');}
+    }catch(e){var el=document.getElementById('suggestionOptions');if(el)el.innerHTML='<div style="font-size:13px;color:rgba(255,255,255,.4)">Não foi possível carregar sugestões.</div>';}
+  });
+}
+
+function useSuggestion(el){
+  var text=el.textContent;
+  closeSuggestion();
+  emmaSubmit(text);
+}
+
+function _makeOnboardOverlay(text,topPx,rightPx,bottomPx,leftPx){
+  var old=document.getElementById('_onboardOverlay');if(old)old.remove();
+  var overlay=document.createElement('div');overlay.id='_onboardOverlay';
+  overlay.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:9999;';
+  var lbl=document.createElement('div');lbl.textContent=text;
+  lbl.style.cssText='position:absolute;font-size:11px;font-weight:700;letter-spacing:.03em;color:#f5c842;background:rgba(20,20,20,.95);padding:5px 11px;border-radius:8px;border:1.5px solid rgba(201,162,39,.6);white-space:nowrap;box-shadow:0 2px 16px rgba(0,0,0,.4);animation:labelFadeIn 8s ease forwards;';
+  if(topPx!==null)lbl.style.top=topPx+'px';
+  if(rightPx!==null)lbl.style.right=rightPx+'px';
+  if(bottomPx!==null)lbl.style.bottom=bottomPx+'px';
+  if(leftPx!==null)lbl.style.left=leftPx+'px';
+  overlay.appendChild(lbl);document.body.appendChild(overlay);
+  setTimeout(function(){if(overlay.parentNode)overlay.remove();},8300);
+}
+function showPronOnboarding(){
+  var infoIcons=document.querySelectorAll('.pron-info-icon');
+  if(infoIcons.length===0)return;
+  var last=infoIcons[infoIcons.length-1];
+  last.classList.remove('glow-gold');void last.offsetWidth;last.classList.add('glow-gold');
+  var iconRow=last.parentNode;if(!iconRow)return;
+  var existing=iconRow.querySelector('.pron-inline-label');if(existing)existing.remove();
+  var lbl=document.createElement('div');lbl.className='pron-inline-label';
+  lbl.textContent='Feedback de pronúncia';
+  lbl.style.cssText='font-size:11px;font-weight:700;letter-spacing:.03em;color:#f5c842;background:rgba(20,20,20,.95);padding:5px 11px;border-radius:8px;border:1.5px solid rgba(201,162,39,.6);white-space:nowrap;box-shadow:0 2px 16px rgba(0,0,0,.4);animation:labelFadeIn 8s ease forwards;align-self:flex-end;margin-right:4px;margin-top:2px;';
+  iconRow.parentNode.insertBefore(lbl,iconRow.nextSibling);
+  setTimeout(function(){if(lbl.parentNode)lbl.remove();},8300);
+  setTimeout(function(){last.classList.remove('glow-gold');},8000);
+}
+
+function showSuggestionOnboarding(){
+  // Glow the hint button
+  var hb=document.getElementById('emmaHintBtn');
+  if(!hb)return;
+  hb.classList.remove('glow-white');
+  void hb.offsetWidth;
+  hb.classList.add('glow-white');
+  // Label above
+  var rect=hb.getBoundingClientRect();
+  var lbl=document.createElement('div');
+  lbl.className='pron-onboard-label';
+  lbl.textContent='Sugestão de resposta';
+  lbl.style.cssText='bottom:'+(window.innerHeight-rect.top+8)+'px;left:'+rect.left+'px;animation:labelFadeIn 5s ease forwards;';
+  document.body.appendChild(lbl);
+  setTimeout(function(){if(lbl.parentNode)lbl.remove();},5200);
+  setTimeout(function(){hb.classList.remove('glow-white');},3500);
+}
+
 function emmaAddBubble(who,text){
-  var wrap=document.getElementById('emmaBubbles');
-  if(!wrap)return;
-  var div=document.createElement('div');
-  div.className='emma-bubble '+who;
-  div.innerHTML=text;
-  wrap.appendChild(div);
-  wrap.scrollTop=wrap.scrollHeight;
+  var wrap=document.getElementById('emmaBubbles');if(!wrap)return;
+  var div=document.createElement('div');div.className='emma-bubble '+who;div.innerHTML=text;
+  if(who==='student'){
+    var pid=window._pendingPronId||null;window._pendingPronId=null;
+    var icons=document.createElement('div');
+    icons.style.cssText='display:flex;justify-content:flex-end;gap:5px;padding-right:4px;opacity:.85';
+    var playBtn=document.createElement('div');
+    playBtn.style.cssText='width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;line-height:0';
+    playBtn.innerHTML='<svg width="11" height="11" viewBox="2 0 22 24" fill="rgba(255,255,255,.85)"><path d="M8 5v14l11-7z"/></svg>';
+    var infoBtn=document.createElement('div');
+    infoBtn.className='pron-info-icon';
+    infoBtn.className='pron-info-icon';infoBtn.style.cssText='width:22px;height:22px;border-radius:50%;background:transparent;border:1.5px solid rgba(201,162,39,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;line-height:0';
+    infoBtn.innerHTML='<div style="width:15px;height:15px;border-radius:50%;background:rgba(201,162,39,.45);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;line-height:1;padding-top:1px;font-family:-apple-system,sans-serif">i</div>';
+    icons.appendChild(playBtn);icons.appendChild(infoBtn);
+    // Wrap bubble+icons in container with minimal gap
+    var container=document.createElement('div');
+    container.style.cssText='display:flex;flex-direction:column;align-items:flex-end;gap:1px;';
+    container.appendChild(div);
+    container.appendChild(icons);
+    if(pid){
+      (function(id){
+        playBtn.onclick=function(){pronPlayStudent(id);};
+        infoBtn.onclick=function(){showPronunciationPanel(id);};
+      })(pid);
+    } else {
+      // No pronunciation data yet — grey out but still wire onclick to show empty panel
+      playBtn.style.opacity='0.3';
+      infoBtn.style.opacity='0.3';
+    }
+    wrap.appendChild(container);
+    wrap.scrollTop=wrap.scrollHeight;
+    return;
+  }
+
+  wrap.appendChild(div);wrap.scrollTop=wrap.scrollHeight;
 }
 
 function emmaToggleRec(){
@@ -3637,25 +3985,56 @@ function emmaStopRec(){
     var reader=new FileReader();
     reader.onloadend=function(){
       var b64=reader.result.split(',')[1];
-      fetch(W+'/transcribe',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({audio:b64,mimeType:mt2})
-      })
-      .then(function(r){return r.json();})
-      .then(function(d){
-        var transcript=(d.text||'').trim();
-        if(!transcript){
-          if(btn){btn.disabled=false;btn.style.opacity='1';}
-          if(status)status.textContent='Could not hear you. Tap to try again.';
-          return;
+      var _recBlob=new Blob(emmaChunks,{type:mt2});
+      (function(blob,origB64,origMime){
+        function sendNow(wavB64){
+          fetch(W+'/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:origB64,mimeType:origMime,wavB64:wavB64||null})})
+          .then(function(r){return r.json();})
+          .then(function(d){
+            if(d.pronunciation||d.audioB64){
+              var pid='p'+(++_pronBubbleCounter);
+              _pronData[pid]={transcript:(d.text||'').trim(),pronunciation:d.pronunciation||null,audioB64:d.audioB64||origB64,audioMime:origMime};
+              window._pendingPronId=pid;
+              if(d.pronunciation) window._sessionPronunciationData.push({transcript:(d.text||'').trim(),scores:d.pronunciation});
+            }
+            var transcript=(d.text||'').trim();
+            if(!transcript){if(btn){btn.disabled=false;btn.style.opacity='1';}if(status)status.textContent='Could not hear you. Tap to try again.';return;}
+            emmaSubmit(transcript);
+            // First student reply — show pronúncia onboarding
+            if(!window._pronOnboardShown){window._pronOnboardShown=true;setTimeout(showPronOnboarding,800);}
+          })
+          .catch(function(){if(btn){btn.disabled=false;btn.style.opacity='1';}});
         }
-        emmaSubmit(transcript);
-      })
-      .catch(function(){
-        if(btn){btn.disabled=false;btn.style.opacity='1';}
-        if(status)status.textContent='Error. Tap to try again.';
-      });
+        try{
+          var fr2=new FileReader();
+          fr2.onloadend=function(){
+            if(!fr2.result){sendNow(null);return;}
+            try{
+              var actx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:16000});
+              actx.decodeAudioData(fr2.result,function(decoded){
+                try{
+                  var sr=16000,offCtx=new OfflineAudioContext(1,decoded.length,sr);
+                  var src=offCtx.createBufferSource();src.buffer=decoded;src.connect(offCtx.destination);src.start(0);
+                  offCtx.startRendering().then(function(rendered){
+                    var s=rendered.getChannelData(0),dLen=s.length*2,ab=new ArrayBuffer(44+dLen),dv=new DataView(ab);
+                    function ws(o,str){for(var k=0;k<str.length;k++)dv.setUint8(o+k,str.charCodeAt(k));}
+                    ws(0,'RIFF');dv.setUint32(4,36+dLen,true);ws(8,'WAVE');ws(12,'fmt ');
+                    dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);
+                    dv.setUint32(24,sr,true);dv.setUint32(28,sr*2,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);
+                    ws(36,'data');dv.setUint32(40,dLen,true);
+                    for(var i=0,off=44;i<s.length;i++,off+=2){var v=Math.max(-1,Math.min(1,s[i]));dv.setInt16(off,v<0?v*0x8000:v*0x7FFF,true);}
+                    var wb=new Uint8Array(ab),cs=8192,wstr='';
+                    for(var j=0;j<wb.length;j+=cs)wstr+=String.fromCharCode.apply(null,wb.subarray(j,Math.min(j+cs,wb.length)));
+                    sendNow(btoa(wstr));
+                  }).catch(function(){sendNow(null);});
+                }catch(e){sendNow(null);}
+              },function(){sendNow(null);});
+            }catch(e){sendNow(null);}
+          };
+          fr2.readAsArrayBuffer(blob);
+        }catch(e){sendNow(null);}
+      })(_recBlob,b64,mt2);
+      return;
     };
     reader.readAsDataURL(blob);
   };
@@ -3691,87 +4070,25 @@ function emmaSubmit(transcript){
     return;
   }
 
-  // Topic switch interceptor — fires before Claude sees the message
+  // Topic switch interceptor — ONLY fires on explicit named-topic switch requests
+  // Everything else (questions, approach changes, clarifications) goes to Claude
   var unit0 = getCurrentUnit(emmaTopic);
   if(unit0){
-    var reqPatterns = [
-      /i want to talk about (.+)/i,
-      /can we talk about (.+)/i,
-      /lets talk about (.+)/i,
-      /let us talk about (.+)/i,
-      /can we switch to (.+)/i,
-      /switch to (.+) instead/i,
-      /i want to practice (.+) instead/i,
-      /can we do (.+) instead/i,
-      /how about (.+) instead/i,
-      /change the subject to/i,
-      /different topic/i
-    ];
-    // Only trigger if the request contains a different subject — not just a preference about approach
-    var isSwitchReq = reqPatterns.some(function(p){ return p.test(transcript); });
-    // Extra check: if transcript contains "don't want" or "not want" it's a preference, not a switch
-    var isPreference = /don.t want|do not want|not want|instead of role|no role|without role|just tell|tell me the story|explain it/i.test(transcript);
-    if(isSwitchReq && !isPreference){
-      var switchReply = 'Oh nice idea — but that comes up in a future session! Right now we are on ' + unit0.title + '. Back to it:';
-      emmaAddBubble('emma', switchReply);
-      emmaHistory.push({role:'assistant', content: switchReply});
-      emmaStateSpeaking();
-      emmaSpeak(switchReply);
-      var rb = document.getElementById('emmaMicBtn');
-      if(rb){rb.disabled=false;rb.style.opacity='1';}
-      return;
-    }
-  }
-
-  // ── Scenario switch interceptor — bypasses Claude entirely ──────────────
-  var unit0 = getCurrentUnit(emmaTopic);
-  if(unit0){
-    var tLow = transcript.toLowerCase();
-    // Any message asking to talk about / do / practice / switch to something
-    // Only flag clearly off-topic subject words — not generic conversational phrases
-    // These are specific unit topics / scenarios from OTHER courses
-    var offTopicWords = {
-      'Travel English':    ['negotiation','presentation','salary','résumé','resume','cover letter','genesis','exodus','paul','psalm','gospel','revelation','crucifixion','sermon','parable','job interview','cover letter','business meeting'],
-      'Business English':  ['airport','passport','boarding','check-in','hotel','restaurant','ordering food','taxi','sightseeing','immigration','lost luggage','genesis','exodus','paul','psalm','gospel'],
-      'Conversation':      ['airport','passport','boarding','negotiation','salary','résumé','genesis','exodus','paul','psalm','gospel'],
-      'Job Interview':     ['airport','passport','boarding','restaurant','hotel','genesis','exodus','paul','psalm','gospel','sermon'],
-      'The Bible in English': ['airport','passport','boarding','restaurant','hotel','negotiation','salary','résumé','presentation','cover letter',
-        'revelation','matthew','mark','luke','john','acts','romans','corinthians','galatians','ephesians','philippians','colossians',
-        'thessalonians','timothy','titus','philemon','hebrews','james','peter','jude',
-        'exodus','leviticus','numbers','deuteronomy','joshua','judges','ruth','samuel','kings','chronicles',
-        'ezra','nehemiah','esther','job','proverbs','ecclesiastes','isaiah','jeremiah','ezekiel',
-        'daniel','hosea','joel','amos','obadiah','jonah','micah','nahum','habakkuk','zephaniah','haggai','zechariah','malachi',
-        'noah','abraham','moses','david','solomon','goliath','joseph','pentecost','sermon on the mount','last supper','crucifixion','resurrection','paul','baptism'
-      ]
-    };
-    var topicWords = offTopicWords[emmaTopic] || [];
-    var isTryingToSwitch = topicWords.some(function(p){
-      return tLow.indexOf(p) >= 0;
-    });
-    if(isTryingToSwitch){
-      // Check if what they said actually relates to current unit title
-      var unitTitle = unit0.title.toLowerCase();
-      var unitWords = unitTitle.split(' ').filter(function(w){ return w.length > 3; });
-      var isOnTopic = unitWords.some(function(w){ return tLow.indexOf(w) >= 0; });
-      // Also check if student is asking about a different unit in the same topic
-    if(!isOnTopic){
-      var allUnits = CURRICULUM[emmaTopic] || [];
-      var currentUnitNum = unit0.unit;
-      var isAnotherUnit = allUnits.some(function(u){
-        if(u.unit === currentUnitNum) return false;
-        var uTitle = u.title.toLowerCase();
-        var uWords = uTitle.split(' ').filter(function(w){ return w.length > 4; });
-        return uWords.some(function(w){ return tLow.indexOf(w) >= 0; });
-      });
-      if(isAnotherUnit){ isTryingToSwitch = true; }
-    }
-
-    if(!isOnTopic || isTryingToSwitch){
-        var redirectMsg = 'Oh nice! But right now this lesson is about ' + unit0.title + ' — that is what we are here to practice. Let us keep going — ' + unit0.scenario.split('.')[0].replace('Emma plays','I will be your').replace('Emma','I') + '. Ready?';
-        emmaAddBubble('emma', redirectMsg);
-        emmaHistory.push({role:'assistant', content: redirectMsg});
+    // Only intercept if student is explicitly asking to switch to a NAMED different topic
+    // Pattern: "I want to talk about X" or "can we talk about X" where X is a subject word
+    var explicitSwitch = /^(i want to|can we|lets|let us|how about we|what if we)\s+(talk about|discuss|do|practice|switch to|move to)\s+(.{3,30})$/i.exec(transcript.trim());
+    if(explicitSwitch){
+      var requestedTopic = explicitSwitch[3].toLowerCase().trim();
+      var currentTopic = unit0.title.toLowerCase();
+      // Check if what they're asking about matches the current unit
+      var currentWords = currentTopic.split(' ').filter(function(w){ return w.length > 3; });
+      var isAboutCurrentUnit = currentWords.some(function(w){ return requestedTopic.indexOf(w) >= 0; });
+      if(!isAboutCurrentUnit){
+        var switchReply = 'Oh nice idea — but that comes up in a future session! Right now we are on ' + unit0.title + '. Back to it:';
+        emmaAddBubble('emma', switchReply);
+        emmaHistory.push({role:'assistant', content: switchReply});
         emmaStateSpeaking();
-        emmaSpeak(redirectMsg);
+        emmaSpeak(switchReply);
         var rb = document.getElementById('emmaMicBtn');
         if(rb){rb.disabled=false;rb.style.opacity='1';}
         return;
@@ -4775,7 +5092,19 @@ appMode='emma';
 showTopicPage();
 // Don't call render() — it shows the pronunciation card
 // renderEmma() will be called when student selects a topic
-</script>
+
+function showSuggestionOnboarding(){
+  var hb=document.getElementById('emmaHintBtn');if(!hb)return;
+  hb.classList.remove('glow-white');void hb.offsetWidth;hb.classList.add('glow-white');
+  var existing=document.getElementById('_sugLabel');if(existing)existing.remove();
+  var lbl=document.createElement('div');lbl.id='_sugLabel';
+  lbl.textContent='Sugestão de resposta';
+  lbl.style.cssText='font-size:11px;font-weight:700;letter-spacing:.03em;color:#f5c842;background:rgba(20,20,20,.95);padding:5px 11px;border-radius:8px;border:1.5px solid rgba(201,162,39,.6);white-space:nowrap;box-shadow:0 2px 16px rgba(0,0,0,.4);animation:labelFadeIn 8s ease forwards;display:inline-block;margin-bottom:6px;margin-left:4px;';
+  var controlsRow=hb.parentNode;var footer=controlsRow.parentNode;
+  footer.insertBefore(lbl,controlsRow);
+  setTimeout(function(){if(lbl.parentNode)lbl.remove();},8300);
+  setTimeout(function(){hb.classList.remove('glow-white');},8000);
+}</script>
 <div class="wpop" id="wpop" onclick="closeWordPopup(event)"><div class="wpop-box" id="wpopBox"></div></div>
 </body>
 </htmlDOCTYPE html>
@@ -4971,7 +5300,7 @@ button{-webkit-appearance:none}
 .emma-live{display:inline-flex;align-items:center;gap:4px;background:rgba(76,175,80,.15);border:1px solid rgba(76,175,80,.3);border-radius:6px;padding:3px 7px;}
 .emma-live-dot{width:5px;height:5px;border-radius:50%;background:#4caf50;animation:rp 2s infinite;}
 .emma-live-txt{font-size:10px;color:#4caf50;font-weight:600;letter-spacing:.05em;}
-.emma-bubble-wrap{flex:1;padding:16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;max-height:340px;backdrop-filter:blur(30px) brightness(0.6);-webkit-backdrop-filter:blur(30px) brightness(0.6);background:rgba(0,0,0,0.15);}
+.emma-bubble-wrap{flex:1;padding:16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;max-height:340px;background:rgba(0,0,0,0.55);}
 .emma-bubble{padding:12px 16px;font-size:14px;line-height:1.6;max-width:82%;}
 .emma-bubble.emma{background:rgba(30,30,30,.75);border:1px solid rgba(255,255,255,.12);border-radius:4px 16px 16px 16px;color:rgba(255,255,255,.95);}
 .emma-context-img{
@@ -5631,7 +5960,7 @@ body.show-topics .main{ display:none; }
 .cp-unit.current{background:#fffbec;border-color:rgba(245,200,66,.2);}
 .cp-unit.done{opacity:.55;}
 .cp-unit.locked{opacity:.4;cursor:pointer;}
-.cp-unit-status{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px;}
+.cp-unit-status{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px;display:flex;align-items:center;justify-content:center;}
 .cp-unit.done .cp-unit-status{background:#111;color:#f5c842;}
 .cp-unit.current .cp-unit-status{background:#f5c842;color:#111;font-weight:700;}
 .cp-unit.locked .cp-unit-status{background:#f0ede8;color:#ccc;}
