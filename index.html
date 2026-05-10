@@ -8,7 +8,7 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --black:#0a0a0a;--white:#fafaf8;--yellow:#f5c842;
+  --black:#0a0a0a;--white:#e3e1db;--yellow:#f5c842;
   --g100:#f0efeb;--g200:#e0dfd9;--g400:#9e9d97;--g600:#5a5955;
   --green:#2d7a3a;--gl:#e8f5eb;
   --red:#c0392b;--rl:#fdecea;
@@ -214,7 +214,7 @@ button{-webkit-appearance:none}
 .emma-live-txt{font-size:10px;color:#4caf50;font-weight:600;letter-spacing:.05em;}
 .emma-bubble-wrap{flex:1;padding:16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;max-height:340px;background:rgba(0,0,0,0.55);}
 .emma-bubble{padding:8px 12px;font-size:14px;line-height:1.5;max-width:82%;}
-.emma-bubble.emma{background:rgba(30,30,30,.75);border:1px solid rgba(255,255,255,.12);border-radius:4px 16px 16px 16px;color:rgba(255,255,255,.95);}
+.emma-bubble.emma{background:rgba(30,30,30,.75);border:1px solid rgba(255,255,255,.12);border-radius:4px 16px 16px 16px;color:rgba(255,255,255,.95);padding-bottom:28px;padding-right:36px;}
 
 .emma-expr-highlight{
   background:rgba(245,200,66,.15);
@@ -891,9 +891,9 @@ body.show-topics .main{ display:none; }
 .pron-tips-lbl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(0,0,0,.28);margin-bottom:2px;}
 .pron-tip-red{font-size:12px;color:rgba(0,0,0,.55);line-height:1.6;padding:8px 12px;background:rgba(185,28,28,.05);border-radius:8px;border-left:3px solid rgba(185,28,28,.25);}
 .pron-tip-amber{font-size:12px;color:rgba(0,0,0,.55);line-height:1.6;padding:8px 12px;background:rgba(201,162,39,.06);border-radius:8px;border-left:3px solid rgba(201,162,39,.3);}
-.pron-btns{display:flex;gap:10px;padding:0 28px;}
-.pron-btn-p{flex:1;padding:13px;border-radius:12px;background:#111;border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px;}
-.pron-btn-s{flex:1;padding:13px;border-radius:12px;background:#f5f4f0;border:none;color:rgba(0,0,0,.45);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px;}
+.pron-btns{display:flex;gap:24px;padding:0 28px;justify-content:center;}
+.pron-btn-p{width:44px;height:44px;border-radius:50%;background:#f5f3ef;border:1px solid #e8e4de;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.pron-btn-s{width:44px;height:44px;border-radius:50%;background:#f5f3ef;border:1px solid #e8e4de;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
 /* WORD PRACTICE */
 .word-practice{margin-top:14px;border-top:1px solid #f0ede8;padding-top:14px;}
 .word-practice-lbl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(0,0,0,.28);margin-bottom:10px;}
@@ -920,7 +920,7 @@ body.show-topics .main{ display:none; }
 @keyframes labelFadeIn{0%{opacity:0;transform:translateY(4px)}8%{opacity:1;transform:translateY(0)}85%{opacity:1}100%{opacity:0}}
 .glow-gold{animation:glowPulseGold 0.7s ease-in-out infinite!important;}
 .glow-white{animation:glowPulseWhite 0.7s ease-in-out infinite!important;}
-</style>
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,400;1,9..144,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -3140,68 +3140,89 @@ function mcSpeak(btn){
 }
 
 var mcRec=false,mcMr=null,mcChunks=[];
-function mcToggleRec(){mcRec?mcStopRec():mcStartRec();}
-function mcStartRec(){
-  navigator.mediaDevices.getUserMedia({audio:true})
-    .then(function(stream){
-      mcChunks=[];var mt2=mime();
-      mcMr=new MediaRecorder(stream,mt2?{mimeType:mt2}:{});
-      mcMr.ondataavailable=function(e){if(e.data&&e.data.size>0)mcChunks.push(e.data);};
-      mcMr.start(250);mcRec=true;
-      var b=document.getElementById('mcMicBtn'),l=document.getElementById('mcMicLbl');
-      if(b){b.classList.add('rec');b.innerHTML='<span class="stop-sq"></span>';}
-      if(l)l.textContent='Recording... tap to stop';
-      var t=document.getElementById('mcTbox');if(t)t.innerHTML='<span class="ph">Listening...</span>';
-      window._transcript='';
-      var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-      if(SR){try{
-        window._sr=new SR();window._sr.continuous=true;window._sr.interimResults=true;window._sr.lang='en-US';
-        window._sr.onresult=function(e){
-          var interim='',final='';
-          for(var i=e.resultIndex;i<e.results.length;i++){
-            if(e.results[i].isFinal)final+=e.results[i][0].transcript;
-            else interim+=e.results[i][0].transcript;
-          }
-          window._transcript=(window._transcript||'')+final;
-          var tb=document.getElementById('mcTbox');
-          if(tb)tb.innerHTML=(window._transcript||'')+(interim?'<em style="color:rgba(255,255,255,0.4)"> '+interim+'</em>':'');
-        };
-        window._sr.onerror=function(){};
-        window._sr.onend=function(){if(mcRec&&window._sr){try{window._sr.start();}catch(e){}}};
-        window._sr.start();
-      }catch(e){}}
-    }).catch(function(e){var l=document.getElementById('mcMicLbl');if(l)l.textContent='Mic error: '+e.message;});
+function mcToggleRec(qIdx){mcRec?mcStopRec(qIdx):mcStartRec(qIdx);}
+function mcStartRec(qIdx){
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+    mcChunks=[];var mt2=mime();
+    mcMr=new MediaRecorder(stream,mt2?{mimeType:mt2}:{});
+    mcMr.ondataavailable=function(e){if(e.data&&e.data.size>0)mcChunks.push(e.data);};
+    mcMr.start(250);mcRec=true;
+    var b=document.getElementById('exMicBtn');
+    if(b){b.style.background='#c0392b';b.style.boxShadow='0 0 0 8px rgba(192,57,43,.15)';}
+    var l=document.getElementById('exMicLbl');if(l)l.textContent='Gravando... toque para parar';
+    var t=document.getElementById('exTranscript');if(t)t.textContent='';
+    window._exTranscript='';
+    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(SR){try{
+      window._exSR=new SR();window._exSR.continuous=true;window._exSR.interimResults=true;window._exSR.lang='en-US';
+      window._exSR.onresult=function(e){
+        var interim='',final='';
+        for(var i=e.resultIndex;i<e.results.length;i++){
+          if(e.results[i].isFinal)final+=e.results[i][0].transcript;
+          else interim+=e.results[i][0].transcript;
+        }
+        window._exTranscript=(window._exTranscript||'')+final;
+        var tb=document.getElementById('exTranscript');
+        if(tb)tb.textContent=(window._exTranscript||'')+(interim?' '+interim:'');
+      };
+      window._exSR.onerror=function(){};
+      window._exSR.onend=function(){if(mcRec&&window._exSR){try{window._exSR.start();}catch(e){}}};
+      window._exSR.start();
+    }catch(e){}}
+  }).catch(function(e){var l=document.getElementById('exMicLbl');if(l)l.textContent='Mic error: '+e.message;});
 }
-function mcStopRec(){
+function mcStopRec(qIdx){
   if(!mcMr)return;mcRec=false;
-  if(window._sr){try{window._sr.onend=null;window._sr.stop();}catch(e){}}
-  mcMr.stop();mcMr.stream.getTracks().forEach(function(t){t.stop();});
-  var b=document.getElementById('mcMicBtn'),l=document.getElementById('mcMicLbl');
-  if(b){b.classList.remove('rec');b.innerHTML='&#127908;';}
-  if(l)l.textContent='Processing...';
+  if(window._exSR){try{window._exSR.onend=null;window._exSR.stop();}catch(e){}}
+  mcMr.stop();
+  if(mcMr.stream)mcMr.stream.getTracks().forEach(function(t){t.stop();});
+  var b=document.getElementById('exMicBtn');
+  if(b){b.style.background='rgba(0,0,0,.08)';b.style.boxShadow='none';}
+  var l=document.getElementById('exMicLbl');if(l)l.textContent='Verificando...';
   mcMr.onstop=function(){
-    var m2=mcMr.mimeType||'audio/webm';
-    var blob=new Blob(mcChunks,{type:m2});
-    if(window._recUrl)URL.revokeObjectURL(window._recUrl);
-    window._recUrl=URL.createObjectURL(blob);
-    var pb=document.getElementById('mcPlayBtn');if(pb)pb.classList.add('show');
-    var rd=new FileReader();
-    rd.onloadend=function(){
-      window._ab=rd.result.split(',')[1];window._am=m2;
-      var l2=document.getElementById('mcMicLbl');if(l2)l2.textContent='Ready - tap to check your answer';
-      var tb=document.getElementById('mcTbox');
-      var transcript=window._transcript||'';
-      if(tb){
-        if(transcript)tb.innerHTML='<span style="color:rgba(255,255,255,0.9);">'+transcript+'</span>';
-        else tb.innerHTML='<span style="color:rgba(255,255,255,0.7);font-style:italic;">Audio recorded ✓</span>';
-      }
-      // Show check button
-      var cb=document.getElementById('mcCheckBtn');if(cb)cb.style.display='block';
-    };
-    rd.readAsDataURL(blob);
+    var transcript=(window._exTranscript||'').trim();
+    setTimeout(function(){exCheckVoice(qIdx,transcript);},300);
   };
 }
-
+function exCheckVoice(qIdx,transcript){
+  var qs=window._exGrammarQs||[];var q=qs[qIdx];if(!q)return;
+  var said=(transcript||'').toLowerCase().trim();
+  if(!said){
+    var l=document.getElementById('exMicLbl');
+    if(l)l.textContent='Não entendi — tente novamente';return;
+  }
+  var matchedIdx=-1,bestScore=0;
+  var letters=['a','b','c','d'];
+  // 1. Check if student said a letter (A, B, C, D)
+  for(var i=0;i<q.options.length;i++){
+    if(said===letters[i]||said.indexOf(letters[i]+' ')===0||said.endsWith(' '+letters[i])){
+      matchedIdx=i;bestScore=1;break;
+    }
+  }
+  // 2. Check full option text match
+  if(matchedIdx===-1){
+    for(var i=0;i<q.options.length;i++){
+      if(!q.options[i])continue;
+      var opt=q.options[i].toLowerCase().trim();
+      if(said===opt||said.indexOf(opt)>=0){matchedIdx=i;bestScore=1;break;}
+    }
+  }
+  // 3. Word overlap match
+  if(matchedIdx===-1){
+    for(var i=0;i<q.options.length;i++){
+      if(!q.options[i])continue;
+      var opt=q.options[i].toLowerCase();
+      var words=opt.split(' ').filter(function(w){return w.length>1;});
+      var hits=0;for(var w=0;w<words.length;w++){if(said.indexOf(words[w])>=0)hits++;}
+      var score=words.length>0?hits/words.length:0;
+      if(score>bestScore){bestScore=score;matchedIdx=i;}
+    }
+    if(bestScore<0.25)matchedIdx=-1;
+  }
+  var l=document.getElementById('exMicLbl');
+  if(l)l.textContent='Resposta: "'+transcript+'"';
+  if(typeof window._exSetScore==='function')window._exSetScore(qIdx,matchedIdx>=0?matchedIdx:0);
+}
 function mcCheckManual(){
   var transcript=window._transcript||'';
   var cb=document.getElementById('mcCheckBtn');
@@ -3382,7 +3403,7 @@ function renderEmma(){
           '<div class="emma-controls">'+
             
             '<div class="emma-hint-btn" id="emmaHintBtn" onclick="showSuggestion()">'+
-              '<div style="width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:rgba(255,255,255,.85);line-height:1;margin-top:-1px;font-family:-apple-system,sans-serif">?</div>'+
+              '<div style="width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:rgba(255,255,255,.85);line-height:1;font-family:-apple-system,sans-serif">?</div>'+
             '</div>'+
             '<button class="emma-mic" id="emmaMicBtn" onclick="emmaToggleRec()" disabled>&#127897; Tap to speak</button>'+
             '<button class="emma-end emma-end-footer" onclick="emmaEnd()">End</button>'+
@@ -3824,7 +3845,7 @@ function showPronunciationPanel(bubbleId){
   var wordHtml=hasW?(p.words||[]).map(function(w,i){var cls=pronCls(w.accuracyScore||100);var oc="pronSelectWord('" + bubbleId + "'," + i + ")";return '<span class="pron-word-chip '+cls+'" data-widx="'+i+'" onclick="'+oc+'"><span class="pron-word-name '+cls+'">'+w.word+'</span><span class="pron-word-pct '+cls+'">'+Math.round(w.accuracyScore||100)+'%</span></span>';}).join(''):'';
   var subHtml='<div class="pron-sub"><div class="pron-sub-num">'+acc+'<span>%</span></div><div class="pron-sub-lbl">Accuracy</div></div><div class="pron-sub"><div class="pron-sub-num">'+flu+'<span>%</span></div><div class="pron-sub-lbl">Fluency</div></div>'+(nat?'<div class="pron-sub"><div class="pron-sub-num">'+nat+'<span>%</span></div><div class="pron-sub-lbl">Naturalness</div></div>':'');
   var ov=document.createElement('div');ov.className='pron-overlay';ov.id='pronOverlay';ov.onclick=function(e){if(e.target===ov)closePronPanel();};
-  ov.innerHTML='<div class="pron-panel"><div class="pron-handle"></div><div class="pron-top"><div class="pron-ring-wrap"><svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" fill="none" stroke="#f0ede8" stroke-width="7"/><circle cx="40" cy="40" r="34" fill="none" stroke="'+rc+'" stroke-width="7" stroke-dasharray="213" stroke-dashoffset="'+off+'" stroke-linecap="round"/></svg><div class="pron-ring-inner"><span class="pron-ring-num" style="color:'+nc+'">'+overall+'</span><span class="pron-ring-lbl">score</span></div></div><div class="pron-right"><div class="pron-transcript">"'+data.transcript+'"</div><div class="pron-sub-scores">'+subHtml+'</div></div></div>'+(wordHtml?'<div class="pron-words-section"><div class="pron-words-lbl">Words</div><div class="pron-words-grid">'+wordHtml+'</div></div>':'')+'<div class="pron-detail" id="pronDetail"><span class="pron-detail-empty">Tap a word above to see what to improve</span></div><div class="pron-btns"><button class="pron-btn-p" id="pronBtnYou"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>Your recording</button><button class="pron-btn-s" id="pronBtnEmma"><svg width="12" height="12" viewBox="0 0 24 24" fill="rgba(0,0,0,.4)"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>Emma version</button></div></div>';
+  ov.innerHTML='<div class="pron-panel"><div class="pron-handle"></div><div class="pron-top"><div class="pron-ring-wrap"><svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" fill="none" stroke="#f0ede8" stroke-width="7"/><circle cx="40" cy="40" r="34" fill="none" stroke="'+rc+'" stroke-width="7" stroke-dasharray="213" stroke-dashoffset="'+off+'" stroke-linecap="round"/></svg><div class="pron-ring-inner"><span class="pron-ring-num" style="color:'+nc+'">'+overall+'</span><span class="pron-ring-lbl">score</span></div></div><div class="pron-right"><div class="pron-transcript">"'+data.transcript+'"</div><div class="pron-sub-scores">'+subHtml+'</div></div></div>'+(wordHtml?'<div class="pron-words-section"><div class="pron-words-lbl">Words</div><div class="pron-words-grid">'+wordHtml+'</div></div>':'')+'<div class="pron-detail" id="pronDetail"><span class="pron-detail-empty">Tap a word above to see what to improve</span></div><div class="pron-btns"><div style="display:flex;flex-direction:column;align-items:center;gap:5px"><button class="pron-btn-p" id="pronBtnYou"><svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(0,0,0,.45)"><path d="M8 5v14l11-7z"/></svg></button><span style="font-size:10px;color:#bbb;font-weight:500">Sua voz</span></div><div style="display:flex;flex-direction:column;align-items:center;gap:5px"><button class="pron-btn-s" id="pronBtnEmma"><svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(0,0,0,.45)"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg></button><span style="font-size:10px;color:#bbb;font-weight:500">Emma</span></div></div></div>';
   document.body.appendChild(ov);
   var by=document.getElementById('pronBtnYou'),be=document.getElementById('pronBtnEmma');
   if(by)by.onclick=function(){pronPlayStudent(bubbleId);};if(be)be.onclick=function(){pronPlayEmma(data.transcript);};
@@ -3843,7 +3864,7 @@ function showSuggestion(){
   var lastEmma='';for(var i=emmaHistory.length-1;i>=0;i--){if(emmaHistory[i].role==='assistant'){lastEmma=emmaHistory[i].content;break;}}
   if(!lastEmma)return;
   var popup=document.createElement('div');popup.className='suggestion-popup';popup.id='suggestionPopup';var bdrop=document.createElement('div');bdrop.id='suggestionBdrop';bdrop.onclick=closeSuggestion;bdrop.style.cssText='position:fixed;inset:0;z-index:199;background:rgba(0,0,0,.65);';document.body.appendChild(bdrop);
-  popup.innerHTML='<div class="suggestion-handle"></div><div class="suggestion-header"><div class="suggestion-lbl">Como você pode responder</div></div><div id="suggestionOptions"><div style="padding:20px 24px;font-size:14px;color:rgba(255,255,255,.3)">Carregando...</div></div><div class="suggestion-close" onclick="closeSuggestion()">Dispensar</div>';
+  popup.innerHTML='<div class="suggestion-handle"></div><div class="suggestion-header"><div class="suggestion-lbl">Sugestão de resposta</div></div><div id="suggestionOptions"><div style="padding:20px 24px;font-size:14px;color:rgba(255,255,255,.3)">Carregando...</div></div><div class="suggestion-close" onclick="closeSuggestion()">Dispensar</div>';
   document.body.appendChild(popup);
   fetch(W+'/emma-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:(window._emmaSystem||'')+' Give 2 short natural English responses the student could say. Return ONLY a JSON array of 2 strings.',messages:emmaHistory.concat([{role:'user',content:'Suggest 2 responses.'}]),max_tokens:100})})
   .then(function(r){return r.json();})
@@ -3921,7 +3942,7 @@ function emmaAddBubble(who,text){
     var infoBtn=document.createElement('div');
     infoBtn.className='pron-info-icon';
     infoBtn.className='pron-info-icon';infoBtn.style.cssText='width:22px;height:22px;border-radius:50%;background:transparent;border:1.5px solid rgba(201,162,39,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;line-height:0';
-    infoBtn.innerHTML='<div style="width:15px;height:15px;border-radius:50%;background:rgba(201,162,39,.45);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;line-height:1;padding-top:1px;font-family:-apple-system,sans-serif">i</div>';
+    infoBtn.innerHTML='<div style="width:15px;height:15px;border-radius:50%;background:rgba(201,162,39,.45);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;line-height:1;font-family:-apple-system,sans-serif">i</div>';
     icons.appendChild(playBtn);icons.appendChild(infoBtn);
     // Wrap bubble+icons in container with minimal gap
     var container=document.createElement('div');
@@ -3943,7 +3964,39 @@ function emmaAddBubble(who,text){
     return;
   }
 
-  wrap.appendChild(div);wrap.scrollTop=wrap.scrollHeight;
+  // Emma bubble — translate icon inside, bottom-right
+  div.innerHTML = text;
+  div.style.position = 'relative';
+
+  var tBtn = document.createElement('button');
+  tBtn.style.cssText = 'background:none;border:none;cursor:pointer;padding:0;position:absolute;bottom:6px;right:8px;opacity:.4;transition:opacity .2s,filter .2s;';
+  var tImg = document.createElement('img');
+  tImg.src = 'https://pub-ee13894ad4e146cdb3eb6dd4f653dfc4.r2.dev/translate-icon.PNG';
+  tImg.style.cssText = 'display:block;width:22px;height:22px;';
+  tImg.onerror = function(){ tBtn.style.display='none'; };
+  tBtn.appendChild(tImg);
+  tBtn._translated = false;
+  tBtn.onclick = function(){
+    if(tBtn._translated){
+      var ex=div.querySelector('.emma-translation');
+      if(ex)ex.remove();
+      tBtn.style.opacity='.65';tBtn.style.filter='none';tBtn._translated=false;return;
+    }
+    tBtn.style.opacity='.35';
+    fetch(W+'/emma-chat',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({system:'You are a translation tool. Your only job is to translate English to Brazilian Portuguese. Output ONLY the translated text. No explanations, no notes, no other text whatsoever.',messages:[{role:'user',content:text}],topic:'translation_'+Date.now(),max_tokens:300})
+    }).then(function(r){return r.json();}).then(function(d){
+      var t=d.text?d.text.trim():'';if(!t)return;
+      var el=document.createElement('div');el.className='emma-translation';
+      el.style.cssText='font-size:13px;color:rgba(232,184,75,.85);line-height:1.5;padding-top:8px;margin-top:6px;border-top:1px solid rgba(255,255,255,.1);font-style:italic;';
+      el.textContent=t;div.insertBefore(el,tBtn);
+      tBtn.style.opacity='1';tBtn.style.filter='sepia(1) saturate(4) hue-rotate(5deg)';tBtn._translated=true;
+      wrap.scrollTop=wrap.scrollHeight;
+    }).catch(function(){tBtn.style.opacity='.65';});
+  };
+  div.appendChild(tBtn);
+  wrap.appendChild(div);
+  wrap.scrollTop=wrap.scrollHeight;
 }
 
 function emmaToggleRec(){
@@ -4334,186 +4387,387 @@ function downloadTranscript(){
   var ft=d.createElement('div');ft.className='footer';ft.textContent='Street Way English • Emma AI Coach';body.appendChild(ft);
 }
 
+function emmaTranslate(btn,text,bubble){
+  if(btn._translated){
+    var existing=bubble?bubble.querySelector('.emma-translation'):null;
+    if(existing)existing.remove();
+    btn.style.opacity='.38';btn.style.filter='none';
+    btn._translated=false;return;
+  }
+  btn.style.opacity='.6';
+  var loadingEl=document.createElement('div');
+  loadingEl.style.cssText='font-size:12px;color:rgba(255,255,255,.3);font-style:italic;padding:6px 0 2px;clear:both;';
+  loadingEl.textContent='Traduzindo...';
+  btn.parentNode.insertBefore(loadingEl,btn);
+  fetch(W+'/emma-chat',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      system:'Translate the following English text to Brazilian Portuguese. Reply with ONLY the translation, no explanation, no quotes.',
+      messages:[{role:'user',content:text}],topic:'translation',max_tokens:300
+    })
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    loadingEl.remove();
+    var t=d.content&&d.content[0]?d.content[0].text.trim():'';
+    if(!t)return;
+    var el=document.createElement('div');
+    el.className='emma-translation';
+    el.style.cssText='font-size:13px;color:rgba(232,184,75,.82);line-height:1.5;padding-top:8px;border-top:1px solid rgba(255,255,255,.1);font-style:italic;margin-top:6px;clear:both;';
+    el.textContent=t;
+    btn.parentNode.insertBefore(el,btn);
+    btn.style.opacity='1';btn.style.filter='sepia(1) saturate(4) hue-rotate(5deg)';
+    btn._translated=true;
+    var wrap=document.getElementById('emmaBubbles');
+    if(wrap)wrap.scrollTop=wrap.scrollHeight;
+  })
+  .catch(function(){loadingEl.remove();btn.style.opacity='.38';});
+}
+
+function showReport(){
+  var r=window._lastReport;
+  if(!r)return;
+  var area=document.getElementById('area');
+  if(!area)return;
+  var pronWords=window._pronWords||[];
+  var pronHtml='';
+  if(pronWords.length>0){
+    pronHtml=pronWords.map(function(w,i){
+      var c=w.score<=60?'#c0392b':w.score<=75?'#e8b84b':'#2d7a3a';
+      return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">'+
+        '<span style="font-size:9px;font-weight:700;color:#ccc;width:12px;text-align:right;flex-shrink:0">'+(i+1)+'</span>'+
+        '<span style="font-size:12px;font-weight:600;color:#111;width:90px;flex-shrink:0">'+w.word+'</span>'+
+        '<div style="flex:1;height:6px;background:#f0ede8;border-radius:3px;overflow:hidden">'+
+          '<div style="width:'+w.score+'%;height:100%;background:'+c+';border-radius:3px"></div></div>'+
+        '<span style="font-size:11px;font-weight:700;color:'+c+';width:30px;text-align:right;flex-shrink:0">'+w.score+'%</span></div>';
+    }).join('');
+  }
+  var ringPct=r.score==='A+'?0.97:r.score==='A'?0.90:r.score==='B+'?0.77:r.score==='B'?0.66:0.50;
+  var ringCirc=2*Math.PI*34;var ringOffset=ringCirc*(1-ringPct);
+  var ringSvg='<div style="position:relative;width:80px;height:80px;flex-shrink:0">'+
+    '<svg width="80" height="80" viewBox="0 0 80 80">'+
+      '<circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="6"/>'+
+      '<circle cx="40" cy="40" r="34" fill="none" stroke="#e8b84b" stroke-width="6" stroke-dasharray="'+ringCirc+'" stroke-dashoffset="'+ringOffset+'" stroke-linecap="round" transform="rotate(-90 40 40)"/>'+
+    '</svg>'+
+    '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:800;color:#e8b84b">'+r.score+'</div></div>';
+  var mistakesHtml=(r.mistakes||[]).map(function(m,i){
+    return '<div style="display:flex;gap:10px;padding-bottom:'+(i<r.mistakes.length-1?'13px':'0')+';margin-bottom:'+(i<r.mistakes.length-1?'13px':'0')+';border-bottom:'+(i<r.mistakes.length-1?'1px solid #faf8f4':'none')+'">'+
+      '<div style="width:20px;height:20px;border-radius:50%;background:rgba(192,57,43,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:9px;font-weight:800;color:#c0392b">'+(i+1)+'</div>'+
+      '<div><div style="font-size:13px;font-weight:600;color:#0a0a0a;margin-bottom:2px;">'+m.title+'</div>'+
+      '<div style="font-size:12px;color:#888;line-height:1.5">'+m.detail+'</div></div></div>';
+  }).join('');
+  var improvementsHtml=(r.improvements||[]).map(function(imp,i){
+    return '<div style="display:flex;gap:10px;padding-bottom:'+(i<r.improvements.length-1?'13px':'0')+';margin-bottom:'+(i<r.improvements.length-1?'13px':'0')+';border-bottom:'+(i<r.improvements.length-1?'1px solid #faf8f4':'none')+'">'+
+      '<div style="width:20px;height:20px;border-radius:50%;background:rgba(232,184,75,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:11px;color:#e8b84b;font-weight:700">→</div>'+
+      '<div><div style="font-size:13px;font-weight:600;color:#0a0a0a;margin-bottom:2px;">'+imp.title+'</div>'+
+      '<div style="font-size:12px;color:#888;line-height:1.5">'+imp.detail+'</div></div></div>';
+  }).join('');
+  area.innerHTML=renderModeTabs()+
+    '<div style="background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 2px 24px rgba(0,0,0,.08);border:1px solid #ede9e2;margin-bottom:1rem;">'+
+      '<div style="background:#0a0a0a;padding:28px 24px;display:flex;align-items:center;gap:18px;">'+ringSvg+
+        '<div style="flex:1"><div style="font-size:15px;font-weight:700;color:#fff;line-height:1.3;margin-bottom:5px;">'+r.headline+'</div>'+
+        '<div style="font-size:12px;color:rgba(255,255,255,.38);line-height:1.45">'+r.summary+'</div></div></div>'+
+      '<div style="padding:18px 24px;border-bottom:1px solid #f0ede8">'+
+        '<div style="background:rgba(45,122,58,.06);border:1px solid rgba(45,122,58,.15);border-radius:10px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start">'+
+          '<span style="font-size:14px;flex-shrink:0;margin-top:1px">✦</span>'+
+          '<div style="font-size:13px;color:#2d7a3a;line-height:1.55">'+r.positive+'</div></div></div>'+
+      '<div style="padding:18px 24px;border-bottom:1px solid #f0ede8">'+
+        '<div style="font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#c0392b;margin-bottom:14px">Erros para corrigir</div>'+mistakesHtml+'</div>'+
+      '<div style="padding:18px 24px;border-bottom:1px solid #f0ede8">'+
+        '<div style="font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#e8b84b;margin-bottom:14px">Próximos passos</div>'+improvementsHtml+'</div>'+
+      (pronHtml?'<div style="padding:18px 24px;border-bottom:1px solid #f0ede8"><div style="font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#aaa;margin-bottom:14px">🎙 Pronúncia — top 10 para treinar</div>'+pronHtml+'</div>':'')+
+      '<div style="padding:16px 24px;display:flex;flex-direction:column;gap:8px">'+
+        '<button class="ab" onclick="renderEmma()" style="width:100%;padding:14px;border-radius:12px;background:#0a0a0a;border:none;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px"><span>🔄</span> Nova conversa</button>'+
+        '<div style="height:1px;background:#f0ede8;margin:2px 0"></div>'+
+        '<div style="display:flex;gap:8px">'+
+          '<button class="ab" onclick="downloadReport()" style="flex:1;padding:11px 6px;border-radius:11px;background:#f5f3ef;border:1px solid #e8e4de;color:#333;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px"><span style="font-size:13px">📄</span> Salvar PDF</button>'+
+          '<button class="ab" onclick="downloadTranscript()" style="flex:1;padding:11px 6px;border-radius:11px;background:#f5f3ef;border:1px solid #e8e4de;color:#333;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px"><span style="font-size:13px">💬</span> Transcript</button>'+
+          '<button class="ab" onclick="downloadExercises()" style="flex:1;padding:11px 6px;border-radius:11px;background:rgba(232,184,75,.08);border:1px solid rgba(232,184,75,.3);color:#7a5c00;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px"><span style="font-size:13px">✏️</span> Exercícios</button>'+
+        '</div></div></div>';
+}
+
 function downloadExercises(){
   var r=window._lastReport;
   if(!r||!r.exercises)return;
   var area=document.getElementById('area');
-  var date=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  if(!area)return;
 
-  function normalise(s){return s.toLowerCase().replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim();}
-  function bestMatch(trans,options){
-    var t=normalise(trans);
-    var best=-1,bestScore=0;
-    for(var i=0;i<options.length;i++){
-      var opt=normalise(options[i]);
-      if(t===opt||t.indexOf(opt)>=0||opt.indexOf(t)>=0)return i;
-      var optW=opt.split(' ').filter(function(w){return w.length>2;});
-      var tW=t.split(' ');
-      var hits=optW.filter(function(w){return tW.indexOf(w)>=0;}).length;
-      var score=optW.length>0?hits/optW.length:0;
-      if(score>bestScore){bestScore=score;best=i;}
-    }
-    return bestScore>=0.6?best:-1;
+  // Build pronunciation exercises from AI-generated sentences (same as grammar)
+  var pronExercises=[];
+  if(r.pronSentences&&r.pronSentences.length>0){
+    pronExercises=r.pronSentences.slice(0,4).map(function(s){return {sentence:s};});
+  } else {
+    // Fallback: use Emma's sentences from the conversation
+    var emmaSents=[];
+    (window._lastHistory||[]).forEach(function(m){
+      if(m.role!=='assistant')return;
+      var sents=m.content.split(/[.!?]+/).map(function(s){return s.trim();})
+        .filter(function(s){return s.length>10&&s.split(' ').length>=4&&s.split(' ').length<=15;});
+      sents.forEach(function(s){emmaSents.push(s);});
+    });
+    pronExercises=emmaSents.slice(0,4).map(function(s){return {sentence:s};});
   }
 
-  var exercises=r.exercises;
-  var answered=new Array(exercises.length).fill(false);
-  var correct=0;
-  var activeRec=null;
-  var interimText=''; // accumulates interim speech for stop-button use
-  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  var hasSR=!!SR;
+  // All questions: 8 grammar + up to 4 pronunciation
+  var grammarQs=r.exercises.slice(0,8);
+  var totalQs=grammarQs.length+pronExercises.length;
+  var exIdx=0; // current question index
+  var grammarTotal=grammarQs.length;
+  var pronTotal=pronExercises.length;
+  var exScores=[]; // track grammar answers
+  var pronAudio=null; // for playing Emma audio in pron exercises
 
-  function lockQuestion(qi,chosen,ans){
-    if(answered[qi])return;
-    answered[qi]=true;
-    if(chosen===ans)correct++;
-    for(var i=0;i<exercises[qi].options.length;i++){
-      var el=document.getElementById('exopt-'+qi+'-'+i);
-      if(!el)continue;
-      el.style.pointerEvents='none';
-      if(i===ans){el.style.background='#f0faf2';el.style.borderColor='#2d7a3a';el.style.color='#2d7a3a';el.style.fontWeight='600';}
-      else if(i===chosen){el.style.background='#fff0f0';el.style.borderColor='#c0392b';el.style.color='#c0392b';}
-    }
-    var tip=document.getElementById('extip-'+qi);if(tip)tip.style.display='block';
-    var mic=document.getElementById('exmic-'+qi);
-    if(mic){mic.disabled=true;mic.textContent='✓';mic.style.background='#2d7a3a';mic.style.color='#fff';}
-    showStop(qi,false);
-    var hint=document.getElementById('exhint-'+qi);
-    if(hint)hint.textContent=chosen===ans?'Correct! Well done.':'Correct answer: '+exercises[qi].options[ans];
-    updateScore();
-  }
-
-  function updateScore(){
-    var done=answered.filter(Boolean).length;
-    var bar=document.getElementById('exscorebar');if(bar)bar.style.display='flex';
-    var circle=document.getElementById('exscorecircle');if(circle)circle.textContent=correct+'/'+done;
-    var label=document.getElementById('exscorelabel');
-    if(label){
-      if(done<exercises.length){label.textContent=done+' of '+exercises.length+' answered';}
-      else{var pct=Math.round(correct/exercises.length*100);label.textContent=pct+'% — '+(pct>=80?'Great job!':pct>=60?'Keep practicing!':'Review the tips');}
-    }
-  }
-
-  function showStop(qi,show){
-    var stopBtn=document.getElementById('exstop-'+qi);
-    var micBtn=document.getElementById('exmic-'+qi);
-    if(stopBtn)stopBtn.style.display=show?'inline-flex':'none';
-    if(micBtn)micBtn.style.display=show?'none':'inline-flex';
-  }
-
-  function startListen(qi){
-    if(answered[qi])return;
-    if(activeRec){try{activeRec.stop();}catch(e){}activeRec=null;}
-    interimText='';
-    var mic=document.getElementById('exmic-'+qi);
-    var hint=document.getElementById('exhint-'+qi);
-    if(hint)hint.textContent='Listening... say the answer out loud';
-    showStop(qi,true);
-    var rec=new SR();
-    rec.lang='en-US';
-    rec.interimResults=true; // KEY: get partials so stop-button has something to work with
-    rec.maxAlternatives=5;
-    activeRec=rec;
-    rec.onresult=function(e){
-      // Accumulate best interim + final transcripts
-      var finals='';var interims='';
-      for(var i=0;i<e.results.length;i++){
-        if(e.results[i].isFinal)finals+=e.results[i][0].transcript+' ';
-        else interims+=e.results[i][0].transcript+' ';
-      }
-      interimText=(finals||interims).trim();
-      if(hint&&interimText)hint.textContent='Heard: "'+interimText+'"';
-      // If we have a final result, process it immediately
-      if(finals.trim()){
-        var chosen=bestMatch(finals.trim(),exercises[qi].options);
-        if(chosen>=0){
-          activeRec=null;
-          try{rec.stop();}catch(e){}
-          lockQuestion(qi,chosen,exercises[qi].answer);
-        }
-      }
-    };
-    rec.onerror=function(e){
-      showStop(qi,false);activeRec=null;interimText='';
-      if(hint)hint.textContent=e.error==='not-allowed'?'Mic blocked — tap an option instead':'Mic error — tap an option instead';
-    };
-    rec.onend=function(){
-      showStop(qi,false);
-      // If we never matched via onresult, try interimText on end
-      if(activeRec===null&&interimText){
-        var chosen=bestMatch(interimText,exercises[qi].options);
-        if(chosen>=0){lockQuestion(qi,chosen,exercises[qi].answer);interimText='';return;}
-      }
-      activeRec=null;interimText='';
-      if(!answered[qi]&&hint)hint.textContent='Could not match — tente of novo ou toque numa opção';
-    };
-    try{rec.start();}catch(e){
-      showStop(qi,false);activeRec=null;
-      if(hint)hint.textContent='Could not start mic — tap an option instead';
-    }
-  }
-
-  function stopListen(qi){
-    var currentInterim=interimText;
-    if(activeRec){try{activeRec.stop();}catch(e){}activeRec=null;}
-    showStop(qi,false);
-    // Try to match whatever we heard before stopping
-    if(currentInterim){
-      var chosen=bestMatch(currentInterim,exercises[qi].options);
-      if(chosen>=0){lockQuestion(qi,chosen,exercises[qi].answer);interimText='';return;}
-    }
-    var hint=document.getElementById('exhint-'+qi);
-    if(hint)hint.textContent=currentInterim?'Could not match "'+currentInterim+'" — try again or tap':'Tap mic and say the answer out loud';
-    interimText='';
-  }
-
-  // ── Build HTML (light theme matching screenshot) ──────────────────────────
-  var html=renderModeTabs()+
-    '<div style="max-width:620px;margin:0 auto;padding:24px 20px;">'+
-    '<div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#aaa;margin-bottom:4px;">Street Way English</div>'+
-    '<div style="font-size:22px;font-weight:700;color:#1a1a1a;margin-bottom:4px;">Practice Exercises</div>'+
-    '<div style="font-size:12px;color:#bbb;margin-bottom:20px;">Based on your conversation &bull; '+date+'</div>'+
-    '<div id="exscorebar" style="display:none;background:#fff;border:1px solid #e8e8e4;border-radius:12px;padding:14px;margin-bottom:16px;align-items:center;gap:12px;">'+
-      '<div id="exscorecircle" style="width:44px;height:44px;border-radius:9px;background:#1a1a1a;color:#f5c842;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">-</div>'+
-      '<div><div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:2px;">Score</div><div id="exscorelabel" style="font-size:12px;color:#888;">Answering...</div></div>'+
-    '</div>';
-
-  exercises.forEach(function(ex,qi){
-    var optsHtml=ex.options.map(function(o,oi){
-      var safeO=o.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-      return '<div id="exopt-'+qi+'-'+oi+'" onclick="window._exTap('+qi+','+oi+')" style="margin-bottom:6px;padding:10px 14px;border-radius:9px;border:1.5px solid #e0e0da;font-size:13px;color:#333;cursor:pointer;display:flex;align-items:center;gap:10px;transition:border-color .15s;">'+
-        '<div style="width:22px;height:22px;border-radius:50%;background:#f0f0ed;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;color:#555;">'+String.fromCharCode(65+oi)+'</div>'+
-        safeO+'</div>';
-    }).join('');
-    var micHtml=hasSR
-      ?'<div style="display:flex;align-items:center;gap:8px;margin-top:14px;">'+
-          '<button id="exmic-'+qi+'" onclick="window._exListen('+qi+')" style="width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;background:#1a1a1a;color:#fff;font-size:16px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">🎤</button>'+
-          '<button id="exstop-'+qi+'" onclick="window._exStop('+qi+')" style="display:none;width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;background:#c0392b;color:#fff;font-size:13px;font-weight:700;align-items:center;justify-content:center;flex-shrink:0;">■</button>'+
-          '<span id="exhint-'+qi+'" style="font-size:12px;color:#888;">Tap mic and say the answer out loud</span>'+
-        '</div>'
-      :'<div style="font-size:11px;color:#bbb;margin-top:10px;">⚠️ Mic not available — tap an option above</div>';
-    html+='<div style="background:#fff;border:1px solid #e8e8e4;border-radius:14px;padding:18px;margin-bottom:14px;">'+
-      '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#bbb;margin-bottom:6px;">Question '+(qi+1)+' of '+exercises.length+'</div>'+
-      '<div style="font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:14px;line-height:1.4;">'+ex.question+'</div>'+
-      optsHtml+micHtml+
-      '<div id="extip-'+qi+'" style="display:none;margin-top:10px;font-size:12px;color:#2d7a3a;padding:9px 12px;background:#f0faf2;border-radius:8px;line-height:1.5;">'+ex.tip+'</div>'+
-    '</div>';
-  });
-
-  html+='<button class="ab" onclick="renderEmma()" style="margin-top:4px;margin-bottom:24px;">Nova conversa</button></div>';
-
-  area.innerHTML=html;
-
-  window._exStop=function(qi){stopListen(qi);};
-  window._exTap=function(qi,oi){
-    if(answered[qi])return;
-    if(activeRec){try{activeRec.stop();}catch(e){}activeRec=null;}
-    lockQuestion(qi,oi,exercises[qi].answer);
+  window._exGrammarQs=grammarQs;
+  window._exScores=exScores;
+  window._exSetScore=function(qIdx,i){
+    if(exScores[qIdx]!==undefined)return;
+    exScores[qIdx]=i;exIdx=qIdx;renderExercise();
   };
-  window._exListen=function(qi){startListen(qi);};
+  function renderExercise(){
+    var isGrammar=exIdx<grammarTotal;
+    var isPron=exIdx>=grammarTotal;
+    var pct=Math.round((exIdx/totalQs)*100);
+    var grammarPct=isGrammar?Math.round((exIdx/grammarTotal)*100):100;
+    var pronPct=isPron?Math.round(((exIdx-grammarTotal)/Math.max(pronTotal,1))*100):0;
 
-  var sb=document.getElementById('exscorebar');if(sb)sb.style.display='none';
+    // Progress bar HTML
+    var progressHtml=
+      '<div style="margin-bottom:20px;">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'+
+          '<div style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:'+(isGrammar?'rgba(0,0,0,.4)':'#e8b84b')+';">'+(isGrammar?'Gramática · '+(exIdx+1)+'/'+grammarTotal:'Pronúncia · '+(exIdx-grammarTotal+1)+'/'+pronTotal)+'</div>'+
+          '<div style="font-size:12px;font-weight:600;color:rgba(0,0,0,.3);">'+(exIdx+1)+'/'+totalQs+'</div>'+
+        '</div>'+
+        '<div style="height:4px;background:#e8e4de;border-radius:2px;overflow:hidden;">'+
+          '<div style="height:100%;display:flex;border-radius:2px;overflow:hidden;">'+
+            '<div style="width:'+Math.round(grammarTotal/totalQs*100)+'%;height:100%;position:relative;">'+
+              '<div style="position:absolute;inset:0;background:#e8e4de;"></div>'+
+              '<div style="position:absolute;inset:0;width:'+grammarPct+'%;background:#0a0a0a;transition:width .3s;"></div>'+
+            '</div>'+
+            '<div style="width:1px;background:#fff;flex-shrink:0;"></div>'+
+            '<div style="flex:1;height:100%;position:relative;">'+
+              '<div style="position:absolute;inset:0;background:#e8e4de;"></div>'+
+              (pronPct>0?'<div style="position:absolute;inset:0;width:'+pronPct+'%;background:#e8b84b;transition:width .3s;"></div>':'')+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+
+    // Nav arrows
+    var navHtml=
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;">'+
+        '<button onclick="exNav(-1)" style="width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.06);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;"'+
+          (exIdx===0?' disabled style="width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.03);border:none;cursor:default;display:flex;align-items:center;justify-content:center;opacity:.3;"':'')+'>'+
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="rgba(0,0,0,.35)"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>'+
+        '</button>'+
+        '<button id="exNextBtn" onclick="exNav(1)" style="width:38px;height:38px;border-radius:50%;background:#0a0a0a;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;">'+
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>'+
+        '</button>'+
+      '</div>';
+
+    var cardHtml='';
+
+    if(isGrammar){
+      var q=grammarQs[exIdx];
+      var answered=exScores[exIdx]!==undefined;
+      var sel=exScores[exIdx];
+      var optsHtml=q.options.map(function(opt,i){
+        var bg='#fff',border='1.5px solid #e8e4de',color='#111';
+        if(answered){
+          if(i===q.answer){bg='rgba(45,122,58,.07)';border='1.5px solid #2d7a3a';color='#2d7a3a';}
+          else if(i===sel){bg='rgba(192,57,43,.06)';border='1.5px solid #c0392b';color='#c0392b';}
+        } else if(i===sel){bg='#fafafa';border='1.5px solid #0a0a0a';}
+        return '<button onclick="exSelect('+i+')" style="width:100%;padding:13px 16px;border-radius:12px;border:'+border+';background:'+bg+';font-size:16px;color:'+color+';cursor:pointer;font-family:inherit;text-align:left;margin-bottom:8px;transition:all .15s;">'+
+          '<span style="font-weight:700;color:#ccc;margin-right:10px;">'+String.fromCharCode(65+i)+'</span>'+opt+'</button>';
+      }).join('');
+      var tipHtml=answered?
+        '<div style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(0,0,0,.3);margin-bottom:8px;margin-top:14px;">'+(q.grammar||q.tip||'')+'</div>'+
+        '<div style="font-size:14px;color:#888;line-height:1.5;padding:10px 14px;background:#f8f6f2;border-radius:10px;">'+(q.tip||'')+'</div>':'';
+      cardHtml=
+        '<div style="font-size:17px;font-weight:600;color:#0a0a0a;line-height:1.5;margin-bottom:20px;">'+q.question+'</div>'+
+        optsHtml+tipHtml+
+        '<div style="margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:8px;">'+
+          '<button id="exMicBtn" onclick="mcToggleRec('+exIdx+')" style="width:52px;height:52px;border-radius:50%;background:rgba(0,0,0,.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;">'+
+            '<svg width="18" height="18" viewBox="0 0 24 24" fill="rgba(0,0,0,.45)"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.3 6-6.72h-1.7z"/></svg>'+
+          '</button>'+
+          '<div id="exMicLbl" style="font-size:13px;color:#bbb;">Ou fale sua resposta</div>'+
+          '<div id="exTranscript" style="font-size:14px;color:#888;min-height:16px;text-align:center;"></div>'+
+        '</div>';
+    }
+
+    if(isPron){
+      var pi=exIdx-grammarTotal;
+      var pe=pronExercises[pi];
+      cardHtml=
+        '<div style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#e8b84b;margin-bottom:14px;">Pronúncia</div>'+
+        '<div style="font-size:15px;color:#aaa;font-weight:500;margin-bottom:14px;">Ouça e repita:</div>'+
+        '<div style="background:#f8f6f2;border-radius:12px;padding:12px 14px;margin-bottom:28px;display:flex;align-items:flex-start;gap:12px;">'+
+          '<button onclick="exPlayEmma('+pi+')" id="exPlayBtn_'+pi+'" style="width:34px;height:34px;border-radius:50%;flex-shrink:0;margin-top:2px;background:rgba(0,0,0,.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;">'+
+            '<svg width="12" height="12" viewBox="0 0 24 24" fill="rgba(0,0,0,.4)"><path d="M8 5v14l11-7z"/></svg>'+
+          '</button>'+
+          '<div id="exWords_'+pi+'" style="flex:1;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:flex-end;">'+
+            pe.sentence.split(' ').map(function(w){return '<span style="font-size:18px;font-weight:500;color:#111;">'+w+'</span>';}).join('')+
+          '</div>'+
+        '</div>'+
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;">'+
+          '<button onclick="exToggleRec('+pi+')" id="exRecBtn_'+pi+'" style="width:64px;height:64px;border-radius:50%;background:#e8b84b;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 10px rgba(232,184,75,.12);">'+
+            '<svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.3 6-6.72h-1.7z"/></svg>'+
+          '</button>'+
+          '<div id="exRecLabel_'+pi+'" style="font-size:13px;color:#bbb;">Toque para gravar</div>'+
+        '</div>'+
+        '<div id="exPronFeedback_'+pi+'"></div>';
+    }
+
+    if(exIdx>=totalQs){
+      // Summary screen
+      var correct=exScores.filter(function(s,i){return s===grammarQs[i]&&s!==undefined;}).length;
+      cardHtml=
+        '<div style="text-align:center;padding:20px 0;">'+
+          '<div style="font-size:42px;margin-bottom:16px;">🎉</div>'+
+          '<div style="font-size:22px;font-weight:700;color:#0a0a0a;margin-bottom:6px;">Exercícios concluídos!</div>'+
+          '<div style="font-size:15px;color:#aaa;margin-bottom:24px;">'+correct+' de '+grammarTotal+' corretas</div>'+
+          '<button onclick="renderEmma()" style="padding:13px 32px;border-radius:12px;background:#0a0a0a;border:none;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">Nova conversa</button>'+
+        '</div>';
+      navHtml='';
+      progressHtml='';
+    }
+
+    var backBtn='<div style="display:flex;align-items:center;margin-bottom:16px;">'+
+      '<button onclick="showReport()" style="background:none;border:none;cursor:pointer;font-size:11px;font-weight:600;color:rgba(0,0,0,.35);font-family:inherit;display:flex;align-items:center;gap:4px;padding:0;letter-spacing:.02em;">'+
+        '<svg width="13" height="13" viewBox="0 0 24 24" fill="rgba(0,0,0,.35)"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>'+
+        'Relatório'+
+      '</button>'+
+    '</div>';
+    area.innerHTML=renderModeTabs()+
+      '<div style="background:#fff;border-radius:20px;padding:24px 22px;border:1px solid #ede9e2;box-shadow:0 2px 16px rgba(0,0,0,.07);margin-bottom:1rem;">'+
+        backBtn+progressHtml+cardHtml+navHtml+
+      '</div>';
+
+    // Re-init pron rec state
+    window._exPronRec=null;
+  }
+
+  window.exSelect=function(i){
+    if(exIdx>=grammarTotal)return;
+    if(exScores[exIdx]!==undefined)return;
+    exScores[exIdx]=i;
+    if(window._exScores)window._exScores[exIdx]=i;
+    renderExercise();
+  };
+  // Apply voice result if pending
+  if(window._exVoiceResult&&window._exVoiceResult[exIdx]!==undefined){
+    var vr=window._exVoiceResult[exIdx];
+    if(exScores[exIdx]===undefined){
+      exScores[exIdx]=vr.correct?grammarQs[exIdx].answer:vr.matched;
+      delete window._exVoiceResult[exIdx];
+      renderExercise();
+    }
+  }
+
+  window.exNav=function(dir){
+    exIdx=Math.max(0,Math.min(totalQs,exIdx+dir));
+    if(pronAudio){pronAudio.pause();pronAudio=null;}
+    if(window._exPronRec&&window._exPronRec.state==='recording')window._exPronRec.stop();
+    renderExercise();
+  };
+
+  window.exPlayEmma=function(pi){
+    var pe=pronExercises[pi];
+    if(!pe)return;
+    var btn=document.getElementById('exPlayBtn_'+pi);
+    if(btn){btn.style.background='#0a0a0a';}
+    fetch(W+'/emma-speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:pe.sentence})})
+    .then(function(r){return r.arrayBuffer();})
+    .then(function(ab){
+      var ctx=new (window.AudioContext||window.webkitAudioContext)();
+      return ctx.decodeAudioData(ab).then(function(buf){
+        var src=ctx.createBufferSource();src.buffer=buf;src.connect(ctx.destination);src.start();
+        src.onended=function(){if(btn){btn.style.background='rgba(0,0,0,.08)';}};
+      });
+    }).catch(function(){if(btn){btn.style.background='rgba(0,0,0,.08)';}});
+  };
+
+  window.exToggleRec=function(pi){
+    var recBtn=document.getElementById('exRecBtn_'+pi);
+    var recLabel=document.getElementById('exRecLabel_'+pi);
+    if(window._exPronRec&&window._exPronRec.state==='recording'){
+      window._exPronRec.stop();
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+      var chunks=[];
+      var mt=MediaRecorder.isTypeSupported('audio/mp4')?'audio/mp4':MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')?'audio/ogg;codecs=opus':'audio/webm';
+      var mr=new MediaRecorder(stream,{mimeType:mt});
+      window._exPronRec=mr;
+      mr.ondataavailable=function(e){if(e.data.size>0)chunks.push(e.data);};
+      mr.onstop=function(){
+        stream.getTracks().forEach(function(t){t.stop();});
+        if(recBtn){recBtn.style.background='#e8b84b';recBtn.style.boxShadow='0 0 0 10px rgba(232,184,75,.12)';}
+        if(recLabel)recLabel.textContent='Enviando...';
+        var blob=new Blob(chunks,{type:mt});
+        var fr=new FileReader();
+        fr.onloadend=function(){
+          var b64=fr.result.split(',')[1];
+          var pe=pronExercises[pi];
+          // Convert to 16kHz WAV for better Azure scoring
+          function sendToAzure(wavB64){
+            fetch(W+'/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:b64,mimeType:mt,wavB64:wavB64||null,referenceText:pe.sentence})})
+            .then(function(r){return r.json();})
+            .then(function(d){
+              var fb=document.getElementById('exPronFeedback_'+pi);
+              var wordsEl=document.getElementById('exWords_'+pi);
+              var score=d.pronunciation?Math.round(d.pronunciation.pronScore||d.pronunciation.accuracyScore||0):0;
+              if(recLabel)recLabel.textContent=score>0?'Sua pontuação: '+score+'%':'Toque para gravar novamente';
+              if(wordsEl&&d.pronunciation&&d.pronunciation.words){
+                var wds=d.pronunciation.words;
+                wordsEl.innerHTML=wds.map(function(w){
+                  var c=w.accuracyScore>=80?'#2d7a3a':w.accuracyScore>=65?'#e8b84b':'#c0392b';
+                  return '<div style="display:flex;flex-direction:column;align-items:center;">'+
+                    '<span style="font-size:18px;font-weight:500;color:'+c+';">'+w.word+'</span>'+
+                    '<span style="font-size:10px;font-weight:700;color:'+c+';">'+Math.round(w.accuracyScore||0)+'%</span>'+
+                  '</div>';
+                }).join('');
+              }
+              if(fb&&score>0){
+                var msg=score>=80?'✦ Ótimo! Continue assim.':score>=65?'Quase lá! Ouça Emma e tente de novo.':'Foque nas palavras em vermelho — ouça Emma mais uma vez.';
+                fb.innerHTML='<div style="margin-top:14px;padding:10px 14px;background:rgba(45,122,58,.06);border:1px solid rgba(45,122,58,.15);border-radius:10px;font-size:14px;color:#2d7a3a;">'+msg+'</div>';
+              }
+            }).catch(function(){if(recLabel)recLabel.textContent='Erro. Tente novamente.';});
+          }
+          try{
+            var arrBuf=fr.result;
+            fetch(arrBuf).then(function(r2){return r2.arrayBuffer();}).then(function(ab){
+              var ctx=new(window.AudioContext||window.webkitAudioContext)();
+              ctx.decodeAudioData(ab,function(audioBuf){
+                var sr=16000,ns=Math.floor(audioBuf.duration*sr);
+                var oCtx=new OfflineAudioContext(1,ns,sr);
+                var src=oCtx.createBufferSource();src.buffer=audioBuf;src.connect(oCtx.destination);src.start();
+                oCtx.startRendering().then(function(rendered){
+                  var pcm=rendered.getChannelData(0);
+                  var wavBuf=new ArrayBuffer(44+pcm.length*2);
+                  var v=new DataView(wavBuf);
+                  function ws(o,s){for(var i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));}
+                  ws(0,'RIFF');v.setUint32(4,36+pcm.length*2,true);ws(8,'WAVE');
+                  ws(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+                  v.setUint32(24,16000,true);v.setUint32(28,32000,true);v.setUint16(32,2,true);v.setUint16(34,16,true);
+                  ws(36,'data');v.setUint32(40,pcm.length*2,true);
+                  var off=44;for(var i=0;i<pcm.length;i++){var s2=Math.max(-1,Math.min(1,pcm[i]));v.setInt16(off,s2<0?s2*0x8000:s2*0x7FFF,true);off+=2;}
+                  var bytes=new Uint8Array(wavBuf);
+                  var bin='';for(var i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);
+                  sendToAzure(btoa(bin));
+                }).catch(function(){sendToAzure(null);});
+              },function(){sendToAzure(null);});
+            }).catch(function(){sendToAzure(null);});
+          }catch(e){sendToAzure(null);}
+        };
+        fr.readAsDataURL(blob);
+      };
+      mr.start();
+      if(recBtn){recBtn.style.background='#c0392b';recBtn.style.boxShadow='0 0 0 10px rgba(192,57,43,.12)';}
+      if(recLabel)recLabel.textContent='Gravando... toque para parar';
+    }).catch(function(){});
+  };
+
+  renderExercise();
 }
 function emmaEndAndBack(){
   // End conversation and return to topic selection
@@ -4554,13 +4808,24 @@ function emmaEnd(){
   var unit = getCurrentUnit(emmaTopic);
   var unitInfo = unit ? ' — '+unit.title : '';
   area.innerHTML=renderModeTabs()+
-    '<div class="card" style="text-align:center;padding:3rem 2rem;">'+
-      '<div style="font-size:32px;margin-bottom:16px;">🎉</div>'+
-      '<div style="font-family:var(--font-display,serif);font-size:22px;font-weight:700;color:var(--black);margin-bottom:8px;">You did great!</div>'+
-      '<div style="font-size:14px;color:var(--g400);margin-bottom:4px;">Session complete'+unitInfo+'</div>'+
-      '<div style="font-size:13px;color:var(--g400);margin-bottom:24px;">Now let&#39;s test what you learned today.</div>'+
-      '<div style="font-size:13px;color:var(--g400);margin-bottom:8px;">Gerando seu relatório...</div>'+
-      '<div style="font-size:16px;font-weight:600;color:var(--yellow);animation:fade 1.5s ease-in-out infinite;">Analisando a conversa...</div>'+
+    '<div style="background:#fff;border-radius:20px;overflow:hidden;border:1px solid #ede9e2;box-shadow:0 2px 20px rgba(0,0,0,.06);">'+
+      '<div style="background:#0a0a0a;padding:28px 28px 24px;display:flex;align-items:center;gap:16px;">'+
+        '<div style="position:relative;width:64px;height:64px;flex-shrink:0;">'+
+          '<svg width="64" height="64" viewBox="0 0 64 64">'+
+            '<circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5"/>'+
+            '<circle cx="32" cy="32" r="26" fill="none" stroke="#e8b84b" stroke-width="5" stroke-dasharray="163" stroke-dashoffset="40" stroke-linecap="round" transform="rotate(-90 32 32)" style="filter:blur(1.5px)"/>'+
+          '</svg>'+
+          '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:rgba(232,184,75,.35);filter:blur(4px);">B+</div>'+
+        '</div>'+
+        '<div>'+
+          '<div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:4px;">Calculando sua nota...</div>'+
+          '<div style="font-size:12px;color:rgba(255,255,255,.3);">Session complete'+unitInfo+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="padding:18px 28px;display:flex;align-items:center;gap:10px;">'+
+        '<div style="width:18px;height:18px;border-radius:50%;border:2.5px solid #f0ede8;border-top-color:#e8b84b;animation:spin .8s linear infinite;flex-shrink:0;"></div>'+
+        '<div style="font-size:12px;color:#bbb;">Analisando a conversa...</div>'+
+      '</div>'+
     '</div>';
   if(history.length<3){
     area.innerHTML=renderModeTabs()+
@@ -4575,64 +4840,102 @@ function emmaEnd(){
   var convoText=history.map(function(m){return (m.role==='user'?'Student: ':'Emma: ')+m.content;}).join(' | ');
   window._lastHistory=history;
   window._lastTopic=emmaTopic;
-  var reportPrompt='Analyze this English conversation between a Brazilian student and coach Emma. Conversation: '+convoText+' '+
+  var convoText2=convoText;if(convoText2.length>2000)convoText2=convoText2.slice(-2000);
+  var pronWords=[];
+  if(window._sessionPronunciationData&&window._sessionPronunciationData.length>0){
+    var wordMap={};
+    window._sessionPronunciationData.forEach(function(s){
+      (s.scores&&s.scores.words||[]).forEach(function(w){
+        if(!w.word)return;
+        var k=w.word.toLowerCase();
+        if(!wordMap[k])wordMap[k]={word:w.word,total:0,count:0};
+        wordMap[k].total+=w.accuracyScore||0;
+        wordMap[k].count++;
+      });
+    });
+    pronWords=Object.values(wordMap)
+      .map(function(w){return {word:w.word,score:Math.round(w.total/w.count)};})
+      .filter(function(w){return w.score<90;})
+      .sort(function(a,b){return a.score-b.score;})
+      .slice(0,10);
+  }
+  var pronInfo=pronWords.length>0?(' Pronunciation data: '+JSON.stringify(pronWords)):'';
+  var reportPrompt='Analyze this English conversation between a Brazilian student and coach Emma. Conversation: '+convoText2+pronInfo+' '+
     'Respond ONLY with a single JSON object, no markdown, no backticks. Format: '+
     '{"headline":"título encorajador curto em português","score":"A/B/C/D","summary":"uma frase of avaliação em português",'+
-    '"mistakes":[{"title":"nome do erro em português","detail":"exemplo específico da conversa + correção, manter frases em inglês como estão"},]'+
+    '"mistakes":[{"title":"nome do erro em português","detail":"exemplo específico da conversa + correção, manter frases em inglês como estão"}],'+
     '"improvements":[{"title":"focus area","detail":"specific actionable advice"}],'+
     '"positive":"what the student did well",'+
-    '"exercises":[{"question":"complete the sentence / choose the correct form","options":["opt A","opt B","opt C","opt D"],"answer":0,"tip":"brief grammar explanation"}]}'+
-    ' Rules: max 3 mistakes, max 3 improvements. Generate 5 exercises based on the grammar mistakes and vocabulary topics from this conversation — mix sentence completion and error correction formats. answer is the 0-based index of the correct option. Be kind and practical.';
+    '"exercises":[{"question":"complete the sentence / choose the correct form","options":["opt A","opt B","opt C","opt D"],"answer":0,"tip":"brief grammar explanation"}],'+
+    '"pronSentences":["correct English sentence relevant to this conversation","...","...","..."]}'+
+    ' Rules: max 3 mistakes, max 3 improvements. Generate 8 exercises based on grammar mistakes and vocabulary from this conversation — mix multiple choice, sentence completion and error correction. answer is 0-based index of correct option.'+
+    ' Generate exactly 4 pronSentences: correct natural English sentences (8-15 words) relevant to the conversation.'+(pronWords.length>0?' Each sentence must include at least one of these poorly-pronounced words (lowest score first): '+pronWords.map(function(w){return w.word;}).join(', ')+'.':'')+
+    ' Match the vocabulary complexity of the student\'s own sentences — keep it simple if they spoke simply. Be kind and practical.';
   fetch(W+'/emma-chat',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({system:'You are an English coach writing a report for a Brazilian student. Respond ONLY with valid JSON, nothing else. Write ALL text fields in Brazilian Portuguese, EXCEPT: keep any English words, phrases, or sentences used as examples exactly in English (do not translate them). This includes the headline, summary, mistake titles, mistake details, improvement titles, improvement details, and the positive field.',messages:[{role:'user',content:reportPrompt}],topic:'report',max_tokens:1400})
+    body:JSON.stringify({system:'You are an English coach writing a report for a Brazilian student. Respond ONLY with valid JSON, nothing else. Write ALL text fields in Brazilian Portuguese, EXCEPT: keep any English words, phrases, or sentences used as examples exactly in English (do not translate them). This includes the headline, summary, mistake titles, mistake details, improvement titles, improvement details, and the positive field.',messages:[{role:'user',content:reportPrompt}],topic:'report',max_tokens:2500})
   })
   .then(function(r){return r.json();})
   .then(function(d){
     if(d.error)throw new Error(d.error);
     var text=d.text.replace(/```json|```/g,'').trim();
     var r=JSON.parse(text);
-    var mistakesHtml=r.mistakes.map(function(m){
-      return '<div style="padding-left:12px;border-left:2.5px solid #c0392b;margin-bottom:12px;">'+
-        '<div style="font-size:14px;font-weight:600;color:#0a0a0a;margin-bottom:3px;">'+m.title+'</div>'+
-        '<div style="font-size:13px;color:#777;line-height:1.55;">'+m.detail+'</div>'+
-      '</div>';
+    var pronHtml='';
+    if(pronWords&&pronWords.length>0){
+      pronHtml=pronWords.map(function(w,i){
+        var c=w.score<=60?'#c0392b':w.score<=75?'#e8b84b':'#2d7a3a';
+        return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">'+
+          '<span style="font-size:9px;font-weight:700;color:#ccc;width:12px;text-align:right;flex-shrink:0">'+(i+1)+'</span>'+
+          '<span style="font-size:12px;font-weight:600;color:#111;width:90px;flex-shrink:0">'+w.word+'</span>'+
+          '<div style="flex:1;height:6px;background:#f0ede8;border-radius:3px;overflow:hidden">'+
+            '<div style="width:'+w.score+'%;height:100%;background:'+c+';border-radius:3px;"></div></div>'+
+          '<span style="font-size:11px;font-weight:700;color:'+c+';width:30px;text-align:right;flex-shrink:0">'+w.score+'%</span></div>';
+      }).join('');
+    }
+    var ringPct=r.score==='A+'?0.97:r.score==='A'?0.90:r.score==='B+'?0.77:r.score==='B'?0.66:0.50;
+    var ringCirc=2*Math.PI*34;
+    var ringOffset=ringCirc*(1-ringPct);
+    var ringSvg='<div style="position:relative;width:80px;height:80px;flex-shrink:0">'+
+      '<svg width="80" height="80" viewBox="0 0 80 80">'+
+        '<circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="6"/>'+
+        '<circle cx="40" cy="40" r="34" fill="none" stroke="#e8b84b" stroke-width="6" stroke-dasharray="'+ringCirc+'" stroke-dashoffset="'+ringOffset+'" stroke-linecap="round" transform="rotate(-90 40 40)"/>'+
+      '</svg>'+
+      '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:800;color:#e8b84b">'+r.score+'</div></div>';
+    var mistakesHtml=r.mistakes.map(function(m,i){
+      return '<div style="display:flex;gap:10px;padding-bottom:'+(i<r.mistakes.length-1?'13px':'0')+';margin-bottom:'+(i<r.mistakes.length-1?'13px':'0')+';border-bottom:'+(i<r.mistakes.length-1?'1px solid #faf8f4':'none')+'">'+
+        '<div style="width:20px;height:20px;border-radius:50%;background:rgba(192,57,43,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:9px;font-weight:800;color:#c0392b">'+(i+1)+'</div>'+
+        '<div><div style="font-size:13px;font-weight:600;color:#0a0a0a;margin-bottom:2px;">'+m.title+'</div>'+
+        '<div style="font-size:12px;color:#888;line-height:1.5;">'+m.detail+'</div></div></div>';
     }).join('');
-    var improvementsHtml=r.improvements.map(function(i){
-      return '<div style="padding-left:12px;border-left:2.5px solid #f5c842;margin-bottom:12px;">'+
-        '<div style="font-size:14px;font-weight:600;color:#0a0a0a;margin-bottom:3px;">'+i.title+'</div>'+
-        '<div style="font-size:13px;color:#777;line-height:1.55;">'+i.detail+'</div>'+
-      '</div>';
+    var improvementsHtml=r.improvements.map(function(imp,i){
+      return '<div style="display:flex;gap:10px;padding-bottom:'+(i<r.improvements.length-1?'13px':'0')+';margin-bottom:'+(i<r.improvements.length-1?'13px':'0')+';border-bottom:'+(i<r.improvements.length-1?'1px solid #faf8f4':'none')+'">'+
+        '<div style="width:20px;height:20px;border-radius:50%;background:rgba(232,184,75,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:11px;color:#e8b84b;font-weight:700;">→</div>'+
+        '<div><div style="font-size:13px;font-weight:600;color:#0a0a0a;margin-bottom:2px;">'+imp.title+'</div>'+
+        '<div style="font-size:12px;color:#888;line-height:1.5;">'+imp.detail+'</div></div></div>';
     }).join('');
     area.innerHTML=renderModeTabs()+
-      '<div style="background:#fafaf8;border:1px solid #e8e8e4;border-radius:16px;padding:24px;margin-bottom:1rem;">'+
-        '<div style="display:flex;gap:14px;align-items:center;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid #eeede8;">'+
-          '<div style="width:52px;height:52px;border-radius:12px;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#f5c842;flex-shrink:0;">'+r.score+'</div>'+
-          '<div>'+
-            '<div style="font-size:17px;font-weight:700;color:#0a0a0a;line-height:1.25;margin-bottom:3px;">'+r.headline+'</div>'+
-            '<div style="font-size:12px;color:#888;line-height:1.5;">'+r.summary+'</div>'+
-          '</div>'+
-        '</div>'+
-        '<div style="margin-bottom:18px;">'+
-          '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#aaa;margin-bottom:10px;">Erros comuns</div>'+
-          mistakesHtml+
-        '</div>'+
-        '<div style="margin-bottom:18px;">'+
-          '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#aaa;margin-bottom:10px;">Foque nisso</div>'+
-          improvementsHtml+
-        '</div>'+
-        '<div style="padding-left:12px;border-left:2.5px solid #2d7a3a;margin-bottom:20px;">'+
-          '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#2d7a3a;margin-bottom:4px;">Muito bem</div>'+
-          '<div style="font-size:13px;color:#555;line-height:1.55;">'+r.positive+'</div>'+
-        '</div>'+
-        '<button class="ab" onclick="renderEmma()" style="margin-bottom:10px;">Nova conversa</button>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px;">'+
-          '<button class="ab" style="background:#0a0a0a;color:#fafaf8;font-size:12px;padding:10px 6px;" onclick="downloadReport()">&#128196; Report</button>'+
-          '<button class="ab" style="background:#0a0a0a;color:#fafaf8;font-size:12px;padding:10px 6px;" onclick="downloadTranscript()">&#128172; Transcript</button>'+
-          '<button class="ab" style="background:#1a1a2e;color:#f5c842;border:1px solid #f5c842;font-size:12px;padding:10px 6px;" onclick="downloadExercises()">&#9997; Exercises</button>'+
-        '</div>'+
-      '</div>';
+      '<div style="background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 2px 24px rgba(0,0,0,.08);border:1px solid #ede9e2;margin-bottom:1rem;">'+
+        '<div style="background:#0a0a0a;padding:28px 24px;display:flex;align-items:center;gap:18px;">'+ringSvg+
+          '<div style="flex:1;"><div style="font-size:15px;font-weight:700;color:#fff;line-height:1.3;margin-bottom:5px;">'+r.headline+'</div>'+
+          '<div style="font-size:12px;color:rgba(255,255,255,.38);line-height:1.45;">'+r.summary+'</div></div></div>'+
+        '<div style="padding:18px 24px;border-bottom:1px solid #f0ede8;">'+
+          '<div style="background:rgba(45,122,58,.06);border:1px solid rgba(45,122,58,.15);border-radius:10px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start;">'+
+            '<span style="font-size:14px;flex-shrink:0;margin-top:1px;">✦</span>'+
+            '<div style="font-size:13px;color:#2d7a3a;line-height:1.55;">'+r.positive+'</div></div></div>'+
+        '<div style="padding:18px 24px;border-bottom:1px solid #f0ede8;">'+
+          '<div style="font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#c0392b;margin-bottom:14px;">Erros para corrigir</div>'+mistakesHtml+'</div>'+
+        '<div style="padding:18px 24px;border-bottom:1px solid #f0ede8;">'+
+          '<div style="font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#e8b84b;margin-bottom:14px;">Próximos passos</div>'+improvementsHtml+'</div>'+
+        (pronHtml?'<div style="padding:18px 24px;border-bottom:1px solid #f0ede8;"><div style="font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#aaa;margin-bottom:14px;">🎙 Pronúncia — top 10 para treinar</div>'+pronHtml+'</div>':'')+
+        '<div style="padding:16px 24px;display:flex;flex-direction:column;gap:8px;">'+
+          '<button class="ab" onclick="renderEmma()" style="width:100%;padding:14px;border-radius:12px;background:#0a0a0a;border:none;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;"><span>🔄</span> Nova conversa</button>'+
+          '<div style="height:1px;background:#f0ede8;margin:2px 0;"></div>'+
+          '<div style="display:flex;gap:8px;">'+
+            '<button class="ab" onclick="downloadReport()" style="flex:1;padding:11px 6px;border-radius:11px;background:#f5f3ef;border:1px solid #e8e4de;color:#333;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;"><span style="font-size:13px;">📄</span> Salvar PDF</button>'+
+            '<button class="ab" onclick="downloadTranscript()" style="flex:1;padding:11px 6px;border-radius:11px;background:#f5f3ef;border:1px solid #e8e4de;color:#333;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;"><span style="font-size:13px;">💬</span> Transcript</button>'+
+            '<button class="ab" onclick="downloadExercises()" style="flex:1;padding:11px 6px;border-radius:11px;background:rgba(232,184,75,.08);border:1px solid rgba(232,184,75,.3);color:#7a5c00;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;"><span style="font-size:13px;">✏️</span> Exercícios</button>'+
+          '</div></div></div>';
     window._lastReport=r;
   })
   .catch(function(){
