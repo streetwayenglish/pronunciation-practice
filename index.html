@@ -923,99 +923,74 @@ body.show-topics .main{ display:none; }
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
 /* ╔══════════════════════════════════════════════════════════════════╗
-   ║  CURRICULUM PICKER — restored & redesigned                       ║
-   ║  Previously the .cp-* rules lived in a duplicate HTML block       ║
-   ║  at the end of the file that the browser ignored. They're back    ║
-   ║  here now, with a new iOS-style segmented layout + desktop        ║
-   ║  sidebar that adapts under 900px to a mobile bottom sheet.        ║
+   ║  CURRICULUM PICKER — Option 1 · Faithful                          ║
+   ║  Mobile bottom sheet only (modal never opens on desktop, which    ║
+   ║  uses the sw-desktop full-page layout instead).                   ║
+   ║  Drag pill · slim header · gold-underline tabs · gold-caps level  ║
+   ║  name · compact unit rows · solid black Continue button.          ║
    ╚══════════════════════════════════════════════════════════════════╝ */
 
-.cp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;animation:cp-fadein .25s ease;}
+.cp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:200;display:flex;align-items:flex-end;justify-content:center;animation:cp-fadein .25s ease;}
 @keyframes cp-fadein{from{opacity:0}to{opacity:1}}
-.cp-panel{background:#fff;border-radius:20px;display:flex;width:min(1000px,100%);height:min(720px,90vh);overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.3);}
+.cp-panel{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:600px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -10px 40px rgba(0,0,0,.3);animation:cp-slideup .3s cubic-bezier(.32,.72,0,1);}
+@keyframes cp-slideup{from{transform:translateY(100%)}to{transform:translateY(0)}}
 
-/* ── Desktop sidebar (hidden under 900px) ── */
-.cp-sidebar{width:300px;flex-shrink:0;background:#0a0a0a;color:#fff;display:flex;flex-direction:column;padding:28px 22px 22px;}
-.cp-sb-brand{font-family:'Fraunces',serif;font-size:17px;font-weight:700;color:#fff;letter-spacing:-.01em;line-height:1.15;margin-bottom:4px;}
-.cp-sb-brand em{font-style:italic;color:#f5c842;font-weight:700;}
-.cp-sb-tag{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.35);font-weight:600;margin-bottom:36px;}
-.cp-sb-nav-label{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.35);font-weight:600;margin-bottom:10px;padding-left:4px;}
-.cp-sb-nav{display:flex;flex-direction:column;gap:2px;}
-.cp-sb-path{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;cursor:pointer;transition:background .15s,color .15s;color:rgba(255,255,255,.65);font-size:13.5px;font-weight:500;background:none;border:none;text-align:left;font-family:inherit;width:100%;}
-.cp-sb-path:hover{background:rgba(255,255,255,.05);color:#fff;}
-.cp-sb-path.active{background:rgba(245,200,66,.1);color:#f5c842;}
-.cp-sb-path-num{width:22px;font-family:'Fraunces',serif;font-style:italic;font-size:11px;color:rgba(255,255,255,.35);flex-shrink:0;}
-.cp-sb-path.active .cp-sb-path-num{color:#f5c842;}
-.cp-sb-user{margin-top:auto;padding-top:22px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
-.cp-sb-user-avatar{width:36px;height:36px;border-radius:50%;background:#f5c842;color:#111;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;}
-.cp-sb-user-text{flex:1;min-width:0;}
-.cp-sb-user-name{font-size:13px;font-weight:600;color:#fff;line-height:1.2;}
-.cp-sb-user-streak{font-size:10px;color:rgba(255,255,255,.45);margin-top:2px;}
+/* Drag pill */
+.cp-drag-row{display:flex;justify-content:center;padding:10px 0 5px;flex-shrink:0;}
+.cp-drag-pill{width:34px;height:3.5px;border-radius:2px;background:#d4d0ca;}
 
-/* ── Main area ── */
-.cp-main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#fff;min-width:0;}
-.cp-header{padding:24px 30px 18px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid #ece8e0;flex-shrink:0;}
-.cp-topic-label{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#bbb;margin-bottom:6px;}
-.cp-topic-name{font-family:'Fraunces',serif;font-size:26px;font-weight:900;color:#111;line-height:1;letter-spacing:-.01em;}
-.cp-close{width:32px;height:32px;border-radius:50%;background:#f5f2eb;border:none;font-size:16px;color:#999;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;transition:background .15s;}
-.cp-close:hover{background:#ece8e0;color:#111;}
-.cp-body{flex:1;overflow-y:auto;padding:0;}
-.cp-progress-bar{padding:16px 30px 16px;border-bottom:1px solid #ece8e0;}
-.cp-progress-label{display:flex;justify-content:space-between;font-size:10px;color:#bbb;margin-bottom:8px;letter-spacing:.04em;}
-.cp-bar-track{height:4px;background:#f0ede8;border-radius:2px;overflow:hidden;}
-.cp-bar-fill{height:100%;background:#f5c842;border-radius:2px;transition:width .4s ease;}
+/* Header: eyebrow + title on left, count + Done on right */
+.cp-header{padding:8px 18px 14px;display:flex;justify-content:space-between;align-items:flex-end;flex-shrink:0;}
+.cp-header-left{display:flex;flex-direction:column;min-width:0;}
+.cp-topic-label{font-size:9px;font-weight:700;color:#bbb;letter-spacing:.14em;text-transform:uppercase;margin-bottom:2px;}
+.cp-topic-name{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;font-size:19px;font-weight:800;color:#0a0a0a;letter-spacing:-.02em;line-height:1.1;}
+.cp-header-right{text-align:right;flex-shrink:0;}
+.cp-count{font-size:16px;font-weight:800;color:#0a0a0a;letter-spacing:-.02em;line-height:1;}
+.cp-count-slash{font-size:10px;color:#bbb;font-weight:600;}
+.cp-count-label{font-size:8px;color:#bbb;letter-spacing:.12em;text-transform:uppercase;font-weight:700;margin-top:1px;}
 
-/* ── Segmented pills (iOS style) ── */
-.cp-segmented-wrap{padding:14px 30px 0;}
-.cp-segmented{display:flex;border-bottom:1px solid #f0ede8;gap:0;background:transparent;padding:0;border-radius:0;}
-.cp-seg-pill{padding:10px 14px;text-align:center;font-size:12px;font-weight:700;color:#bbb;cursor:pointer;border:none;border-bottom:2px solid transparent;background:transparent;font-family:inherit;letter-spacing:-.005em;margin-bottom:-1px;border-radius:0;flex:0 0 auto;transition:color .15s,border-color .15s;}
+/* Hide elements we no longer render or want shown */
+.cp-close{display:none;}
+.cp-progress-bar{display:none;}
+.cp-skip-btn{display:none;}
+.cp-sidebar{display:none;}
+.cp-main{display:contents;}
+.cp-body{display:contents;}
+
+/* Tabs: gold underline (Option 1 · Faithful) */
+.cp-segmented-wrap{padding:0 18px;flex-shrink:0;}
+.cp-segmented{display:flex;border-bottom:1px solid #f0ede8;gap:0;}
+.cp-seg-pill{padding:8px 11px;border:none;background:none;font-size:11px;font-weight:700;color:#bbb;border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;transition:color .15s,border-color .15s;margin-bottom:-1px;border-radius:0;flex:0 0 auto;letter-spacing:-.005em;}
 .cp-seg-pill:hover:not(.active){color:#888;}
-.cp-seg-pill.active{color:#0a0a0a;border-bottom-color:#e8b84b;background:transparent;box-shadow:none;}
+.cp-seg-pill.active{color:#0a0a0a;border-bottom-color:#e8b84b;}
 
-/* ── Level panes (only one visible at a time) ── */
-.cp-levels-wrap{padding:18px 30px 28px;}
+/* Body scroll area */
+.cp-levels-wrap{flex:1;overflow-y:auto;padding:0 18px 8px;min-height:0;}
+
+/* Level name (gold caps) */
 .cp-level-pane{display:none;}
-.cp-level-pane.active{display:flex;flex-direction:column;gap:4px;animation:cp-fadein .25s ease;}
-.cp-level-subtitle{font-size:11px;color:#999;letter-spacing:.02em;margin-bottom:12px;padding:0 4px;}
+.cp-level-pane.active{display:block;animation:cp-fadein .25s ease;}
+.cp-level-subtitle{padding:10px 0 4px;font-size:10px;color:#e8b84b;letter-spacing:.14em;font-weight:700;text-transform:uppercase;}
 
-/* ── Unit rows ── */
-.cp-unit{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;transition:background .15s;cursor:pointer;border:1px solid transparent;}
-.cp-unit:hover{background:#fafaf8;}
-.cp-unit.current{background:#fffbec;border-color:rgba(245,200,66,.3);}
+/* Compact unit rows */
+.cp-unit{padding:10px 0;border-bottom:1px solid #faf8f4;display:flex;align-items:center;gap:12px;cursor:pointer;background:transparent;border-radius:0;transition:opacity .15s;}
+.cp-unit:last-child{border-bottom:none;}
+.cp-unit:hover{background:transparent;}
 .cp-unit.done{opacity:.55;}
-.cp-unit.locked{opacity:.4;cursor:pointer;}
-.cp-unit-status{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px;}
-.cp-unit.done .cp-unit-status{background:#111;color:#f5c842;}
-.cp-unit.current .cp-unit-status{background:#f5c842;color:#111;font-weight:700;}
-.cp-unit.locked .cp-unit-status{background:#f0ede8;color:#ccc;}
-.cp-unit-content{flex:1;min-width:0;}
-.cp-unit-num{font-size:9px;color:#bbb;letter-spacing:.06em;font-family:'Fraunces',serif;font-style:italic;}
-.cp-unit-title{font-size:13px;font-weight:600;color:#111;line-height:1.2;margin-top:1px;}
-.cp-unit.locked .cp-unit-title{color:#bbb;}
-.cp-unit-tag{font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:20px;flex-shrink:0;}
-.cp-unit.current .cp-unit-tag{background:rgba(245,200,66,.2);color:#c9940a;}
-.cp-unit.done .cp-unit-tag{background:rgba(0,0,0,.05);color:#999;}
+.cp-unit-status{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#f0ede8;color:#bbb;font-size:10px;font-weight:700;}
+.cp-unit.done .cp-unit-status{background:#2d7a3a;color:#fff;}
+.cp-unit.current .cp-unit-status{background:#e8b84b;color:#0a0a0a;}
+.cp-unit-title{flex:1;font-size:13px;font-weight:600;color:#555;line-height:1.2;letter-spacing:-.005em;}
+.cp-unit.done .cp-unit-title{color:#aaa;}
+.cp-unit.current .cp-unit-title{color:#0a0a0a;font-weight:700;}
+.cp-unit-now{font-size:8px;font-weight:800;color:#e8b84b;letter-spacing:.12em;text-transform:uppercase;flex-shrink:0;}
+.cp-unit-content,.cp-unit-num,.cp-unit-tag{display:none;}
 
-/* ── Footer with descriptive CTA ── */
-.cp-footer{padding:14px 30px 22px;border-top:1px solid #ece8e0;display:flex;gap:10px;background:#fff;flex-shrink:0;}
-.cp-start-btn{flex:1;padding:14px 18px;background:#0a0a0a;color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.01em;transition:background .15s;text-align:center;line-height:1.3;}
+/* Footer: solid Continue button */
+.cp-footer{padding:4px 18px 20px;flex-shrink:0;display:flex;gap:10px;background:#fff;border-top:none;}
+.cp-start-btn{flex:1;width:100%;padding:13px;border-radius:10px;background:#0a0a0a;border:none;font-size:12px;font-weight:800;color:#fff;cursor:pointer;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-.005em;transition:background .15s;}
 .cp-start-btn:hover{background:#1f1f1f;}
-.cp-skip-btn{padding:13px 18px;background:transparent;border:1px solid #ece8e0;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:#999;cursor:pointer;transition:all .15s;white-space:nowrap;}
-.cp-skip-btn:hover{border-color:#ccc;color:#111;}
 
-/* ── Mobile: bottom sheet, no sidebar ── */
-@media (max-width:900px){
-  .cp-overlay{align-items:flex-end;padding:0;}
-  .cp-panel{width:100%;max-height:92vh;height:auto;flex-direction:column;border-radius:20px 20px 0 0;animation:cp-slideup .3s cubic-bezier(.32,.72,0,1);}
-  @keyframes cp-slideup{from{transform:translateY(100%)}to{transform:translateY(0)}}
-  .cp-sidebar{display:none;}
-  .cp-header{padding:22px 22px 14px;}
-  .cp-progress-bar{padding-left:22px;padding-right:22px;}
-  .cp-segmented-wrap{padding-left:22px;padding-right:22px;}
-  .cp-levels-wrap{padding-left:22px;padding-right:22px;}
-  .cp-footer{padding:12px 22px 22px;}
-  .cp-topic-name{font-size:22px;}
-}
 
 
 /* ╔══════════════════════════════════════════════════════════════════╗
@@ -3021,55 +2996,18 @@ function showCurriculumProgress(topic, onStart){
   var currentUnit = progress.unit || 1;
   var totalUnits = units.length;
   var doneCount = currentUnit - 1;
-  var pct = Math.round((doneCount / totalUnits) * 100);
-  var levelNames = (window.LEVEL_NAMES && window.LEVEL_NAMES[topic]) || ['Foundations','Building','Advancing','Mastering'];
+  var levelNames = (window.LEVEL_NAMES && window.LEVEL_NAMES[topic]) || ['Finding Your Voice','Speaking With Clarity','Natural Flow','Fluent & Confident'];
   var unitsPerLevel = Math.ceil(totalUnits / 4);
   var currentLevel = Math.min(3, Math.max(0, Math.floor((currentUnit - 1) / unitsPerLevel)));
 
-  // ── Sidebar (desktop only via CSS) ──
-  var allPaths = Object.keys(CURRICULUM);
-  var pathRomans = ['i','ii','iii','iv','v','vi','vii','viii'];
-  var sidebarHtml = '<aside class="cp-sidebar">'+
-    '<div class="cp-sb-brand">Street Way<br>English &middot; <em>Emma</em></div>'+
-    '<div class="cp-sb-tag">Pronunciation Coach</div>'+
-    '<div class="cp-sb-nav-label">Paths</div>'+
-    '<nav class="cp-sb-nav">';
-  for(var pi=0; pi<allPaths.length; pi++){
-    var p = allPaths[pi];
-    var isActive = p === topic;
-    sidebarHtml += '<button class="cp-sb-path'+(isActive?' active':'')+'" onclick="cpSwitchPath(\''+p.replace(/'/g,"\\'")+'\')">'+
-      '<span class="cp-sb-path-num">'+pathRomans[pi]+'.</span>'+
-      '<span>'+p+'</span>'+
-    '</button>';
-  }
-  sidebarHtml += '</nav>'+
-    '<div class="cp-sb-user">'+
-      '<div class="cp-sb-user-avatar">L</div>'+
-      '<div class="cp-sb-user-text">'+
-        '<div class="cp-sb-user-name">Lucas</div>'+
-        '<div class="cp-sb-user-streak">12-day streak &middot; \xF0\x9F\x94\xA5</div>'+
-      '</div>'+
-    '</div>'+
-  '</aside>';
-
-  // ── Progress bar ──
-  var progressHtml =
-    '<div class="cp-progress-bar">'+
-      '<div class="cp-progress-label">'+
-        '<span>Progress</span>'+
-        '<span>'+doneCount+' / '+totalUnits+' units</span>'+
-      '</div>'+
-      '<div class="cp-bar-track"><div class="cp-bar-fill" style="width:'+pct+'%"></div></div>'+
-    '</div>';
-
-  // ── Segmented pills ──
+  // ── Gold-underline tabs ──
   var segmentedHtml = '<div class="cp-segmented-wrap"><div class="cp-segmented">';
   for(var l=0; l<4; l++){
     segmentedHtml += '<button class="cp-seg-pill'+(l===currentLevel?' active':'')+'" onclick="cpSwitchLevel('+l+')">Level '+(l+1)+'</button>';
   }
   segmentedHtml += '</div></div>';
 
-  // ── Level panes ──
+  // ── Level panes (only active visible) ──
   var levelsHtml = '<div class="cp-levels-wrap">';
   for(var lvl=0; lvl<4; lvl++){
     var lvlStart = lvl * unitsPerLevel;
@@ -3082,18 +3020,17 @@ function showCurriculumProgress(topic, onStart){
       var isDone = unitNum < currentUnit;
       var isCurrent = unitNum === currentUnit;
       var cls = 'cp-unit' + (isDone?' done':isCurrent?' current':'');
-      var svgCheck = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
-      var svgPlay = '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
-      var statusIcon = isDone ? svgCheck : svgPlay;
-      var tag = isDone ? '<span class="cp-unit-tag">Done</span>' :
-                isCurrent ? '<span class="cp-unit-tag">Current</span>' : '';
+      var statusInner;
+      if(isDone){
+        statusInner = '<svg width="10" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+      } else {
+        statusInner = unitNum;
+      }
+      var tag = isCurrent ? '<span class="cp-unit-now">NOW</span>' : '';
       levelsHtml +=
         '<div class="'+cls+'" onclick="cpSelectUnit('+unitNum+')" data-unit="'+unitNum+'">'+
-          '<div class="cp-unit-status">'+statusIcon+'</div>'+
-          '<div class="cp-unit-content">'+
-            '<div class="cp-unit-num">'+toRoman(unitNum)+'.</div>'+
-            '<div class="cp-unit-title">'+unit.title+'</div>'+
-          '</div>'+
+          '<div class="cp-unit-status">'+statusInner+'</div>'+
+          '<div class="cp-unit-title">'+unit.title+'</div>'+
           tag+
         '</div>';
     }
@@ -3101,31 +3038,29 @@ function showCurriculumProgress(topic, onStart){
   }
   levelsHtml += '</div>';
 
-  var currentUnitTitle = units[currentUnit-1] ? units[currentUnit-1].title : '';
-
   var overlay = document.createElement('div');
   overlay.className = 'cp-overlay';
   overlay.id = 'cpOverlay';
+  // Tap outside the panel to close
+  overlay.onclick = function(e){ if(e.target === overlay) cpClose(); };
+
   overlay.innerHTML =
     '<div class="cp-panel">'+
-      sidebarHtml+
-      '<div class="cp-main">'+
-        '<div class="cp-header">'+
-          '<div>'+
-            '<div class="cp-topic-label">Street Way English</div>'+
-            '<div class="cp-topic-name">'+topic+'</div>'+
-          '</div>'+
-          '<button class="cp-close" onclick="cpClose()" title="Close">\u00D7</button>'+
+      '<div class="cp-drag-row"><div class="cp-drag-pill"></div></div>'+
+      '<div class="cp-header">'+
+        '<div class="cp-header-left">'+
+          '<div class="cp-topic-label">'+topic+'</div>'+
+          '<div class="cp-topic-name">Choose your unit</div>'+
         '</div>'+
-        '<div class="cp-body">'+
-          progressHtml+
-          segmentedHtml+
-          levelsHtml+
+        '<div class="cp-header-right">'+
+          '<div class="cp-count">'+doneCount+'<span class="cp-count-slash">/'+totalUnits+'</span></div>'+
+          '<div class="cp-count-label">Done</div>'+
         '</div>'+
-        '<div class="cp-footer">'+
-          '<button class="cp-start-btn" id="cpStartBtn" onclick="cpStart()">Continue \u2192 Unit '+currentUnit+'</button>'+
-          '<button class="cp-skip-btn" onclick="cpClose()">Maybe later</button>'+
-        '</div>'+
+      '</div>'+
+      segmentedHtml+
+      levelsHtml+
+      '<div class="cp-footer">'+
+        '<button class="cp-start-btn" id="cpStartBtn" onclick="cpStart()">Continue \u2192 Unit '+currentUnit+'</button>'+
       '</div>'+
     '</div>';
 
@@ -3134,7 +3069,6 @@ function showCurriculumProgress(topic, onStart){
   window._cpSelectedUnit = currentUnit;
   window._cpTopic = topic;
 }
-
 // Switch the visible level pane when a segmented pill is tapped
 function cpSwitchLevel(lvl){
   var pills = document.querySelectorAll('.cp-seg-pill');
