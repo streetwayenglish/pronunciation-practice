@@ -1,0 +1,52 @@
+// ============================================================================
+// INIT — boot: teacher-query check, mic permission, startup, resize listener
+// MUST load last so all referenced functions are defined.
+// ============================================================================
+
+if(window.location.search.indexOf('teacher')!==-1)showTeacherLogin();
+
+// Check mic permission on load and show banner if denied
+if(navigator.permissions&&navigator.permissions.query){
+  navigator.permissions.query({name:'microphone'}).then(function(p){
+    if(p.state==='denied'){
+      var b=document.getElementById('micBanner');
+      if(b)b.classList.add('show');
+    }
+    p.onchange=function(){
+      var b=document.getElementById('micBanner');
+      if(b){
+        if(p.state==='denied')b.classList.add('show');
+        else b.classList.remove('show');
+      }
+    };
+  }).catch(function(){});
+}
+
+// Pronunciation fetch disabled — available at separate URL
+// MC fetch disabled — available at separate URL
+// Show topic selection page on load
+appMode='emma';
+showTopicPage();
+// Don't call render() — it shows the pronunciation card
+// renderEmma() will be called when student selects a topic
+
+function showSuggestionOnboarding(){
+  var hb=document.getElementById('emmaHintBtn');if(!hb)return;
+  hb.classList.remove('glow-white');void hb.offsetWidth;hb.classList.add('glow-white');
+  var existing=document.getElementById('_sugLabel');if(existing)existing.remove();
+  var lbl=document.createElement('div');lbl.id='_sugLabel';
+  lbl.textContent='Sugestão de resposta';
+  lbl.style.cssText='font-size:11px;font-weight:700;letter-spacing:.03em;color:#f5c842;background:rgba(20,20,20,.95);padding:5px 11px;border-radius:8px;border:1.5px solid rgba(201,162,39,.6);white-space:nowrap;box-shadow:0 2px 16px rgba(0,0,0,.4);animation:labelFadeIn 8s ease forwards;display:inline-block;margin-bottom:6px;margin-left:4px;';
+  var controlsRow=hb.parentNode;var footer=controlsRow.parentNode;
+  footer.insertBefore(lbl,controlsRow);
+  setTimeout(function(){if(lbl.parentNode)lbl.remove();},8300);
+  setTimeout(function(){hb.classList.remove('glow-white');},8000);
+}
+// Re-evaluate which path-selection layout to show when the viewport
+// crosses the 1024px desktop threshold.
+window.addEventListener('resize', function(){
+  if(document.body.classList.contains('show-topics')){
+    if(typeof showTopicPage === 'function') showTopicPage();
+  }
+});
+
