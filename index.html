@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Street Way - Pronunciation</title>
+
+<!-- Fonts (originally one tag at top of <head> + one at bottom of <style>) -->
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,400;1,9..144,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Stylesheets — order matters: later files override earlier ones -->
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/conversation.css">
+<link rel="stylesheet" href="css/mobile.css">
+<link rel="stylesheet" href="css/paths.css">
+<link rel="stylesheet" href="css/warmup.css">
+</head>
+<body>
+<!-- ═══════════════════════════════════════
+     WARMUP MODAL
+═══════════════════════════════════════ -->
+<div id="warmupModal">
+  <div class="wu-phone">
+    <div class="wu-bg">
+      <video id="wuVidA" playsinline preload="auto" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 18%;opacity:1;transition:opacity 0.3s ease;z-index:1"></video>
+      <video id="wuVidB" playsinline preload="auto" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 18%;opacity:0;transition:opacity 0.3s ease;z-index:1"></video>
+    </div>
+    <div class="wu-topbar">
+      <button class="wu-close" onclick="wuClose()">✕</button>
+      <div class="wu-prog-track"><div class="wu-prog-fill" id="wuProgFill"></div></div>
+      <div class="wu-counter" id="wuCounter">1 / 3</div>
+    </div>
+    <button class="wu-skip-all" onclick="wuClose()">Skip warm-up</button>
+    <div class="wu-sheet">
+      <div class="wu-label wu-gold" id="wuLabel">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="#e8b84b"><polygon points="1 0 10 5 1 10"/></svg>
+        <span class="wu-txt">Tap to listen</span>
+      </div>
+      <div class="wu-card">
+        <div class="wu-en" id="wuEn"> </div>
+        <div class="wu-pt" id="wuPt"> </div>
+      </div>
+      <div class="wu-bottom-bar">
+        <button class="wu-act wu-dim" id="wuHearBtn" onclick="wuHearAgain()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2v6h6M2.66 15.57a10 10 0 1 0 .57-8.38"/></svg><span>Hear again</span>
+        </button>
+        <button class="wu-btn wu-b-gold" id="wuMainBtn" onclick="wuMainTap()">
+          <span id="wuMainIcon"></span>
+        </button>
+        <button class="wu-act" id="wuSkipBtn" onclick="wuSkipOne()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg><span>Skip</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ════════════════════════════════════ -->
+<div id="tov" style="display:none" class="tov"></div>
+<div class="sw-desktop" id="swDesktop">
+  <aside class="sw-sidebar">
+    <div class="sw-brand">Street Way English</div>
+    <div>
+      <div class="sw-hero">Choose<br>your <em>path.</em></div>
+      <div class="sw-hero-sub">Pick where you want to grow. Switch paths anytime.</div>
+    </div>
+    <div class="sw-divider"></div>
+    <div class="sw-path-list" id="swPathList"></div>
+    <div class="sw-sidebar-footer">
+      <div class="sw-avatar">L</div>
+      <div class="sw-user-info">
+        <div class="sw-user-name">Lucas</div>
+        <div class="sw-user-streak">12-day streak 🔥</div>
+      </div>
+      <span class="sw-settings">⚙</span>
+    </div>
+  </aside>
+  <main class="sw-main">
+    <div class="sw-topbar">
+      <div>
+        <div class="sw-tb-eyebrow" id="swTopicEyebrow"></div>
+        <div class="sw-tb-title">Your units</div>
+      </div>
+      <div class="sw-progress-block">
+        <div class="sw-progress-num" id="swProgNum"></div>
+        <div class="sw-progress-label">Completed</div>
+      </div>
+    </div>
+    <div class="sw-progress-bar-wrap">
+      <div class="sw-progress-bar-row">
+        <div class="sw-progress-bar"><div class="sw-progress-fill" id="swProgFill"></div></div>
+        <div class="sw-progress-pct" id="swProgPct"></div>
+      </div>
+    </div>
+    <div class="sw-tabs-row" id="swTabs"></div>
+    <div class="sw-content">
+      <div class="sw-level-name" id="swLevelName"></div>
+      <div class="sw-units" id="swUnits"></div>
+      <div class="sw-cta-row">
+        <button class="sw-cta" id="swCta" onclick="swStart()">
+          <span id="swCtaLabel">Continue →</span>
+          <span class="sw-cta-arrow">→</span>
+        </button>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="topic-page" id="topicPage">
+  <div class="tp-inner">
+    <div class="pa-top">
+      <div>
+        <div class="pa-brand">Street Way English · Emma</div>
+        <div class="pa-title">Choose your<br><em>path.</em></div>
+      </div>
+      <div class="pa-right">
+        <div class="pa-count">05</div>
+        <div class="pa-count-label">Topics available</div>
+      </div>
+    </div>
+    <div class="pa-list">
+      <div class="pa-item" onclick="selectAndStart('Conversation')">
+        <div class="pa-item-num">i.</div>
+        <div class="pa-item-category">Foundation</div>
+        <div class="pa-item-title">Conversation</div>
+        <div class="pa-item-sub">Fluency focused · Build real confidence</div>
+        <button class="pa-item-start" onclick="event.stopPropagation();selectAndStart('Conversation')">Start here</button>
+      </div>
+      <div class="pa-item" onclick="selectAndStart('Business English')">
+        <div class="pa-item-num">ii.</div>
+        <div class="pa-item-category">Professional</div>
+        <div class="pa-item-title">Business English</div>
+        <div class="pa-item-sub">Meetings, emails, presentations</div>
+        <div class="pa-item-arrow">→</div>
+      </div>
+      <div class="pa-item" onclick="selectAndStart('Travel English')">
+        <div class="pa-item-num">iii.</div>
+        <div class="pa-item-category">Lifestyle</div>
+        <div class="pa-item-title">Travel English</div>
+        <div class="pa-item-sub">Airports, hotels, local life</div>
+        <div class="pa-item-arrow">→</div>
+      </div>
+      <div class="pa-item" onclick="selectAndStart('Job Interview')">
+        <div class="pa-item-num">iv.</div>
+        <div class="pa-item-category">Career</div>
+        <div class="pa-item-title">Job Interview</div>
+        <div class="pa-item-sub">Land the role you deserve</div>
+        <div class="pa-item-arrow">→</div>
+      </div>
+      <div class="pa-item" onclick="selectAndStart('The Bible in English')">
+        <div class="pa-item-num">v.</div>
+        <div class="pa-item-category">Faith</div>
+        <div class="pa-item-title">The Bible in English</div>
+        <div class="pa-item-sub">Genesis to Revelation</div>
+        <div class="pa-item-arrow">→</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═════════ MOBILE HOME — Today / Paths / Activity / You ═════════ -->
+<div class="mh" id="mobileHome">
+  <div class="mh-screens" id="mhScreens">
+    <div class="mh-screen" id="mhTodayScreen">
+      <div class="mh-today" id="mhTodayContent"></div>
+    </div>
+    <div class="mh-screen" id="mhPathsScreen">
+      <div class="mh-paths" id="mhPathsContent"></div>
+    </div>
+    <div class="mh-screen" id="mhActivityScreen">
+      <div class="mh-placeholder">
+        <div class="mh-ph-title">Your <em>weekly review.</em></div>
+        <div class="mh-ph-text">"Activity" arrives next — a quiet record of progress, accuracy and time spent each week.</div>
+      </div>
+    </div>
+    <div class="mh-screen" id="mhYouScreen">
+      <div class="mh-placeholder">
+        <div class="mh-ph-title">You.</div>
+        <div class="mh-ph-text">"You" arrives next — profile, settings, and the small choices that make Emma feel like yours.</div>
+      </div>
+    </div>
+  </div>
+  <div class="mh-tabbar">
+    <button class="mh-tab" data-mh-tab="today" onclick="mhSwitchTab('today')">
+      <div class="mh-tab-icon">◉</div>
+      <div class="mh-tab-lbl">Today</div>
+    </button>
+    <button class="mh-tab" data-mh-tab="paths" onclick="mhSwitchTab('paths')">
+      <div class="mh-tab-icon">▦</div>
+      <div class="mh-tab-lbl">Paths</div>
+    </button>
+    <button class="mh-tab" data-mh-tab="activity" onclick="mhSwitchTab('activity')">
+      <div class="mh-tab-icon">◐</div>
+      <div class="mh-tab-lbl">Activity</div>
+    </button>
+    <button class="mh-tab" data-mh-tab="you" onclick="mhSwitchTab('you')">
+      <div class="mh-tab-icon">○</div>
+      <div class="mh-tab-lbl">You</div>
+    </button>
+  </div>
+</div>
+
+
+
+
+<!-- ═════════ NAME CAPTURE (first-launch onboarding, Option 13) ═════════ -->
+<div class="mh-name-screen" id="mhNameScreen">
+  <div class="mh-name-brand">Street Way English</div>
+  <div class="mh-name-hero">
+    <div class="mh-name-hello"><em>Hello.</em></div>
+    <div class="mh-name-q">What should I call you?</div>
+    <input type="text" class="mh-name-input" id="mhNameInput" placeholder="Your name" autocomplete="off" autocapitalize="words" spellcheck="false" onkeydown="if(event.key==='Enter'){event.preventDefault();mhSaveName();}">
+  </div>
+  <div class="mh-name-bottom">
+    <button class="mh-name-skip" onclick="mhSkipName()">Skip</button>
+    <button class="mh-name-continue" onclick="mhSaveName()">
+      <span>Continue</span>
+      <span class="arr">→</span>
+    </button>
+  </div>
+</div>
+
+<div class="hdr">
+  <img class="logo" src="https://streetwayenglish.github.io/pronunciation-practice/logo.png" alt="Street Way"/>
+  <div class="ttl">Pronunciation Practice</div>
+</div>
+<div class="main">
+  <div class="mic-banner" id="micBanner"><div class="mic-banner-icon">🎤</div><div class="mic-banner-text"><strong>Microphone access needed</strong>Click the 🔒 lock icon in your browser address bar → set Microphone to <em>Allow</em> → refresh the page.</div></div>
+  <div class="pb">
+    <div class="pt"><div class="pf" id="pf" style="width:0%"></div></div>
+    <div class="pl" id="pl">1 / 1</div>
+  </div>
+  <div id="area"></div>
+</div>
+
+<!-- ────────────────────────────────────────────────────────────────────────
+     SCRIPTS — classic <script> tags (NOT modules).
+     Load order matters:
+       • state.js defines globals (W, SENTS, done, scores, …) referenced everywhere.
+       • Function-definition files (home → warmup) come next, in dependency order.
+       • init.js runs LAST — it executes startup code that calls into the others.
+     All functions stay on the global scope so inline onclick="…" handlers in
+     the markup above continue to resolve. Do NOT add type="module".
+──────────────────────────────────────────────────────────────────────── -->
+<script src="js/state.js"></script>
+<script src="js/home.js"></script>
+<script src="js/curriculum.js"></script>
+<script src="js/progress.js"></script>
+<script src="js/paths-ui.js"></script>
+<script src="js/pronunciation.js"></script>
+<script src="js/mc.js"></script>
+<script src="js/emma.js"></script>
+<script src="js/downloads.js"></script>
+<script src="js/end-screen.js"></script>
+<script src="js/teacher.js"></script>
+<script src="js/warmup.js"></script>
+<script src="js/init.js"></script>
+
+<div class="wpop" id="wpop" onclick="closeWordPopup(event)"><div class="wpop-box" id="wpopBox"></div></div>
+</body>
+</html>
