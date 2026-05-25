@@ -595,37 +595,65 @@ function emmaAddBubble(who,text){
   div.innerHTML = text;
   div.style.position = 'relative';
 
+  var COLOR_IDLE = 'rgba(255,255,255,.85)';
+  var COLOR_ACTIVE = 'rgb(232,184,75)';
+  var ICON_URL = 'https://pub-ee13894ad4e146cdb3eb6dd4f653dfc4.r2.dev/translate-icon.PNG';
+
   var tBtn = document.createElement('button');
-  tBtn.style.cssText = 'background:none;border:none;cursor:pointer;padding:0;position:absolute;bottom:6px;right:8px;opacity:.4;transition:opacity .2s,filter .2s;color:#fff;line-height:0;';
-  var tImg = document.createElement('img');
-  tImg.src = 'https://pub-ee13894ad4e146cdb3eb6dd4f653dfc4.r2.dev/translate-icon.PNG';
-  tImg.style.cssText = 'display:block;width:22px;height:22px;';
-  // Fallback: if the R2 image fails (e.g. in iOS standalone/home-screen mode where the fetch context is stricter),
-  // swap in an inline SVG translate glyph so the button is always visible.
-  tImg.onerror = function(){
-    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="display:block"><path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>';
-    tBtn.removeChild(tImg);
-    tBtn.insertAdjacentHTML('afterbegin', svg);
-  };
+  tBtn.style.cssText = 'background:none;border:none;cursor:pointer;padding:0;position:absolute;bottom:6px;right:8px;opacity:.4;transition:opacity .2s;';
+  // Use a div with the PNG as a CSS mask, so the visible color is controlled by background-color.
+  // Lets us set the icon to the exact same yellow as the translation text when active.
+  var tImg = document.createElement('div');
+  tImg.style.cssText = 'width:22px;height:22px;background-color:'+COLOR_IDLE+';-webkit-mask:url("'+ICON_URL+'") center/contain no-repeat;mask:url("'+ICON_URL+'") center/contain no-repeat;';
+  // Preload to detect a 404 and hide the button (replaces the old <img>.onerror behavior).
+  var _testImg = new Image();
+  _testImg.onerror = function(){ tBtn.style.display='none'; };
+  _testImg.src = ICON_URL;
   tBtn.appendChild(tImg);
   tBtn._translated = false;
+  tBtn._loading = false;
   tBtn.onclick = function(){
+    if(tBtn._loading) return; // guard against rapid double-tap (was causing duplicate translations)
     if(tBtn._translated){
-      var ex=div.querySelector('.emma-translation');
-      if(ex)ex.remove();
-      tBtn.style.opacity='.65';tBtn.style.filter='none';tBtn._translated=false;return;
+      var ex=div.querySelectorAll('.emma-translation');
+      for(var i=0;i<ex.length;i++)ex[i].remove();
+      tBtn.style.opacity='.65';tImg.style.backgroundColor=COLOR_IDLE;tBtn._translated=false;return;
     }
+    // Safety: clean any leftover translations from a previous in-flight click
+    var leftover=div.querySelectorAll('.emma-translation');
+    for(var i2=0;i2<leftover.length;i2++)leftover[i2].remove();
+    tBtn._loading = true;
     tBtn.style.opacity='.35';
     fetch(W+'/emma-chat',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({system:'You are a translation tool. Your only job is to translate English to Brazilian Portuguese. Output ONLY the translated text. No explanations, no notes, no other text whatsoever.',messages:[{role:'user',content:text}],topic:'translation_'+Date.now(),max_tokens:300})
     }).then(function(r){return r.json();}).then(function(d){
-      var t=d.text?d.text.trim():'';if(!t)return;
+      tBtn._loading = false;
+      var t=d.text?d.text.trim():'';
+      if(!t){tBtn.style.opacity='.65';return;}
+      // Reject Claude refusals / meta-commentary that occasionally slip through the system prompt
+      var refusalPatterns = [
+        /^(i'?m sorry|i cannot|i can'?t|sorry,|i apologize|unfortunately|my apologies)/i,
+        /^as an? (ai|assistant|language model)/i,
+        /^i'?m an? (ai|assistant)/i,
+        /i'?m not able to/i,
+        /i don'?t (translate|provide|do)/i,
+        /^(here'?s|here is) the translation/i,
+        /^translation:/i
+      ];
+      if(refusalPatterns.some(function(p){return p.test(t);})){
+        tBtn.style.opacity='.65';
+        return;
+      }
+      // Final safety: remove any existing translation div before inserting (defense in depth)
+      var dup=div.querySelectorAll('.emma-translation');
+      for(var k=0;k<dup.length;k++)dup[k].remove();
       var el=document.createElement('div');el.className='emma-translation';
-      el.style.cssText='font-size:13px;color:rgba(232,184,75,.85);line-height:1.5;padding-top:8px;margin-top:6px;border-top:1px solid rgba(255,255,255,.1);font-style:italic;';
+      // No font-size set — inherits from the parent bubble (17px on mobile, 14px on desktop)
+      el.style.cssText='color:rgba(232,184,75,.85);line-height:1.5;padding-top:8px;margin-top:6px;border-top:1px solid rgba(255,255,255,.1);font-style:italic;';
       el.textContent=t;div.insertBefore(el,tBtn);
-      tBtn.style.opacity='1';tBtn.style.filter='sepia(1) saturate(4) hue-rotate(5deg)';tBtn._translated=true;
+      tBtn.style.opacity='1';tImg.style.backgroundColor=COLOR_ACTIVE;tBtn._translated=true;
       wrap.scrollTop=wrap.scrollHeight;
-    }).catch(function(){tBtn.style.opacity='.65';});
+    }).catch(function(){tBtn._loading=false;tBtn.style.opacity='.65';});
   };
   div.appendChild(tBtn);
   wrap.appendChild(div);
