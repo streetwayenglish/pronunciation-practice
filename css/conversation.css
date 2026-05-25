@@ -28,10 +28,16 @@
   }
 
   /* Card — full bleed, full height */
+  /* Lock the conversation tab to viewport — Emma video stays visible at top, only chat scrolls */
+  body.tab-conversation {
+    overflow: hidden;
+  }
   body.tab-conversation .emma-card {
     border-radius: 0;
     margin: 0;
-    min-height: 100vh;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     border: none;
@@ -153,6 +159,8 @@
     padding: 10px 14px 160px;
     gap: 8px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
   body.tab-conversation .emma-bubble {
     font-size: 17px;
