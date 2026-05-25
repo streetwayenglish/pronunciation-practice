@@ -712,7 +712,30 @@ function emmaStopRec(){
               if(d.pronunciation) window._sessionPronunciationData.push({transcript:(d.text||'').trim(),scores:d.pronunciation});
             }
             var transcript=(d.text||'').trim();
-            if(!transcript){if(btn){btn.disabled=false;btn.style.opacity='1';}if(status)status.textContent='Could not hear you. Tap to try again.';return;}
+            // ── Whisper hallucination filter ─────────────────────────────────
+            // Whisper (trained on YouTube subs) hallucinates these phrases on silent/unclear audio.
+            // Treat them as empty transcriptions so the user just gets the "try again" prompt.
+            var whisperHallucinations = [
+              /^\s*learn english for free/i,
+              /www\.engvid\.com/i,
+              /engvid\.com/i,
+              /^\s*thanks for watching/i,
+              /^\s*thank you for watching/i,
+              /^\s*please subscribe/i,
+              /don['’]t forget to subscribe/i,
+              /^\s*subtitles? by/i,
+              /^\s*subtitled by/i,
+              /^\s*captions? by/i,
+              /transcription outsourcing/i,
+              /amara\.org/i,
+              /^\s*like and subscribe/i,
+              /^\s*see you in the next video/i,
+              /do(es)? not correct (my |the )?grammar/i,
+              /don['’]t correct (my |the )?grammar/i,
+              /please (do(es)? not|don['’]t) correct/i
+            ];
+            var isHallucination = whisperHallucinations.some(function(p){ return p.test(transcript); });
+            if(!transcript || isHallucination){if(btn){btn.disabled=false;btn.style.opacity='1';}if(status)status.textContent='Could not hear you. Tap to try again.';return;}
             emmaSubmit(transcript);
             // First student reply — show pronúncia onboarding
             if(!window._pronOnboardShown){window._pronOnboardShown=true;setTimeout(showPronOnboarding,800);}
