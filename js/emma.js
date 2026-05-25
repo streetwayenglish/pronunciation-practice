@@ -30,7 +30,7 @@ function renderEmma(){
           '<div class="emma-controls">'+
             
             '<div class="emma-hint-btn" id="emmaHintBtn" onclick="showSuggestion()">'+
-              '<div style="width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:rgba(255,255,255,.85);line-height:1;font-family:-apple-system,sans-serif">?</div>'+
+              '<div style="width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;color:rgba(255,255,255,.85);line-height:1;font-family:-apple-system,sans-serif">?</div>'+
             '</div>'+
             '<button class="emma-mic" id="emmaMicBtn" onclick="emmaToggleRec()" disabled>&#127897; Tap to speak</button>'+
             '<button class="emma-end emma-end-footer" onclick="emmaEnd()">End</button>'+
@@ -564,12 +564,12 @@ function emmaAddBubble(who,text){
     var icons=document.createElement('div');
     icons.style.cssText='display:flex;justify-content:flex-end;gap:5px;padding-right:4px;opacity:.85';
     var playBtn=document.createElement('div');
-    playBtn.style.cssText='width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;line-height:0';
-    playBtn.innerHTML='<svg width="11" height="11" viewBox="2 0 22 24" fill="rgba(255,255,255,.85)"><path d="M8 5v14l11-7z"/></svg>';
+    playBtn.style.cssText='width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;line-height:0';
+    playBtn.innerHTML='<svg width="17" height="17" viewBox="2 0 22 24" fill="rgba(255,255,255,.85)"><path d="M8 5v14l11-7z"/></svg>';
     var infoBtn=document.createElement('div');
     infoBtn.className='pron-info-icon';
-    infoBtn.className='pron-info-icon';infoBtn.style.cssText='width:22px;height:22px;border-radius:50%;background:transparent;border:1.5px solid rgba(201,162,39,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;line-height:0';
-    infoBtn.innerHTML='<div style="width:15px;height:15px;border-radius:50%;background:rgba(201,162,39,.45);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;line-height:1;font-family:-apple-system,sans-serif">i</div>';
+    infoBtn.className='pron-info-icon';infoBtn.style.cssText='width:34px;height:34px;border-radius:50%;background:transparent;border:2px solid rgba(245,200,66,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;line-height:0';
+    infoBtn.innerHTML='<div style="width:23px;height:23px;border-radius:50%;background:rgba(245,200,66,.45);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;line-height:1;font-family:-apple-system,sans-serif">i</div>';
     icons.appendChild(playBtn);icons.appendChild(infoBtn);
     // Wrap bubble+icons in container with minimal gap
     var container=document.createElement('div');
