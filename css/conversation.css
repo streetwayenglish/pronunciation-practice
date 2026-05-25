@@ -306,6 +306,11 @@
     width: 28px !important;
     height: 28px !important;
   }
+  /* Force translation text to inherit font-size from the parent bubble (17px on mobile,
+     14px on desktop). Safety net in case an older cached emma.js still hard-codes font-size:13px. */
+  body.tab-conversation .emma-translation {
+    font-size: inherit !important;
+  }
 
   /* Hide the end button from controls row (it's repositioned in emma-top) */
   body.tab-conversation .emma-end-footer {
