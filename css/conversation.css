@@ -145,12 +145,12 @@
     flex: 1;
   }
 
-  /* Bubbles — fill available space so the footer pins to bottom */
+  /* Bubbles — fill available space; padding-bottom clears the fixed dock */
   body.tab-conversation .emma-bubble-wrap {
     flex: 1;
     min-height: 0;
     max-height: none;
-    padding: 10px 14px;
+    padding: 10px 14px 160px;
     gap: 8px;
     overflow-y: auto;
   }
@@ -170,26 +170,30 @@
   body.tab-conversation .emma-correction .corr-wrong { font-size: 10px; }
   body.tab-conversation .emma-correction .corr-fix { font-size: 12px; }
 
-  /* Footer */
+  /* Footer — fixed at the bottom of the screen, chat scrolls under it with blur */
   body.tab-conversation .emma-footer {
-    padding: 8px 14px 36px;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    padding: 8px 14px calc(env(safe-area-inset-bottom, 0px) + 18px);
     border-top: none;
     flex-shrink: 0;
   }
   body.tab-conversation .emma-status { font-size: 10px; margin-bottom: 8px; }
 
-  /* Mic button — flat solid circular yellow icon (no gradient, no shadow) */
+  /* Mic button — flat solid circular yellow icon, centered properly */
   body.tab-conversation .emma-mic {
     flex: 0 0 auto;
-    width: 76px;
-    height: 76px;
+    width: 80px;
+    height: 80px;
     padding: 0;
     border-radius: 50%;
     font-size: 0;
     background: var(--yellow);
-    display: grid;
-    place-items: center;
     position: relative;
+    overflow: hidden;
     transition: transform .15s;
   }
   body.tab-conversation .emma-mic:active {
@@ -197,20 +201,28 @@
   }
   body.tab-conversation .emma-mic::after {
     content: '';
-    width: 30px;
-    height: 30px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 32px;
+    height: 32px;
     background-color: var(--black);
     -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 14a3 3 0 003-3V6a3 3 0 00-6 0v5a3 3 0 003 3z'/><path d='M19 11a1 1 0 10-2 0 5 5 0 01-10 0 1 1 0 10-2 0 7 7 0 006 6.92V20H8a1 1 0 100 2h8a1 1 0 100-2h-3v-2.08A7 7 0 0019 11z'/></svg>") center/contain no-repeat;
             mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 14a3 3 0 003-3V6a3 3 0 00-6 0v5a3 3 0 003 3z'/><path d='M19 11a1 1 0 10-2 0 5 5 0 01-10 0 1 1 0 10-2 0 7 7 0 006 6.92V20H8a1 1 0 100 2h8a1 1 0 100-2h-3v-2.08A7 7 0 0019 11z'/></svg>") center/contain no-repeat;
   }
-  /* Recording state: hide mic icon, show bigger stop square */
+  /* Recording state: hide mic icon, show centered BLACK stop square */
   body.tab-conversation .emma-mic.rec::after {
     display: none;
   }
   body.tab-conversation .emma-mic.rec .stop-sq {
-    width: 24px;
-    height: 24px;
-    background: #fff;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 22px;
+    height: 22px;
+    background: var(--black);
     border-radius: 3px;
   }
 
@@ -218,6 +230,35 @@
   body.tab-conversation .emma-controls {
     justify-content: space-between;
     align-items: center;
+  }
+
+  /* CSS overrides for play/info button sizes (forces correct sizing even if cached emma.js still has old inline styles) */
+  body.tab-conversation .pron-info-icon {
+    width: 34px !important;
+    height: 34px !important;
+    border-width: 2px !important;
+    border-color: rgba(245, 200, 66, 0.4) !important;
+  }
+  body.tab-conversation .pron-info-icon > div {
+    width: 23px !important;
+    height: 23px !important;
+    font-size: 13px !important;
+    background: rgba(245, 200, 66, 0.45) !important;
+  }
+  /* Play button (sibling of .pron-info-icon, lives in same icons container) */
+  body.tab-conversation div:has(> .pron-info-icon) > div:first-child {
+    width: 34px !important;
+    height: 34px !important;
+  }
+  body.tab-conversation div:has(> .pron-info-icon) > div:first-child svg {
+    width: 17px !important;
+    height: 17px !important;
+  }
+
+  /* Translate icon in Emma bubble — bigger to compensate for PNG padding */
+  body.tab-conversation .emma-bubble.emma img {
+    width: 26px !important;
+    height: 26px !important;
   }
 
   /* Hide the end button from controls row (it's repositioned in emma-top) */
