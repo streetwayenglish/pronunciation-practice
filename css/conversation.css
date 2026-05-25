@@ -27,8 +27,8 @@
     overflow-y: auto;
   }
 
-  /* Card — full bleed, full height */
-  /* Lock the conversation tab to viewport — Emma video stays visible at top, only chat scrolls */
+  /* Card — full bleed, full height, position anchor for absolute children */
+  /* Lock the conversation tab to viewport — Emma video stays at top, dock at bottom, bubbles scroll BEHIND both */
   body.tab-conversation {
     overflow: hidden;
   }
@@ -38,16 +38,20 @@
     height: 100vh;
     height: 100dvh;
     min-height: 0;
-    display: flex;
-    flex-direction: column;
+    display: block;
     border: none;
+    position: relative;
+    overflow: hidden;
   }
 
-  /* emma-top is the video container — make it position:relative for absolute children */
+  /* emma-top: the video, pinned absolute to the TOP, overlays bubble-wrap */
   body.tab-conversation .emma-top {
     padding: 0;
-    position: relative;
-    flex-shrink: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
     border-bottom: none !important;
   }
 
@@ -112,17 +116,20 @@
     -webkit-backdrop-filter: blur(6px);
     letter-spacing: .04em;
   }
-  /* Move end to footer on mobile */
+  /* End button — 44×44 circle matching the preview (was a slim text pill) */
   body.tab-conversation .emma-end-footer {
-    display: block !important;
+    display: grid !important;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
     background: transparent;
-    border: 1px solid rgba(255,255,255,.15);
-    border-radius: 20px;
-    padding: 8px 18px;
-    font-size: 11px;
-    font-weight: 600;
-    color: rgba(255,255,255,.35);
-    letter-spacing: .04em;
+    border: 1px solid rgba(255,255,255,.22);
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255,255,255,.85);
+    letter-spacing: 0;
     flex: 0 0 auto;
   }
   body.tab-conversation .emma-top .emma-end-top {
@@ -144,23 +151,35 @@
   }
   body.tab-conversation .emma-role { display: none; }
 
-  /* Content area flex */
+  /* Content area: absolute fill of emma-card, no longer flex */
   body.tab-conversation .emma-content {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: block;
   }
 
-  /* Bubbles — fill available space; padding-bottom clears the fixed dock */
+  /* Bubbles — absolute fill, padding-top clears video, padding-bottom clears dock.
+     Bubbles physically scroll BEHIND the video (top) and BEHIND the dock (bottom).
+     56.25vw = height of a 16:9 video at full screen width. */
   body.tab-conversation .emma-bubble-wrap {
-    flex: 1;
-    min-height: 0;
-    max-height: none;
-    padding: 10px 14px 160px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: calc(56.25vw + 10px) 14px 160px;
+    display: flex;
+    flex-direction: column;
     gap: 8px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+    z-index: 1;
+    max-height: none;
+    min-height: 0;
   }
   body.tab-conversation .emma-bubble {
     font-size: 17px;
@@ -178,16 +197,16 @@
   body.tab-conversation .emma-correction .corr-wrong { font-size: 10px; }
   body.tab-conversation .emma-correction .corr-fix { font-size: 12px; }
 
-  /* Footer — fixed at the bottom of the screen, chat scrolls under it with blur */
+  /* Footer — absolute pinned to the BOTTOM of emma-card, overlays bubble-wrap.
+     Backdrop-filter:blur from base.css shows the bubble peek-through. */
   body.tab-conversation .emma-footer {
-    position: fixed;
+    position: absolute;
     left: 0;
     right: 0;
     bottom: 0;
     z-index: 100;
     padding: 8px 14px calc(env(safe-area-inset-bottom, 0px) + 18px);
     border-top: none;
-    flex-shrink: 0;
   }
   body.tab-conversation .emma-status { font-size: 10px; margin-bottom: 8px; }
 
@@ -263,10 +282,16 @@
     height: 17px !important;
   }
 
-  /* Translate icon in Emma bubble — bigger to compensate for PNG padding */
+  /* Translate icon — match preview: 28px icon, positioned bottom:10 right:12, opacity .45.
+     Override the inline-styled button (no class, so target as direct button child of .emma-bubble.emma) */
+  body.tab-conversation .emma-bubble.emma > button {
+    bottom: 10px !important;
+    right: 12px !important;
+    opacity: 0.45 !important;
+  }
   body.tab-conversation .emma-bubble.emma img {
-    width: 26px !important;
-    height: 26px !important;
+    width: 28px !important;
+    height: 28px !important;
   }
 
   /* Hide the end button from controls row (it's repositioned in emma-top) */
