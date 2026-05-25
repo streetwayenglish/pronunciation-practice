@@ -734,21 +734,7 @@ function _wuStartRec(){
     if(_wuState==='processing'){ _wuScore=0; _wuMatchedWords=[]; _wuSetState('retry'); }
   };
 
-  // Mirrorless shutter — quiet electronic curtain
-  try{
-    var _rc=new(window.AudioContext||window.webkitAudioContext)();
-    var _sr=_rc.sampleRate;
-    function _rburst(t,freq,q,vol,dur){
-      var n=Math.round(_sr*dur),buf=_rc.createBuffer(1,n,_sr),d=buf.getChannelData(0);
-      for(var i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/(_sr*(dur*.4)));
-      var src=_rc.createBufferSource(); src.buffer=buf;
-      var bp=_rc.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=freq; bp.Q.value=q;
-      var g=_rc.createGain(); g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.001,t+dur);
-      src.connect(bp);bp.connect(g);g.connect(_rc.destination); src.start(t); src.stop(t+dur+.002);
-    }
-    _rburst(_rc.currentTime,3000,3,.15,.01);
-    _rburst(_rc.currentTime+.012,5000,2,.08,.008);
-  }catch(e){}
+  // (Mic-start sound removed — native iOS/Android chirp already signals recording start)
 
   sr.start();
 
