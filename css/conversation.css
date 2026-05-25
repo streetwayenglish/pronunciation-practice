@@ -171,7 +171,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    padding: calc(56.25vw + 10px) 14px max(calc(env(safe-area-inset-bottom, 0px) + 160px), 200px);
+    padding: calc(56.25vw + 60px) 14px max(calc(env(safe-area-inset-bottom, 0px) + 160px), 200px);
     display: flex;
     flex-direction: column;
     gap: 8px;
