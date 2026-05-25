@@ -184,14 +184,6 @@
     transform: translate3d(0, 0, 0);
     will-change: scroll-position;
   }
-  /* Spacer pseudo-element: keeps bubbles pinned to the BOTTOM of the chat (above the dock)
-     when content is short, so the conversation feels active from the very first message.
-     Shrinks to 0 once content overflows, allowing normal scroll. */
-  body.tab-conversation .emma-bubble-wrap::before {
-    content: '';
-    flex: 1 1 auto;
-    min-height: 0;
-  }
   body.tab-conversation .emma-bubble {
     font-size: 17px;
     padding: 16px 18px;
@@ -264,6 +256,16 @@
     height: 22px;
     background: var(--black);
     border-radius: 3px;
+  }
+  /* Listening pulse: soft yellow ring breathing outward.
+     Overrides the red box-shadow animation from base.css (.emma-mic.rec animation: rp 1s) */
+  @keyframes emmaMicListenPulse {
+    0%   { box-shadow: 0 0 0 0   rgba(245, 200, 66, 0.55); }
+    70%  { box-shadow: 0 0 0 22px rgba(245, 200, 66, 0); }
+    100% { box-shadow: 0 0 0 0   rgba(245, 200, 66, 0); }
+  }
+  body.tab-conversation .emma-mic.rec {
+    animation: emmaMicListenPulse 1.6s ease-out infinite;
   }
 
   /* Controls row: spread help / mic / end evenly */
