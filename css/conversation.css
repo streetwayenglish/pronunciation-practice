@@ -7,6 +7,15 @@
   body.tab-conversation .main { padding: 0; }
   body.tab-conversation .pb { display: none; }
 
+  /* Push the nav bar (Topics button + topic label) below iOS status bar / Dynamic Island.
+     The 54px floor in max() guarantees clearance even if viewport-fit=cover is missing from
+     the page meta tag and env() returns 0 — covers every iPhone from notch-era to Dynamic Island. */
+  body.tab-conversation .emma-nav-bar {
+    padding-top: max(54px, calc(10px + env(safe-area-inset-top, 0px)));
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+
   /* 1. Card bg pure dark — gradient lives only in video fade */
   body.tab-conversation .emma-card {
     background-image: none;
