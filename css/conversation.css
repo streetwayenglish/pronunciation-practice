@@ -163,22 +163,33 @@
 
   /* Bubbles — absolute fill, padding-top clears video, padding-bottom clears dock.
      Bubbles physically scroll BEHIND the video (top) and BEHIND the dock (bottom).
-     56.25vw = height of a 16:9 video at full screen width. */
+     56.25vw = height of a 16:9 video at full screen width.
+     transform: translate3d forces GPU acceleration so iOS recognizes touch immediately. */
   body.tab-conversation .emma-bubble-wrap {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    padding: calc(56.25vw + 10px) 14px max(calc(env(safe-area-inset-bottom, 0px) + 160px), 180px);
+    padding: calc(56.25vw + 10px) 14px max(calc(env(safe-area-inset-bottom, 0px) + 160px), 200px);
     display: flex;
     flex-direction: column;
     gap: 8px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
+    overscroll-behavior-y: contain;
     z-index: 1;
     max-height: none;
+    min-height: 0;
+    transform: translate3d(0, 0, 0);
+    will-change: scroll-position;
+  }
+  /* Spacer pseudo-element: keeps bubbles pinned to the BOTTOM of the chat (above the dock)
+     when content is short, so the conversation feels active from the very first message.
+     Shrinks to 0 once content overflows, allowing normal scroll. */
+  body.tab-conversation .emma-bubble-wrap::before {
+    content: '';
+    flex: 1 1 auto;
     min-height: 0;
   }
   body.tab-conversation .emma-bubble {
@@ -199,7 +210,7 @@
 
   /* Footer — absolute pinned to the BOTTOM of emma-card, overlays bubble-wrap.
      Backdrop-filter:blur from base.css shows the bubble peek-through.
-     max() guarantees at least 42px bottom clearance for the home indicator,
+     max() guarantees at least 60px bottom clearance for the home indicator + visual buffer,
      in case viewport-fit=cover isn't set on the page meta tag. */
   body.tab-conversation .emma-footer {
     position: absolute;
@@ -207,7 +218,7 @@
     right: 0;
     bottom: 0;
     z-index: 100;
-    padding: 8px 14px max(calc(env(safe-area-inset-bottom, 0px) + 18px), 42px);
+    padding: 8px 14px max(calc(env(safe-area-inset-bottom, 0px) + 18px), 60px);
     border-top: none;
   }
   body.tab-conversation .emma-status { font-size: 10px; margin-bottom: 8px; }
