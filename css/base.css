@@ -321,5 +321,38 @@ button{-webkit-appearance:none}
 .dots span:nth-child(2){animation-delay:.2s}
 .dots span:nth-child(3){animation-delay:.4s}
 @keyframes bn{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
-@media(max-width:500px){.snt{font-size:22px}.mb{width:70px;height:70px;font-size:24px}.card{padding:1.5rem}.profile{grid-template-columns:1fr 1fr}}
+@media(max-width:500px){
+  /* Sentence card */
+  .snt{font-size:22px}
+  .mb{width:70px;height:70px;font-size:24px}
+  .card{padding:1.5rem}
+  /* Feedback container — tighter side padding on small screens */
+  .fbc{padding:1.25rem}
+  /* Score row */
+  .circ{width:72px;height:72px;font-size:22px}
+  .sl{font-size:13px;line-height:1.45}
+  .sl strong{font-size:15px}
+  /* Word pills — slimmer, denser */
+  .wp{gap:6px}
+  .pill{padding:6px 10px;border-radius:7px}
+  .pt2{font-size:14px}
+  .ps{font-size:11px;margin-top:1px}
+  /* Profile metrics */
+  .profile{grid-template-columns:1fr 1fr;gap:6px}
+  .pmet{padding:11px 12px;border-radius:9px}
+  .pmet-score{font-size:22px}
+  .pmet-label{font-size:9.5px}
+  .pmet-icon{font-size:14px;top:9px;right:10px}
+  /* Coach */
+  .coach-wrap{padding:1rem}
+  .ctext{font-size:14px;line-height:1.7}
+  .cicon{font-size:14px}
+  .cdiv{margin:10px 0}
+  .cblock{gap:9px;margin-bottom:10px}
+  /* Section labels */
+  .fbt{font-size:10.5px;margin-bottom:10px}
+  .hr{margin:14px 0}
+  /* Coach header button */
+  .coach-audio-btn{width:30px;height:30px;font-size:13px}
+}
 
