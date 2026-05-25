@@ -603,23 +603,48 @@ function emmaAddBubble(who,text){
   tImg.onerror = function(){ tBtn.style.display='none'; };
   tBtn.appendChild(tImg);
   tBtn._translated = false;
+  tBtn._loading = false;
   tBtn.onclick = function(){
+    if(tBtn._loading) return; // guard against rapid double-tap
     if(tBtn._translated){
-      var ex=div.querySelector('.emma-translation');
-      if(ex)ex.remove();
+      var ex=div.querySelectorAll('.emma-translation');
+      for(var i=0;i<ex.length;i++)ex[i].remove();
       tBtn.style.opacity='.65';tBtn.style.filter='none';tBtn._translated=false;return;
     }
+    // Safety: clean any leftover translations from a previous in-flight click
+    var leftover=div.querySelectorAll('.emma-translation');
+    for(var i2=0;i2<leftover.length;i2++)leftover[i2].remove();
+    tBtn._loading = true;
     tBtn.style.opacity='.35';
     fetch(W+'/emma-chat',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({system:'You are a translation tool. Your only job is to translate English to Brazilian Portuguese. Output ONLY the translated text. No explanations, no notes, no other text whatsoever.',messages:[{role:'user',content:text}],topic:'translation_'+Date.now(),max_tokens:300})
     }).then(function(r){return r.json();}).then(function(d){
-      var t=d.text?d.text.trim():'';if(!t)return;
+      tBtn._loading = false;
+      var t=d.text?d.text.trim():'';
+      if(!t){tBtn.style.opacity='.65';return;}
+      // Reject Claude refusals / meta-commentary — they slip through the prompt sometimes
+      var refusalPatterns = [
+        /^(i'?m sorry|i cannot|i can'?t|sorry,|i apologize|unfortunately|my apologies)/i,
+        /^as an? (ai|assistant|language model)/i,
+        /^i'?m an? (ai|assistant)/i,
+        /i'?m not able to/i,
+        /i don'?t (translate|provide|do)/i,
+        /^(here'?s|here is) the translation/i,
+        /^translation:/i
+      ];
+      if(refusalPatterns.some(function(p){return p.test(t);})){
+        tBtn.style.opacity='.65';
+        return;
+      }
+      // Final safety: if a translation div somehow already exists, remove before inserting
+      var dup=div.querySelectorAll('.emma-translation');
+      for(var k=0;k<dup.length;k++)dup[k].remove();
       var el=document.createElement('div');el.className='emma-translation';
       el.style.cssText='font-size:13px;color:rgba(232,184,75,.85);line-height:1.5;padding-top:8px;margin-top:6px;border-top:1px solid rgba(255,255,255,.1);font-style:italic;';
       el.textContent=t;div.insertBefore(el,tBtn);
       tBtn.style.opacity='1';tBtn.style.filter='sepia(1) saturate(4) hue-rotate(5deg)';tBtn._translated=true;
       wrap.scrollTop=wrap.scrollHeight;
-    }).catch(function(){tBtn.style.opacity='.65';});
+    }).catch(function(){tBtn._loading=false;tBtn.style.opacity='.65';});
   };
   div.appendChild(tBtn);
   wrap.appendChild(div);
@@ -678,7 +703,25 @@ function emmaStopRec(){
               if(d.pronunciation) window._sessionPronunciationData.push({transcript:(d.text||'').trim(),scores:d.pronunciation});
             }
             var transcript=(d.text||'').trim();
-            if(!transcript){if(btn){btn.disabled=false;btn.style.opacity='1';}if(status)status.textContent='Could not hear you. Tap to try again.';return;}
+            // ── Whisper hallucination filter ─────────────────────────────────
+            // Whisper trained on YouTube subs hallucinates these phrases on silent/unclear audio
+            var whisperHallucinations = [
+              /^\s*learn english for free/i,
+              /www\.engvid\.com/i,
+              /^\s*thanks for watching/i,
+              /^\s*thank you for watching/i,
+              /^\s*please subscribe/i,
+              /don['’]t forget to subscribe/i,
+              /^\s*subtitles? by/i,
+              /^\s*subtitled by/i,
+              /^\s*captions? by/i,
+              /transcription outsourcing/i,
+              /amara\.org/i,
+              /^\s*like and subscribe/i,
+              /^\s*see you in the next video/i
+            ];
+            var isHallucination = whisperHallucinations.some(function(p){ return p.test(transcript); });
+            if(!transcript || isHallucination){if(btn){btn.disabled=false;btn.style.opacity='1';}if(status)status.textContent='Could not hear you. Tap to try again.';return;}
             emmaSubmit(transcript);
             // First student reply — show pronúncia onboarding
             if(!window._pronOnboardShown){window._pronOnboardShown=true;setTimeout(showPronOnboarding,800);}
