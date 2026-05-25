@@ -596,11 +596,17 @@ function emmaAddBubble(who,text){
   div.style.position = 'relative';
 
   var tBtn = document.createElement('button');
-  tBtn.style.cssText = 'background:none;border:none;cursor:pointer;padding:0;position:absolute;bottom:6px;right:8px;opacity:.4;transition:opacity .2s,filter .2s;';
-  var tImg = document.createElement('img');
-  tImg.src = 'https://pub-ee13894ad4e146cdb3eb6dd4f653dfc4.r2.dev/translate-icon.PNG';
-  tImg.style.cssText = 'display:block;width:22px;height:22px;';
-  tImg.onerror = function(){ tBtn.style.display='none'; };
+  tBtn.style.cssText = 'background:none;border:none;cursor:pointer;padding:0;position:absolute;bottom:6px;right:8px;opacity:.4;transition:opacity .2s,background-color .2s;';
+  // Translate icon: rendered as a mask-tinted div so we can color it directly
+  var tImg = document.createElement('div');
+  var TRANSLATE_ICON_URL = 'https://pub-ee13894ad4e146cdb3eb6dd4f653dfc4.r2.dev/translate-icon.PNG';
+  var COLOR_IDLE = 'rgba(255,255,255,.85)';
+  var COLOR_ACTIVE = 'rgb(232,184,75)'; // same hue as translation text, full opacity
+  tImg.style.cssText = 'display:block;width:28px;height:28px;background-color:'+COLOR_IDLE+';-webkit-mask:url("'+TRANSLATE_ICON_URL+'") center/contain no-repeat;mask:url("'+TRANSLATE_ICON_URL+'") center/contain no-repeat;transition:background-color .2s;';
+  // Hide the whole button if the mask source doesn't load
+  var _probe = new Image();
+  _probe.onerror = function(){ tBtn.style.display='none'; };
+  _probe.src = TRANSLATE_ICON_URL;
   tBtn.appendChild(tImg);
   tBtn._translated = false;
   tBtn._loading = false;
@@ -609,7 +615,7 @@ function emmaAddBubble(who,text){
     if(tBtn._translated){
       var ex=div.querySelectorAll('.emma-translation');
       for(var i=0;i<ex.length;i++)ex[i].remove();
-      tBtn.style.opacity='.65';tBtn.style.filter='none';tBtn._translated=false;return;
+      tBtn.style.opacity='.65';tImg.style.backgroundColor=COLOR_IDLE;tBtn._translated=false;return;
     }
     // Safety: clean any leftover translations from a previous in-flight click
     var leftover=div.querySelectorAll('.emma-translation');
@@ -640,9 +646,10 @@ function emmaAddBubble(who,text){
       var dup=div.querySelectorAll('.emma-translation');
       for(var k=0;k<dup.length;k++)dup[k].remove();
       var el=document.createElement('div');el.className='emma-translation';
-      el.style.cssText='font-size:13px;color:rgba(232,184,75,.85);line-height:1.5;padding-top:8px;margin-top:6px;border-top:1px solid rgba(255,255,255,.1);font-style:italic;';
+      // No font-size set — inherits from the parent bubble (17px on mobile, 14px on desktop)
+      el.style.cssText='color:rgba(232,184,75,.85);line-height:1.5;padding-top:8px;margin-top:6px;border-top:1px solid rgba(255,255,255,.1);font-style:italic;';
       el.textContent=t;div.insertBefore(el,tBtn);
-      tBtn.style.opacity='1';tBtn.style.filter='sepia(1) saturate(4) hue-rotate(5deg)';tBtn._translated=true;
+      tBtn.style.opacity='1';tImg.style.backgroundColor=COLOR_ACTIVE;tBtn._translated=true;
       wrap.scrollTop=wrap.scrollHeight;
     }).catch(function(){tBtn._loading=false;tBtn.style.opacity='.65';});
   };
@@ -706,6 +713,7 @@ function emmaStopRec(){
             // ── Whisper hallucination filter ─────────────────────────────────
             // Whisper trained on YouTube subs hallucinates these phrases on silent/unclear audio
             var whisperHallucinations = [
+              // YouTube channel boilerplate
               /^\s*learn english for free/i,
               /www\.engvid\.com/i,
               /^\s*thanks for watching/i,
@@ -718,7 +726,22 @@ function emmaStopRec(){
               /transcription outsourcing/i,
               /amara\.org/i,
               /^\s*like and subscribe/i,
-              /^\s*see you in the next video/i
+              /^\s*see you in the next video/i,
+              // AI/teacher instruction hallucinations (very common on silent audio)
+              /^\s*do not correct/i,
+              /^\s*don['’]t correct/i,
+              /correct (my |the )?grammar( mistakes?)?\.?\s*$/i,
+              /^\s*do not (translate|edit|respond|reply|change)/i,
+              /^\s*don['’]t (translate|edit|respond|reply|change)/i,
+              /^\s*please don['’]t/i,
+              // Music / sound-effect tags
+              /^\s*\[music\]\s*$/i,
+              /^\s*\(music\)\s*$/i,
+              /^\s*\[applause\]\s*$/i,
+              /^\s*\(applause\)\s*$/i,
+              // Pure punctuation / single-token fallbacks
+              /^\s*[.…]+\s*$/,
+              /^\s*you\s*$/i
             ];
             var isHallucination = whisperHallucinations.some(function(p){ return p.test(transcript); });
             if(!transcript || isHallucination){if(btn){btn.disabled=false;btn.style.opacity='1';}if(status)status.textContent='Could not hear you. Tap to try again.';return;}
@@ -735,6 +758,27 @@ function emmaStopRec(){
             try{
               var actx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:16000});
               actx.decodeAudioData(fr2.result,function(decoded){
+                // ── Client-side silence detection ──────────────────────────────
+                // If audio is effectively silent, skip Whisper entirely
+                // (avoids hallucinations like "Learn English for free www.engvid.com")
+                try {
+                  var sCh = decoded.getChannelData(0);
+                  var sumSq = 0, peak = 0;
+                  for (var ii = 0; ii < sCh.length; ii++) {
+                    var sv = sCh[ii];
+                    sumSq += sv * sv;
+                    var av = sv < 0 ? -sv : sv;
+                    if (av > peak) peak = av;
+                  }
+                  var rms = Math.sqrt(sumSq / sCh.length);
+                  // Thresholds: rms < 0.01 = below typical mic noise floor
+                  //             peak < 0.08 = no spoken syllables (normal speech peaks > 0.15)
+                  if (rms < 0.01 && peak < 0.08) {
+                    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+                    if (status) status.textContent = 'Could not hear you. Tap to try again.';
+                    return;
+                  }
+                } catch (silenceErr) { /* on any analysis error, fall through and let Whisper try */ }
                 try{
                   var sr=16000,offCtx=new OfflineAudioContext(1,decoded.length,sr);
                   var src=offCtx.createBufferSource();src.buffer=decoded;src.connect(offCtx.destination);src.start(0);
