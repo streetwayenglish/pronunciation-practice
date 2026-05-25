@@ -170,7 +170,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    padding: calc(56.25vw + 10px) 14px 160px;
+    padding: calc(56.25vw + 10px) 14px max(calc(env(safe-area-inset-bottom, 0px) + 160px), 180px);
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -198,14 +198,16 @@
   body.tab-conversation .emma-correction .corr-fix { font-size: 12px; }
 
   /* Footer — absolute pinned to the BOTTOM of emma-card, overlays bubble-wrap.
-     Backdrop-filter:blur from base.css shows the bubble peek-through. */
+     Backdrop-filter:blur from base.css shows the bubble peek-through.
+     max() guarantees at least 42px bottom clearance for the home indicator,
+     in case viewport-fit=cover isn't set on the page meta tag. */
   body.tab-conversation .emma-footer {
     position: absolute;
     left: 0;
     right: 0;
     bottom: 0;
     z-index: 100;
-    padding: 8px 14px calc(env(safe-area-inset-bottom, 0px) + 18px);
+    padding: 8px 14px max(calc(env(safe-area-inset-bottom, 0px) + 18px), 42px);
     border-top: none;
   }
   body.tab-conversation .emma-status { font-size: 10px; margin-bottom: 8px; }
