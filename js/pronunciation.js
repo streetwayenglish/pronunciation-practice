@@ -221,6 +221,23 @@ function doAnalyze(){
     .then(function(d){
       var ov=d.overallScore||0;
       var ws=d.wordScores||[];
+      // Dedupe: SpeechAce sometimes returns the same word twice (word entry + syllable-stress entry).
+      // Key on word + start time (rounded) so genuine repeats stay, but duplicates at the same position collapse.
+      // If two entries share a key, keep the richer one (more phonemeIssues, then higher score).
+      var _seen={},_wsd=[];
+      for(var _di=0;_di<ws.length;_di++){
+        var _w=ws[_di];
+        var _k=((_w.word||'')+'').toLowerCase()+'@'+Math.round((+_w.start||0)*100);
+        if(_seen[_k]!==undefined){
+          var _pi=_seen[_k],_prev=_wsd[_pi];
+          var _newRich=((_w.phonemeIssues||[]).length)+((_w.allSyllables||[]).length);
+          var _oldRich=((_prev.phonemeIssues||[]).length)+((_prev.allSyllables||[]).length);
+          if(_newRich>_oldRich||(_newRich===_oldRich&&(_w.score||0)>(_prev.score||0))) _wsd[_pi]=_w;
+          continue;
+        }
+        _seen[_k]=_wsd.length;_wsd.push(_w);
+      }
+      ws=_wsd;
       var rawText=d.feedback||d.error||'Erro';
       window._coachText=rawText;
       scores[cur]=ov;localStorage.setItem('ps',JSON.stringify(scores));
