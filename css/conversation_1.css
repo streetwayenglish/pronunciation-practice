@@ -1,0 +1,622 @@
+/* ── MOBILE: Conversation tab — V3 Immersive ─────────────────────────────── */
+@media (max-width: 600px) {
+
+  /* Hide header + mode tabs on conversation tab */
+  body.tab-conversation .hdr { display: none; }
+  body.tab-conversation .mode-tabs { display: none; }
+  body.tab-conversation .main { padding: 0; }
+  body.tab-conversation .pb { display: none; }
+
+  /* 1. Card bg pure dark — gradient lives only in video fade */
+  body.tab-conversation .emma-card {
+    background-image: none;
+    background: #050403;
+  }
+
+  /* 2. Disable glow animation on mobile */
+  body.tab-conversation .emma-video-wrap.speaking {
+    animation: none;
+  }
+
+  /* 4. Bubble wrap — use full available space, no max-height cap */
+  body.tab-conversation .emma-bubble-wrap {
+    flex: 1;
+    max-height: none;
+    padding: 10px 14px;
+    gap: 8px;
+    overflow-y: auto;
+  }
+
+  /* Card — full bleed, full height, position anchor for absolute children */
+  /* Lock the conversation tab to viewport — Emma video stays at top, dock at bottom, bubbles scroll BEHIND both */
+  body.tab-conversation {
+    overflow: hidden;
+  }
+  body.tab-conversation .emma-card {
+    border-radius: 0;
+    margin: 0;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    display: block;
+    border: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* emma-top: the video, pinned absolute to the TOP, overlays bubble-wrap */
+  body.tab-conversation .emma-top {
+    padding: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    border-bottom: none !important;
+  }
+
+  /* Video — full width, taller on mobile */
+  body.tab-conversation .emma-video-wrap {
+    aspect-ratio: 16/9;
+    height: auto;
+    min-height: unset;
+    max-height: unset;
+    border-radius: 0;
+    border: none;
+    width: 100%;
+    position: relative;
+  }
+
+  /* Fade video bottom into card bg */
+  body.tab-conversation .emma-video-wrap::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 18%;
+    background: linear-gradient(transparent 0%, rgba(5,4,3,.9) 80%, #050403 100%);
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  /* LIVE badge — top left over video */
+  body.tab-conversation .emma-live {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 20;
+    margin: 0;
+    padding: 5px;
+    background: rgba(0,0,0,.4);
+    border: 1px solid rgba(76,175,80,.3);
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  body.tab-conversation .emma-live-txt { display: none; }
+  body.tab-conversation .emma-live-dot { width: 8px; height: 8px; flex-shrink: 0; }
+
+  /* End button — bottom right of footer, ghost style */
+  body.tab-conversation .emma-top .emma-end-top {
+    display: block;
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 20;
+    padding: 6px 14px;
+    background: rgba(0,0,0,.4);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255,255,255,.5);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    letter-spacing: .04em;
+  }
+  /* End button — 44×44 circle matching the preview (was a slim text pill) */
+  body.tab-conversation .emma-end-footer {
+    display: grid !important;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,.22);
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255,255,255,.85);
+    letter-spacing: 0;
+    flex: 0 0 auto;
+  }
+  body.tab-conversation .emma-top .emma-end-top {
+    display: none !important;
+  }
+
+  /* Name — bottom left of video */
+  body.tab-conversation .emma-name {
+    position: absolute;
+    bottom: 14px;
+    left: 16px;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    margin: 0;
+    text-shadow: 0 2px 20px rgba(0,0,0,.9);
+    z-index: 10;
+    line-height: 1;
+  }
+  body.tab-conversation .emma-role { display: none; }
+
+  /* Content area: absolute fill of emma-card, no longer flex */
+  body.tab-conversation .emma-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: block;
+  }
+
+  /* Bubbles — absolute fill, padding-top clears video, padding-bottom clears dock.
+     Bubbles physically scroll BEHIND the video (top) and BEHIND the dock (bottom).
+     56.25vw = height of a 16:9 video at full screen width.
+     transform: translate3d forces GPU acceleration so iOS recognizes touch immediately. */
+  body.tab-conversation .emma-bubble-wrap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: calc(56.25vw + 60px) 14px max(calc(env(safe-area-inset-bottom, 0px) + 160px), 200px);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    z-index: 1;
+    max-height: none;
+    min-height: 0;
+    transform: translate3d(0, 0, 0);
+    will-change: scroll-position;
+  }
+  body.tab-conversation .emma-bubble {
+    font-size: 17px;
+    padding: 16px 18px;
+    line-height: 1.42;
+    max-width: 88%;
+  }
+  body.tab-conversation .emma-bubble.emma {
+    padding-bottom: 30px;
+    padding-right: 44px;
+  }
+  body.tab-conversation .emma-correction {
+    padding: 6px 10px 6px 12px;
+  }
+  body.tab-conversation .emma-correction .corr-wrong { font-size: 10px; }
+  body.tab-conversation .emma-correction .corr-fix { font-size: 12px; }
+
+  /* Footer — absolute pinned to the BOTTOM of emma-card, overlays bubble-wrap.
+     Backdrop-filter:blur from base.css shows the bubble peek-through.
+     max() guarantees at least 60px bottom clearance for the home indicator + visual buffer,
+     in case viewport-fit=cover isn't set on the page meta tag. */
+  body.tab-conversation .emma-footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    padding: 8px 14px max(calc(env(safe-area-inset-bottom, 0px) + 18px), 60px);
+    border-top: none;
+  }
+  body.tab-conversation .emma-status { font-size: 10px; margin-bottom: 8px; }
+
+  /* Mic button — flat solid circular yellow icon, centered properly */
+  body.tab-conversation .emma-mic {
+    flex: 0 0 auto;
+    width: 80px;
+    height: 80px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 0;
+    background: var(--yellow);
+    position: relative;
+    overflow: hidden;
+    transition: transform .15s;
+  }
+  body.tab-conversation .emma-mic:active {
+    transform: scale(.94);
+  }
+  body.tab-conversation .emma-mic::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 32px;
+    height: 32px;
+    background-color: var(--black);
+    -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 14a3 3 0 003-3V6a3 3 0 00-6 0v5a3 3 0 003 3z'/><path d='M19 11a1 1 0 10-2 0 5 5 0 01-10 0 1 1 0 10-2 0 7 7 0 006 6.92V20H8a1 1 0 100 2h8a1 1 0 100-2h-3v-2.08A7 7 0 0019 11z'/></svg>") center/contain no-repeat;
+            mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 14a3 3 0 003-3V6a3 3 0 00-6 0v5a3 3 0 003 3z'/><path d='M19 11a1 1 0 10-2 0 5 5 0 01-10 0 1 1 0 10-2 0 7 7 0 006 6.92V20H8a1 1 0 100 2h8a1 1 0 100-2h-3v-2.08A7 7 0 0019 11z'/></svg>") center/contain no-repeat;
+  }
+  /* Recording state: hide mic icon, show centered BLACK stop square */
+  body.tab-conversation .emma-mic.rec::after {
+    display: none;
+  }
+  body.tab-conversation .emma-mic.rec .stop-sq {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 22px;
+    height: 22px;
+    background: var(--black);
+    border-radius: 3px;
+  }
+  /* Listening pulse: soft yellow ring breathing outward.
+     Overrides the red box-shadow animation from base.css (.emma-mic.rec animation: rp 1s) */
+  @keyframes emmaMicListenPulse {
+    0%   { box-shadow: 0 0 0 0   rgba(245, 200, 66, 0.55); }
+    70%  { box-shadow: 0 0 0 22px rgba(245, 200, 66, 0); }
+    100% { box-shadow: 0 0 0 0   rgba(245, 200, 66, 0); }
+  }
+  body.tab-conversation .emma-mic.rec {
+    animation: emmaMicListenPulse 1.6s ease-out infinite;
+  }
+
+  /* Controls row: spread help / mic / end evenly */
+  body.tab-conversation .emma-controls {
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* CSS overrides for play/info button sizes (forces correct sizing even if cached emma.js still has old inline styles) */
+  body.tab-conversation .pron-info-icon {
+    width: 34px !important;
+    height: 34px !important;
+    border-width: 2px !important;
+    border-color: rgba(245, 200, 66, 0.4) !important;
+  }
+  body.tab-conversation .pron-info-icon > div {
+    width: 23px !important;
+    height: 23px !important;
+    font-size: 13px !important;
+    background: rgba(245, 200, 66, 0.45) !important;
+  }
+  /* Play button (sibling of .pron-info-icon, lives in same icons container) */
+  body.tab-conversation div:has(> .pron-info-icon) > div:first-child {
+    width: 34px !important;
+    height: 34px !important;
+  }
+  body.tab-conversation div:has(> .pron-info-icon) > div:first-child svg {
+    width: 17px !important;
+    height: 17px !important;
+  }
+
+  /* Translate icon — match preview: positioned bottom:10 right:12.
+     The icon is now a mask-tinted div in emma.js; the JS manages its color + opacity,
+     so we only override position here. */
+  body.tab-conversation .emma-bubble.emma > button {
+    bottom: 10px !important;
+    right: 12px !important;
+  }
+  body.tab-conversation .emma-bubble.emma img {
+    width: 28px !important;
+    height: 28px !important;
+  }
+  /* Force translation text to inherit font-size from the parent bubble (17px on mobile,
+     14px on desktop). Safety net in case an older cached emma.js still hard-codes font-size:13px. */
+  body.tab-conversation .emma-translation {
+    font-size: inherit !important;
+  }
+
+  /* Hide the end button from controls row (it's repositioned in emma-top) */
+  body.tab-conversation .emma-end-footer {
+    display: none;
+  }
+
+  /* Zoom Emma in — applied to wrap, NOT video elements (transform on video breaks iOS) */
+  body.tab-conversation .emma-video-wrap {
+    transform: scale(1.18);
+    transform-origin: center 35%;
+  }
+  /* Remove opacity transition on videos on mobile — transition can freeze iOS video */
+  body.tab-conversation #vidIdle,
+  body.tab-conversation #vidTransition,
+  body.tab-conversation #vidSpeaking {
+    transition: none !important;
+  }
+}
+
+/* ── TOPIC SELECTION PAGE ──────────────────────────────────────────────── */
+.topic-page{
+  display:none;
+  background:#fafaf8;
+  font-family:'DM Sans',sans-serif;
+  min-height:100vh;
+}
+body.show-topics .topic-page{ display:flex; align-items:center; min-height:100vh; }
+body.show-topics .hdr,
+body.show-topics .main{ display:none; }
+body.show-topics .mode-tabs{ display:none; }
+
+.tp-inner{
+  padding:72px 10% 64px;
+  width:100%;
+}
+
+.pa-top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:60px;}
+.pa-brand{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#bbb;margin-bottom:14px;}
+.pa-title{font-family:'Fraunces',serif;font-size:54px;font-weight:900;color:#111;line-height:1.0;}
+.pa-title em{font-style:italic;color:#f5c842;}
+.pa-right{text-align:right;}
+.pa-count{font-family:'Fraunces',serif;font-size:96px;font-weight:300;color:#e8e4dc;line-height:1;letter-spacing:-.04em;}
+.pa-count-label{font-size:11px;color:#bbb;letter-spacing:.14em;text-transform:uppercase;margin-top:-6px;}
+
+.pa-list{display:flex;flex-direction:column;gap:0;}
+.pa-item{
+  display:flex;align-items:center;
+  padding:26px 0;
+  border-bottom:1px solid #ece8e0;
+  cursor:pointer;gap:0;
+  transition:all .2s;
+  position:relative;
+}
+.pa-item:first-child{border-top:1px solid #ece8e0;}
+.pa-item:hover .pa-item-title{color:#f5c842;}
+.pa-item:hover .pa-item-arrow{transform:translateX(4px);}
+
+.pa-item-num{
+  font-family:'Fraunces',serif;
+  font-size:16px;font-weight:300;font-style:italic;
+  color:#ccc;width:64px;flex-shrink:0;
+}
+.pa-item-category{
+  font-size:10px;font-weight:700;letter-spacing:.13em;
+  text-transform:uppercase;color:#bbb;
+  width:150px;flex-shrink:0;
+}
+.pa-item-title{
+  font-family:'Fraunces',serif;
+  font-size:32px;font-weight:700;
+  color:#111;flex:1;
+  transition:color .2s;line-height:1;
+}
+.pa-item-sub{
+  font-size:12px;color:#aaa;
+  width:260px;flex-shrink:0;text-align:right;
+  line-height:1.4;padding-right:28px;
+}
+.pa-item-arrow{
+  font-size:18px;color:#ccc;
+  transition:transform .2s;flex-shrink:0;
+}
+.pa-item-start{
+  background:#111;color:#fafaf8;
+  border:none;border-radius:9px;
+  padding:11px 24px;font-size:11px;font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;
+  cursor:pointer;font-family:'DM Sans',sans-serif;
+  flex-shrink:0;
+}
+
+@media(min-width:601px) and (max-width:1024px){
+  /* Topic selection */
+  .tp-inner{ padding:52px 8% 60px; width:100%; }
+  .pa-top{ margin-bottom:40px; }
+  .pa-title{ font-size:44px; }
+  .pa-count{ font-size:80px; }
+  .pa-item{ padding:20px 0; }
+  .pa-item-title{ font-size:28px; }
+  .pa-item-num{ width:48px; font-size:14px; }
+  .pa-item-category{ width:130px; font-size:9px; }
+  .pa-item-sub{ width:220px; font-size:11px; padding-right:20px; }
+  .pa-item-start{ padding:10px 20px; font-size:10px; }
+  /* Progress panel */
+  .cp-panel{ width:min(600px,90vw); max-height:80vh; }
+  /* Emma card */
+  .emma-card{ max-width:100%; border-radius:16px; }
+  .emma-bubble{ max-width:82%; font-size:15px; }
+  .emma-controls{ padding:12px 16px; gap:10px; }
+  .emma-mic{ font-size:15px; padding:16px; }
+  /* Nav bar */
+  .emma-nav-bar{ padding:10px 16px 8px; }
+}
+
+@media(max-width:600px){
+  /* Topic page fills screen on mobile */
+  body.show-topics .topic-page{ min-height:100vh; align-items:flex-start; }
+
+  .tp-inner{
+    padding:48px 24px 56px;
+  }
+
+  /* Stack header: brand + title top, counter below */
+  .pa-top{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:0;
+    margin-bottom:40px;
+  }
+  .pa-brand{ font-size:9px; margin-bottom:10px; }
+  .pa-title{ font-size:42px; line-height:.95; }
+  .pa-right{
+    text-align:left;
+    margin-top:12px;
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+  .pa-count{ font-size:52px; }
+  .pa-count-label{ font-size:9px; margin-top:0; }
+
+  /* List rows */
+  .pa-item{ padding:20px 0; }
+  .pa-item-num{ width:36px; font-size:13px; }
+  .pa-item-category{ width:100px; font-size:9px; letter-spacing:.1em; }
+  .pa-item-title{ font-size:22px; }
+  .pa-item-sub{ display:none; }
+  .pa-item-arrow{ font-size:16px; }
+  .pa-item-start{
+    padding:10px 18px;
+    font-size:10px;
+    border-radius:8px;
+  }
+}
+
+/* ── TOPIC SELECTION PAGE ──────────────────────────────────────────────── */
+.topic-page{
+  display:none;
+  min-height:100vh;
+  background:#fff;
+  font-family:'DM Sans',sans-serif;
+}
+body.show-topics .topic-page{ display:block; }
+body.show-topics .hdr,
+body.show-topics .main{ display:none; }
+
+.topic-page-inner{
+  max-width:960px;
+  margin:0 auto;
+  padding:64px 48px 80px;
+  display:grid;
+  grid-template-columns:320px 1fr;
+  gap:0;
+  min-height:100vh;
+}
+
+/* Left column */
+.tp-left{
+  padding-right:64px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  border-right:1px solid #ece8e0;
+}
+.tp-brand{
+  font-size:9px;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;
+  color:#bbb;margin-bottom:12px;
+}
+.tp-headline{
+  font-family:'Fraunces',serif;
+  font-size:40px;font-weight:900;
+  color:#111;line-height:1.0;
+  letter-spacing:-.02em;margin-bottom:16px;
+}
+.tp-headline em{
+  font-style:italic;font-weight:300;color:#bbb;
+}
+.tp-sub{
+  font-size:12px;color:#aaa;
+  line-height:1.7;max-width:260px;
+  margin-bottom:40px;
+}
+.tp-stats{display:flex;flex-direction:column;gap:12px;margin-bottom:40px;}
+.tp-stat-num{
+  font-family:'Fraunces',serif;
+  font-size:34px;font-weight:700;
+  color:#e8e4dc;line-height:1;
+  letter-spacing:-.02em;
+}
+.tp-stat-label{
+  font-size:9px;color:#bbb;
+  letter-spacing:.1em;text-transform:uppercase;
+  margin-top:1px;
+}
+.tp-cta{
+  width:100%;padding:14px;
+  background:#111;color:#fff;
+  border:none;border-radius:10px;
+  font-family:'DM Sans',sans-serif;
+  font-size:12px;font-weight:700;
+  letter-spacing:.03em;cursor:pointer;
+  transition:background .2s;
+  display:none;
+}
+.tp-cta:hover{background:#333;}
+.tp-cta.visible{display:block;}
+
+/* Right column */
+.tp-right{padding-left:64px;}
+.tp-right-label{
+  font-size:9px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:#bbb;margin-bottom:16px;
+}
+.tp-list{display:flex;flex-direction:column;}
+.tp-item{
+  display:flex;align-items:center;gap:16px;
+  padding:18px 0;
+  border-bottom:1px solid #ece8e0;
+  cursor:pointer;
+  transition:padding-left .2s;
+  position:relative;
+}
+.tp-item:first-child{border-top:1px solid #ece8e0;}
+.tp-item:hover{padding-left:8px;}
+.tp-item-num{
+  font-family:'Fraunces',serif;
+  font-size:12px;font-style:italic;font-weight:300;
+  color:#ccc;width:22px;flex-shrink:0;
+}
+.tp-item-content{flex:1;}
+.tp-item-cat{
+  font-size:9px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:#bbb;margin-bottom:3px;
+  transition:color .2s;
+}
+.tp-item-title{
+  font-family:'Fraunces',serif;
+  font-size:22px;font-weight:700;
+  color:#111;line-height:1.1;
+  transition:color .15s;
+}
+.tp-item-sub{
+  font-size:10px;color:#aaa;
+  margin-top:2px;line-height:1.4;
+  opacity:0;transition:opacity .15s;
+  max-height:0;overflow:hidden;
+  transition:opacity .2s, max-height .2s;
+}
+.tp-item:hover .tp-item-sub{opacity:1;max-height:40px;}
+.tp-item-right{
+  display:flex;align-items:center;
+  gap:12px;flex-shrink:0;
+}
+.tp-item-units{
+  font-size:10px;color:#ccc;
+  opacity:0;transition:opacity .15s;
+  letter-spacing:.04em;
+}
+.tp-item:hover .tp-item-units{opacity:1;}
+.tp-item-arrow{
+  font-size:15px;color:#ccc;
+  transition:color .15s, transform .15s;
+}
+.tp-item:hover .tp-item-arrow{
+  transform:translateX(4px);
+}
+
+/* Per-topic gold on hover */
+.tp-t1:hover .tp-item-title{color:#f5c842;}
+.tp-t1:hover .tp-item-cat{color:#c9940a;}
+.tp-t1:hover .tp-item-arrow{color:#f5c842;}
+.tp-t2:hover .tp-item-title{color:#f5c842;}
+.tp-t2:hover .tp-item-cat{color:#c9940a;}
+.tp-t2:hover .tp-item-arrow{color:#f5c842;}
+.tp-t3:hover .tp-item-title{color:#f5c842;}
+.tp-t3:hover .tp-item-cat{color:#c9940a;}
+.tp-t3:hover .tp-item-arrow{color:#f5c842;}
+.tp-t4:hover .tp-item-title{color:#f5c842;}
+.tp-t4:hover .tp-item-cat{color:#c9940a;}
+.tp-t4:hover .tp-item-arrow{color:#f5c842;}
+.tp-t5:hover .tp-item-title{color:#f5c842;}
+.tp-t5:hover .tp-item-cat{color:#c9940a;}
+.tp-t5:hover .tp-item-arrow{color:#f5c842;}
+
