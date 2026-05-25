@@ -30,7 +30,7 @@ function renderEmma(){
           '<div class="emma-controls">'+
             
             '<div class="emma-hint-btn" id="emmaHintBtn" onclick="showSuggestion()">'+
-              '<div style="width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;color:rgba(255,255,255,.85);line-height:1;font-family:-apple-system,sans-serif">?</div>'+
+              '<div style="width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:rgba(255,255,255,.85);line-height:1;font-family:-apple-system,sans-serif">?</div>'+
             '</div>'+
             '<button class="emma-mic" id="emmaMicBtn" onclick="emmaToggleRec()" disabled>&#127897; Tap to speak</button>'+
             '<button class="emma-end emma-end-footer" onclick="emmaEnd()">End</button>'+
@@ -564,12 +564,12 @@ function emmaAddBubble(who,text){
     var icons=document.createElement('div');
     icons.style.cssText='display:flex;justify-content:flex-end;gap:5px;padding-right:4px;opacity:.85';
     var playBtn=document.createElement('div');
-    playBtn.style.cssText='width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;line-height:0';
-    playBtn.innerHTML='<svg width="17" height="17" viewBox="2 0 22 24" fill="rgba(255,255,255,.85)"><path d="M8 5v14l11-7z"/></svg>';
+    playBtn.style.cssText='width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;line-height:0';
+    playBtn.innerHTML='<svg width="11" height="11" viewBox="2 0 22 24" fill="rgba(255,255,255,.85)"><path d="M8 5v14l11-7z"/></svg>';
     var infoBtn=document.createElement('div');
     infoBtn.className='pron-info-icon';
-    infoBtn.className='pron-info-icon';infoBtn.style.cssText='width:34px;height:34px;border-radius:50%;background:transparent;border:2px solid rgba(245,200,66,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;line-height:0';
-    infoBtn.innerHTML='<div style="width:23px;height:23px;border-radius:50%;background:rgba(245,200,66,.45);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;line-height:1;font-family:-apple-system,sans-serif">i</div>';
+    infoBtn.className='pron-info-icon';infoBtn.style.cssText='width:22px;height:22px;border-radius:50%;background:transparent;border:1.5px solid rgba(201,162,39,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;line-height:0';
+    infoBtn.innerHTML='<div style="width:15px;height:15px;border-radius:50%;background:rgba(201,162,39,.45);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;line-height:1;font-family:-apple-system,sans-serif">i</div>';
     icons.appendChild(playBtn);icons.appendChild(infoBtn);
     // Wrap bubble+icons in container with minimal gap
     var container=document.createElement('div');
@@ -596,62 +596,36 @@ function emmaAddBubble(who,text){
   div.style.position = 'relative';
 
   var tBtn = document.createElement('button');
-  tBtn.style.cssText = 'background:none;border:none;cursor:pointer;padding:0;position:absolute;bottom:6px;right:8px;opacity:.4;transition:opacity .2s,background-color .2s;';
-  // Translate icon: rendered as a mask-tinted div so we can color it directly
-  var tImg = document.createElement('div');
-  var TRANSLATE_ICON_URL = 'https://pub-ee13894ad4e146cdb3eb6dd4f653dfc4.r2.dev/translate-icon.PNG';
-  var COLOR_IDLE = 'rgba(255,255,255,.85)';
-  var COLOR_ACTIVE = 'rgb(232,184,75)'; // same hue as translation text, full opacity
-  tImg.style.cssText = 'display:block;width:28px;height:28px;background-color:'+COLOR_IDLE+';-webkit-mask:url("'+TRANSLATE_ICON_URL+'") center/contain no-repeat;mask:url("'+TRANSLATE_ICON_URL+'") center/contain no-repeat;transition:background-color .2s;';
-  // Hide the whole button if the mask source doesn't load
-  var _probe = new Image();
-  _probe.onerror = function(){ tBtn.style.display='none'; };
-  _probe.src = TRANSLATE_ICON_URL;
+  tBtn.style.cssText = 'background:none;border:none;cursor:pointer;padding:0;position:absolute;bottom:6px;right:8px;opacity:.4;transition:opacity .2s,filter .2s;color:#fff;line-height:0;';
+  var tImg = document.createElement('img');
+  tImg.src = 'https://pub-ee13894ad4e146cdb3eb6dd4f653dfc4.r2.dev/translate-icon.PNG';
+  tImg.style.cssText = 'display:block;width:22px;height:22px;';
+  // Fallback: if the R2 image fails (e.g. in iOS standalone/home-screen mode where the fetch context is stricter),
+  // swap in an inline SVG translate glyph so the button is always visible.
+  tImg.onerror = function(){
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="display:block"><path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>';
+    tBtn.removeChild(tImg);
+    tBtn.insertAdjacentHTML('afterbegin', svg);
+  };
   tBtn.appendChild(tImg);
   tBtn._translated = false;
-  tBtn._loading = false;
   tBtn.onclick = function(){
-    if(tBtn._loading) return; // guard against rapid double-tap
     if(tBtn._translated){
-      var ex=div.querySelectorAll('.emma-translation');
-      for(var i=0;i<ex.length;i++)ex[i].remove();
-      tBtn.style.opacity='.65';tImg.style.backgroundColor=COLOR_IDLE;tBtn._translated=false;return;
+      var ex=div.querySelector('.emma-translation');
+      if(ex)ex.remove();
+      tBtn.style.opacity='.65';tBtn.style.filter='none';tBtn._translated=false;return;
     }
-    // Safety: clean any leftover translations from a previous in-flight click
-    var leftover=div.querySelectorAll('.emma-translation');
-    for(var i2=0;i2<leftover.length;i2++)leftover[i2].remove();
-    tBtn._loading = true;
     tBtn.style.opacity='.35';
     fetch(W+'/emma-chat',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({system:'You are a translation tool. Your only job is to translate English to Brazilian Portuguese. Output ONLY the translated text. No explanations, no notes, no other text whatsoever.',messages:[{role:'user',content:text}],topic:'translation_'+Date.now(),max_tokens:300})
     }).then(function(r){return r.json();}).then(function(d){
-      tBtn._loading = false;
-      var t=d.text?d.text.trim():'';
-      if(!t){tBtn.style.opacity='.65';return;}
-      // Reject Claude refusals / meta-commentary — they slip through the prompt sometimes
-      var refusalPatterns = [
-        /^(i'?m sorry|i cannot|i can'?t|sorry,|i apologize|unfortunately|my apologies)/i,
-        /^as an? (ai|assistant|language model)/i,
-        /^i'?m an? (ai|assistant)/i,
-        /i'?m not able to/i,
-        /i don'?t (translate|provide|do)/i,
-        /^(here'?s|here is) the translation/i,
-        /^translation:/i
-      ];
-      if(refusalPatterns.some(function(p){return p.test(t);})){
-        tBtn.style.opacity='.65';
-        return;
-      }
-      // Final safety: if a translation div somehow already exists, remove before inserting
-      var dup=div.querySelectorAll('.emma-translation');
-      for(var k=0;k<dup.length;k++)dup[k].remove();
+      var t=d.text?d.text.trim():'';if(!t)return;
       var el=document.createElement('div');el.className='emma-translation';
-      // No font-size set — inherits from the parent bubble (17px on mobile, 14px on desktop)
-      el.style.cssText='color:rgba(232,184,75,.85);line-height:1.5;padding-top:8px;margin-top:6px;border-top:1px solid rgba(255,255,255,.1);font-style:italic;';
+      el.style.cssText='font-size:13px;color:rgba(232,184,75,.85);line-height:1.5;padding-top:8px;margin-top:6px;border-top:1px solid rgba(255,255,255,.1);font-style:italic;';
       el.textContent=t;div.insertBefore(el,tBtn);
-      tBtn.style.opacity='1';tImg.style.backgroundColor=COLOR_ACTIVE;tBtn._translated=true;
+      tBtn.style.opacity='1';tBtn.style.filter='sepia(1) saturate(4) hue-rotate(5deg)';tBtn._translated=true;
       wrap.scrollTop=wrap.scrollHeight;
-    }).catch(function(){tBtn._loading=false;tBtn.style.opacity='.65';});
+    }).catch(function(){tBtn.style.opacity='.65';});
   };
   div.appendChild(tBtn);
   wrap.appendChild(div);
@@ -710,41 +684,7 @@ function emmaStopRec(){
               if(d.pronunciation) window._sessionPronunciationData.push({transcript:(d.text||'').trim(),scores:d.pronunciation});
             }
             var transcript=(d.text||'').trim();
-            // ── Whisper hallucination filter ─────────────────────────────────
-            // Whisper trained on YouTube subs hallucinates these phrases on silent/unclear audio
-            var whisperHallucinations = [
-              // YouTube channel boilerplate
-              /^\s*learn english for free/i,
-              /www\.engvid\.com/i,
-              /^\s*thanks for watching/i,
-              /^\s*thank you for watching/i,
-              /^\s*please subscribe/i,
-              /don['’]t forget to subscribe/i,
-              /^\s*subtitles? by/i,
-              /^\s*subtitled by/i,
-              /^\s*captions? by/i,
-              /transcription outsourcing/i,
-              /amara\.org/i,
-              /^\s*like and subscribe/i,
-              /^\s*see you in the next video/i,
-              // AI/teacher instruction hallucinations (very common on silent audio)
-              /^\s*do not correct/i,
-              /^\s*don['’]t correct/i,
-              /correct (my |the )?grammar( mistakes?)?\.?\s*$/i,
-              /^\s*do not (translate|edit|respond|reply|change)/i,
-              /^\s*don['’]t (translate|edit|respond|reply|change)/i,
-              /^\s*please don['’]t/i,
-              // Music / sound-effect tags
-              /^\s*\[music\]\s*$/i,
-              /^\s*\(music\)\s*$/i,
-              /^\s*\[applause\]\s*$/i,
-              /^\s*\(applause\)\s*$/i,
-              // Pure punctuation / single-token fallbacks
-              /^\s*[.…]+\s*$/,
-              /^\s*you\s*$/i
-            ];
-            var isHallucination = whisperHallucinations.some(function(p){ return p.test(transcript); });
-            if(!transcript || isHallucination){if(btn){btn.disabled=false;btn.style.opacity='1';}if(status)status.textContent='Could not hear you. Tap to try again.';return;}
+            if(!transcript){if(btn){btn.disabled=false;btn.style.opacity='1';}if(status)status.textContent='Could not hear you. Tap to try again.';return;}
             emmaSubmit(transcript);
             // First student reply — show pronúncia onboarding
             if(!window._pronOnboardShown){window._pronOnboardShown=true;setTimeout(showPronOnboarding,800);}
@@ -758,27 +698,6 @@ function emmaStopRec(){
             try{
               var actx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:16000});
               actx.decodeAudioData(fr2.result,function(decoded){
-                // ── Client-side silence detection ──────────────────────────────
-                // If audio is effectively silent, skip Whisper entirely
-                // (avoids hallucinations like "Learn English for free www.engvid.com")
-                try {
-                  var sCh = decoded.getChannelData(0);
-                  var sumSq = 0, peak = 0;
-                  for (var ii = 0; ii < sCh.length; ii++) {
-                    var sv = sCh[ii];
-                    sumSq += sv * sv;
-                    var av = sv < 0 ? -sv : sv;
-                    if (av > peak) peak = av;
-                  }
-                  var rms = Math.sqrt(sumSq / sCh.length);
-                  // Thresholds: rms < 0.01 = below typical mic noise floor
-                  //             peak < 0.08 = no spoken syllables (normal speech peaks > 0.15)
-                  if (rms < 0.01 && peak < 0.08) {
-                    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
-                    if (status) status.textContent = 'Could not hear you. Tap to try again.';
-                    return;
-                  }
-                } catch (silenceErr) { /* on any analysis error, fall through and let Whisper try */ }
                 try{
                   var sr=16000,offCtx=new OfflineAudioContext(1,decoded.length,sr);
                   var src=offCtx.createBufferSource();src.buffer=decoded;src.connect(offCtx.destination);src.start(0);
