@@ -441,9 +441,8 @@ function downloadExercises(){
         return '<button onclick="exSelect('+i+')" style="width:100%;padding:13px 16px;border-radius:12px;border:'+border+';background:'+bg+';font-size:16px;color:'+color+';cursor:pointer;font-family:inherit;text-align:left;margin-bottom:8px;transition:all .15s;">'+
           '<span style="font-weight:700;color:#ccc;margin-right:10px;">'+String.fromCharCode(65+i)+'</span>'+opt+'</button>';
       }).join('');
-      var tipHtml=answered?
-        '<div style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(0,0,0,.3);margin-bottom:8px;margin-top:14px;">'+(q.grammar||q.tip||'')+'</div>'+
-        '<div style="font-size:14px;color:#888;line-height:1.5;padding:10px 14px;background:#f8f6f2;border-radius:10px;">'+(q.tip||'')+'</div>':'';
+      var tipHtml=answered&&q.tip?
+        '<div style="margin-top:14px;font-size:14px;color:#888;line-height:1.5;padding:10px 14px;background:#f8f6f2;border-radius:10px;">'+q.tip+'</div>':'';
       cardHtml=
         '<div style="font-size:17px;font-weight:600;color:#0a0a0a;line-height:1.5;margin-bottom:20px;">'+q.question+'</div>'+
         optsHtml+tipHtml+
@@ -460,13 +459,12 @@ function downloadExercises(){
       var pi=exIdx-grammarTotal;
       var pe=pronExercises[pi];
       cardHtml=
-        '<div style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#e8b84b;margin-bottom:14px;">Pronúncia</div>'+
         '<div style="font-size:15px;color:#aaa;font-weight:500;margin-bottom:14px;">Ouça e repita:</div>'+
         '<div style="background:#f8f6f2;border-radius:12px;padding:12px 14px;margin-bottom:28px;display:flex;align-items:flex-start;gap:12px;">'+
           '<button onclick="exPlayEmma('+pi+')" id="exPlayBtn_'+pi+'" style="width:34px;height:34px;border-radius:50%;flex-shrink:0;margin-top:2px;background:rgba(0,0,0,.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;">'+
             '<svg id="exPlayIcon_'+pi+'" width="12" height="12" viewBox="0 0 24 24" fill="rgba(0,0,0,.4)"><path d="M8 5v14l11-7z"/></svg>'+
           '</button>'+
-          '<div id="exWords_'+pi+'" style="flex:1;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:flex-end;">'+
+          '<div id="exWords_'+pi+'" style="flex:1;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:baseline;">'+
             pe.sentence.split(' ').map(function(w){return '<span style="font-size:18px;font-weight:500;color:#111;">'+w+'</span>';}).join('')+
           '</div>'+
         '</div>'+
@@ -482,15 +480,53 @@ function downloadExercises(){
     if(exIdx>=totalQs){
       // Summary screen — release the mic since recording is done
       if(window._exReleaseMicStream)window._exReleaseMicStream();
-      // Summary screen
+
+      // ─── Compute scores ─────────────────────────────────────────────────
       var correct=exScores.filter(function(s,i){return s!==undefined&&grammarQs[i]&&s===grammarQs[i].answer;}).length;
+      var grammarPct=grammarTotal>0?Math.round(correct/grammarTotal*100):0;
+      var pronDone=pronExercises.filter(function(p){return typeof p.score==='number';});
+      var pronAvg=pronDone.length>0
+        ?Math.round(pronDone.reduce(function(a,p){return a+p.score;},0)/pronDone.length)
+        :null;
+      var overall=pronAvg===null?grammarPct:Math.round((grammarPct+pronAvg)/2);
+
+      // Tier → color + message
+      var sColor=overall>=80?'#2d7a3a':overall>=65?'#e8b84b':'#c0392b';
+      var msgHead,msgSub;
+      if(overall>=90){msgHead='Excelente trabalho!';msgSub='Você está dominando esse conteúdo. Continue assim!';}
+      else if(overall>=75){msgHead='Muito bem!';msgSub='Você está no caminho certo — continue praticando para aperfeiçoar.';}
+      else if(overall>=60){msgHead='Bom progresso!';msgSub='Algumas áreas precisam de revisão, mas você está avançando.';}
+      else {msgHead='Continue praticando.';msgSub='Cada conversa te aproxima do seu objetivo. Não desanime!';}
+
+      // Pron stat block (varies based on whether anything was attempted)
+      var pronStatHTML=pronAvg!==null
+        ?'<div style="font-size:24px;font-weight:800;color:#0a0a0a;line-height:1;">'+pronAvg+'<span style="font-size:14px;font-weight:600;color:#aaa;">%</span></div>'+
+          '<div style="font-size:11px;color:#aaa;margin-top:4px;">média</div>'
+        :'<div style="font-size:24px;font-weight:800;color:#d4d0ca;line-height:1;">—</div>'+
+          '<div style="font-size:11px;color:#aaa;margin-top:4px;">não praticado</div>';
+
       cardHtml=
-        '<div style="text-align:center;padding:20px 0;">'+
-          '<div style="font-size:42px;margin-bottom:16px;">🎉</div>'+
-          '<div style="font-size:22px;font-weight:700;color:#0a0a0a;margin-bottom:6px;">Exercícios concluídos!</div>'+
-          '<div style="font-size:15px;color:#aaa;margin-bottom:24px;">'+correct+' de '+grammarTotal+' corretas</div>'+
-          '<button onclick="renderEmma()" style="padding:13px 32px;border-radius:12px;background:#0a0a0a;border:none;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">Nova conversa</button>'+
-        '</div>';
+        '<div style="text-align:center;padding:8px 0 4px;">'+
+          '<div style="font-size:10px;font-weight:700;letter-spacing:.18em;color:#bbb;margin-bottom:10px;">SUA PONTUAÇÃO</div>'+
+          '<div style="font-size:64px;font-weight:800;color:'+sColor+';line-height:1;letter-spacing:-.04em;margin-bottom:14px;">'+overall+'<span style="font-size:28px;font-weight:600;opacity:.5;">%</span></div>'+
+          '<div style="height:6px;background:#e8e4de;border-radius:3px;overflow:hidden;margin:0 auto 22px;max-width:200px;">'+
+            '<div style="height:100%;width:'+overall+'%;background:'+sColor+';transition:width .8s ease-out;"></div>'+
+          '</div>'+
+          '<div style="font-family:\'Fraunces\',Georgia,serif;font-size:22px;font-weight:700;color:#0a0a0a;letter-spacing:-.02em;margin-bottom:8px;">'+msgHead+'</div>'+
+          '<div style="font-size:14px;color:#888;line-height:1.5;max-width:300px;margin:0 auto 24px;">'+msgSub+'</div>'+
+        '</div>'+
+        '<div style="display:flex;gap:8px;margin-bottom:20px;">'+
+          '<div style="flex:1;background:#f8f6f2;border-radius:12px;padding:14px 10px;text-align:center;">'+
+            '<div style="font-size:10px;font-weight:700;letter-spacing:.14em;color:#bbb;margin-bottom:6px;">GRAMÁTICA</div>'+
+            '<div style="font-size:24px;font-weight:800;color:#0a0a0a;line-height:1;">'+correct+'<span style="font-size:14px;font-weight:600;color:#aaa;">/'+grammarTotal+'</span></div>'+
+            '<div style="font-size:11px;color:#aaa;margin-top:4px;">corretas</div>'+
+          '</div>'+
+          '<div style="flex:1;background:#f8f6f2;border-radius:12px;padding:14px 10px;text-align:center;">'+
+            '<div style="font-size:10px;font-weight:700;letter-spacing:.14em;color:#bbb;margin-bottom:6px;">PRONÚNCIA</div>'+
+            pronStatHTML+
+          '</div>'+
+        '</div>'+
+        '<button onclick="renderEmma()" style="width:100%;padding:14px;border-radius:13px;background:#0a0a0a;border:none;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:-.005em;">Nova conversa</button>';
       navHtml='';
       progressHtml='';
     }
@@ -595,14 +631,28 @@ function downloadExercises(){
               var fb=document.getElementById('exPronFeedback_'+pi);
               var wordsEl=document.getElementById('exWords_'+pi);
               var score=d.pronunciation?Math.round(d.pronunciation.pronScore||d.pronunciation.accuracyScore||0):0;
-              if(recLabel)recLabel.textContent=score>0?'Sua pontuação: '+score+'%':'Toque para gravar novamente';
+              pe.score=score; // store for summary screen
+              if(recLabel){
+                if(score>0){
+                  var sColor=score>=80?'#2d7a3a':score>=65?'#e8b84b':'#c0392b';
+                  recLabel.innerHTML=
+                    '<div style="font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#bbb;margin-bottom:4px;">Sua pontuação</div>'+
+                    '<div style="font-size:34px;font-weight:800;color:'+sColor+';line-height:1;letter-spacing:-.03em;">'+score+'<span style="font-size:18px;font-weight:600;opacity:.55;">%</span></div>';
+                } else {
+                  recLabel.textContent='Toque para gravar novamente';
+                }
+              }
               if(wordsEl&&d.pronunciation&&d.pronunciation.words){
                 var wds=d.pronunciation.words;
                 wordsEl.innerHTML=wds.map(function(w){
-                  var c=w.accuracyScore>=80?'#2d7a3a':w.accuracyScore>=65?'#e8b84b':'#c0392b';
+                  var score=Math.round(w.accuracyScore||0);
+                  var c=score>=80?'#2d7a3a':score>=65?'#e8b84b':'#c0392b';
+                  // Only show the score badge for words that need attention.
+                  // Green words stay clean text — less visual noise.
+                  var showScore=score<80;
                   return '<div style="display:flex;flex-direction:column;align-items:center;">'+
                     '<span style="font-size:18px;font-weight:500;color:'+c+';">'+w.word+'</span>'+
-                    '<span style="font-size:10px;font-weight:700;color:'+c+';">'+Math.round(w.accuracyScore||0)+'%</span>'+
+                    (showScore?'<span style="font-size:10px;font-weight:700;color:'+c+';margin-top:2px;">'+score+'%</span>':'')+
                   '</div>';
                 }).join('');
               }
