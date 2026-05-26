@@ -97,7 +97,8 @@ function mcSpeak(btn){
 var mcRec=false,mcMr=null,mcChunks=[];
 function mcToggleRec(qIdx){mcRec?mcStopRec(qIdx):mcStartRec(qIdx);}
 function mcStartRec(qIdx){
-  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+  var streamPromise=window._exGetMicStream?window._exGetMicStream():navigator.mediaDevices.getUserMedia({audio:true});
+  streamPromise.then(function(stream){
     mcChunks=[];var mt2=mime();
     mcMr=new MediaRecorder(stream,mt2?{mimeType:mt2}:{});
     mcMr.ondataavailable=function(e){if(e.data&&e.data.size>0)mcChunks.push(e.data);};
@@ -138,7 +139,7 @@ function mcStopRec(qIdx){
   // abort() instead of stop() — iOS plays a chime on .stop(), abort() is silent.
   if(window._exSR){try{window._exSR.onend=null;window._exSR.abort();}catch(e){}}
   mcMr.stop();
-  if(mcMr.stream)mcMr.stream.getTracks().forEach(function(t){t.stop();});
+  // Don't stop tracks — stream is shared and reused to avoid iOS chime on next start
   var b=document.getElementById('exMicBtn');
   if(b){b.style.background='rgba(0,0,0,.08)';b.style.boxShadow='none';b.classList.remove('ex-rec-active');}
   var micIconStop=document.getElementById('exMicIcon');

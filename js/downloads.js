@@ -4,7 +4,7 @@
 function downloadReport(){
   var r=window._lastReport;
   if(!r)return;
-  var date=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  var date=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
   var w=window.open('','_blank');
   if(!w)return;
   var d=w.document;
@@ -12,82 +12,138 @@ function downloadReport(){
   d.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatorio</title></head><body></body></html>');
   d.close();
 
-  // Inject styles
+  // Reuse the live report styles (from end-screen.js) + a small print/PDF wrapper layer.
   var style=d.createElement('style');
-  style.textContent=[
-    '@media print{.no-print{display:none;}body{padding:24px;}}',
-    'body{font-family:Georgia,serif;max-width:620px;margin:40px auto;padding:0 24px;color:#1a1a1a;background:#fff;}',
-    'h1{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#aaa;margin-bottom:4px;}',
-    'h2{font-size:22px;font-weight:700;margin:0 0 4px;}',
-    '.dt{font-size:12px;color:#bbb;margin-bottom:24px;}',
-    '.score-box{display:flex;align-items:center;gap:14px;background:#f7f7f5;border-radius:10px;padding:14px;margin-bottom:24px;}',
-    '.score-circle{width:50px;height:50px;border-radius:10px;background:#1a1a1a;color:#f5c842;font-size:19px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}',
-    '.lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#bbb;margin-bottom:10px;}',
-    '.sec{margin-bottom:24px;}',
-    '.item{margin-bottom:12px;padding-left:12px;}',
-    '.item-r{border-left:3px solid #c0392b;}',
-    '.item-i{border-left:3px solid #e6aa00;}',
-    '.item-title{font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:2px;}',
-    '.item-detail{font-size:12px;color:#666;line-height:1.55;}',
-    '.positive{background:#f0faf2;border-radius:8px;padding:12px 14px;}',
-    '.positive-txt{font-size:13px;color:#2d7a3a;line-height:1.6;}',
-    '.footer{margin-top:32px;padding-top:14px;border-top:1px solid #e8e8e8;font-size:11px;color:#bbb;text-align:center;}',
-    '.print-btn{display:block;width:100%;padding:12px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;margin-bottom:24px;font-family:sans-serif;}'
-  ].join('');
+  style.textContent=
+    (typeof _endStyles!=='undefined'?_endStyles:'')+
+    'body{margin:0;background:#f6f5f1;font-family:-apple-system,BlinkMacSystemFont,"DM Sans",sans-serif;color:#0a0a0a;}'+
+    '.pdf-wrap{max-width:640px;margin:0 auto;padding:32px 24px 48px;}'+
+    '.pdf-head{margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid #e8e4de;}'+
+    '.pdf-brand{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#aaa;margin-bottom:6px;}'+
+    '.pdf-headline{font-family:"Fraunces",Georgia,serif;font-size:24px;font-weight:700;margin:0 0 4px;letter-spacing:-.015em;line-height:1.2;color:#0a0a0a;}'+
+    '.pdf-date{font-size:12px;color:#aaa;letter-spacing:.01em;}'+
+    '.pdf-footer{margin-top:24px;padding-top:14px;border-top:1px solid #e8e4de;font-size:10px;color:#aaa;text-align:center;letter-spacing:.06em;}'+
+    '.print-btn{display:block;width:100%;padding:13px;background:#0a0a0a;color:#fff;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:24px;font-family:inherit;letter-spacing:-.005em;}'+
+    '@media print{.no-print{display:none!important;}body{background:#fff!important;}.pdf-wrap{padding:0!important;max-width:none;}.end-card{box-shadow:none!important;break-inside:avoid;page-break-inside:avoid;}}';
   d.head.appendChild(style);
 
-  var body=d.body;
+  // Helpers — mirror end-screen.js logic so PDF renders identically.
+  function styleQuotes(t){
+    if(typeof _endStyleQuotes==='function')return _endStyleQuotes(t);
+    return t||'';
+  }
+  var s=(r.score||'B').toString().toUpperCase().trim();
+  var visual={color:'yellow',filled:7};
+  if(s==='A+')visual={color:'green',filled:10};
+  else if(s==='A')visual={color:'green',filled:9};
+  else if(s==='B+')visual={color:'yellow',filled:8};
+  else if(s==='B')visual={color:'yellow',filled:7};
+  else if(s==='C+')visual={color:'orange',filled:6};
+  else if(s==='C')visual={color:'orange',filled:5};
+  else if(s==='D')visual={color:'red',filled:3};
 
-  // Print button
+  var bars='';
+  for(var i=0;i<10;i++){bars+='<span class="'+(i<visual.filled?'f end-color-'+visual.color:'')+'"></span>';}
+
+  // Hero card (matches _endBuildReportHTML)
+  var heroHTML='<div class="end-card">'+
+    '<div class="end-hero-label">Sua nota</div>'+
+    '<div class="end-hero-row">'+
+      '<div class="end-hero-grade end-color-'+visual.color+'">'+(r.score||'B')+'</div>'+
+      '<div class="end-bar">'+bars+'</div>'+
+    '</div>'+
+    '<div class="end-hero-sub">'+(r.summary||'')+'</div>'+
+    (r.positive?'<div class="end-positive">'+
+      '<svg class="end-positive-icon" viewBox="0 0 24 24"><path d="M12 1.5l2 8 8 2-8 2-2 8-2-8-8-2 8-2z" fill="currentColor"/></svg>'+
+      '<span class="end-positive-text">'+styleQuotes(r.positive)+'</span>'+
+    '</div>':'')+
+  '</div>';
+
+  // Mistakes card
+  var mistakesHTML='';
+  if(r.mistakes&&r.mistakes.length>0){
+    mistakesHTML='<div class="end-card"><div class="end-card-title">Erros para corrigir</div>'+
+      r.mistakes.map(function(m,i){
+        return '<div class="end-row">'+
+          '<div class="end-row-badge end-badge-mistake">'+(i+1)+'</div>'+
+          '<div class="end-row-body">'+
+            '<div class="end-row-title">'+(m.title||'')+'</div>'+
+            '<div class="end-row-detail">'+styleQuotes(m.detail||'')+'</div>'+
+          '</div>'+
+        '</div>';
+      }).join('')+
+    '</div>';
+  }
+
+  // Next steps card
+  var arrowSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 5 19 12 13 19"/></svg>';
+  var nextHTML='';
+  if(r.improvements&&r.improvements.length>0){
+    nextHTML='<div class="end-card"><div class="end-card-title">Próximos passos</div>'+
+      r.improvements.map(function(imp){
+        return '<div class="end-row">'+
+          '<div class="end-row-badge end-badge-next">'+arrowSvg+'</div>'+
+          '<div class="end-row-body">'+
+            '<div class="end-row-title">'+(imp.title||'')+'</div>'+
+            '<div class="end-row-detail">'+styleQuotes(imp.detail||'')+'</div>'+
+          '</div>'+
+        '</div>';
+      }).join('')+
+    '</div>';
+  }
+
+  // Pronunciation pills — recompute from session data the same way emmaEnd does
+  var pronWords=[];
+  if(window._sessionPronunciationData&&window._sessionPronunciationData.length>0){
+    var wordMap={};
+    window._sessionPronunciationData.forEach(function(sess){
+      (sess.scores&&sess.scores.words||[]).forEach(function(wd){
+        if(!wd.word)return;
+        var k=wd.word.toLowerCase();
+        if(!wordMap[k])wordMap[k]={word:wd.word,total:0,count:0};
+        wordMap[k].total+=wd.accuracyScore||0;
+        wordMap[k].count++;
+      });
+    });
+    pronWords=Object.values(wordMap)
+      .map(function(wd){return {word:wd.word,score:Math.round(wd.total/wd.count)};})
+      .filter(function(wd){return wd.score<90;})
+      .sort(function(a,b){return a.score-b.score;})
+      .slice(0,6);
+  }
+  var pronHTML='';
+  if(pronWords.length>0){
+    pronHTML='<div class="end-card"><div class="end-card-title">Pronúncia · treinar</div>'+
+      '<div class="end-pills">'+
+        pronWords.map(function(wd){
+          var cls=wd.score<60?'r':wd.score<80?'y':'g';
+          return '<span class="end-pill end-pill-'+cls+'">'+wd.word+
+            ' <span class="end-pill-pct">'+wd.score+'%</span></span>';
+        }).join('')+
+      '</div>'+
+    '</div>';
+  }
+
+  // Assemble
+  var body=d.body;
   var btn=d.createElement('button');
   btn.className='print-btn no-print';
   btn.textContent='Salvar como PDF';
   btn.onclick=function(){w.print();};
+
+  var wrap=d.createElement('div');
+  wrap.className='pdf-wrap';
+  wrap.innerHTML=
+    '<div class="pdf-head">'+
+      '<div class="pdf-brand">Street Way English</div>'+
+      '<h1 class="pdf-headline">'+(r.headline||'Relatório de Conversa')+'</h1>'+
+      '<div class="pdf-date">Relatório — '+date+'</div>'+
+    '</div>'+
+    heroHTML+mistakesHTML+nextHTML+pronHTML+
+    '<div class="pdf-footer">Street Way English • Emma AI Coach</div>';
+
   body.appendChild(btn);
-
-  // Header
-  var h1=d.createElement('h1');h1.textContent='Street Way English';body.appendChild(h1);
-  var h2=d.createElement('h2');h2.textContent=r.headline;body.appendChild(h2);
-  var dt=d.createElement('div');dt.className='dt';dt.textContent='Relatório de Conversa — '+date;body.appendChild(dt);
-
-  // Score box
-  var sb=d.createElement('div');sb.className='score-box';
-  var sc=d.createElement('div');sc.className='score-circle';sc.textContent=r.score;sb.appendChild(sc);
-  var si=d.createElement('div');
-  var st=d.createElement('div');st.style.cssText='font-size:14px;font-weight:600;margin-bottom:3px;';st.textContent='Desempenho Geral';si.appendChild(st);
-  var ss=d.createElement('div');ss.style.cssText='font-size:13px;color:#666;';ss.textContent=r.summary;si.appendChild(ss);
-  sb.appendChild(si);body.appendChild(sb);
-
-  // Mistakes
-  var ms=d.createElement('div');ms.className='sec';
-  var ml=d.createElement('div');ml.className='lbl';ml.textContent='Erros Comuns';ms.appendChild(ml);
-  (r.mistakes||[]).forEach(function(m){
-    var item=d.createElement('div');item.className='item item-r';
-    var t=d.createElement('div');t.className='item-title';t.textContent=m.title;item.appendChild(t);
-    var det=d.createElement('div');det.className='item-detail';det.textContent=m.detail;item.appendChild(det);
-    ms.appendChild(item);
-  });
-  body.appendChild(ms);
-
-  // Improvements
-  var is=d.createElement('div');is.className='sec';
-  var il=d.createElement('div');il.className='lbl';il.textContent='Foque Nisso';is.appendChild(il);
-  (r.improvements||[]).forEach(function(imp){
-    var item=d.createElement('div');item.className='item item-i';
-    var t=d.createElement('div');t.className='item-title';t.textContent=imp.title;item.appendChild(t);
-    var det=d.createElement('div');det.className='item-detail';det.textContent=imp.detail;item.appendChild(det);
-    is.appendChild(item);
-  });
-  body.appendChild(is);
-
-  // Positive
-  var ps=d.createElement('div');ps.className='sec positive';
-  var pl=d.createElement('div');pl.className='lbl';pl.style.color='#2d7a3a';pl.style.marginBottom='6px';pl.textContent='Muito Bem';ps.appendChild(pl);
-  var pt=d.createElement('div');pt.className='positive-txt';pt.textContent=r.positive;ps.appendChild(pt);
-  body.appendChild(ps);
-
-  // Footer
-  var ft=d.createElement('div');ft.className='footer';ft.textContent='Street Way English • Emma AI Coach';body.appendChild(ft);
+  body.appendChild(wrap);
 }
 
 function downloadTranscript(){
@@ -279,6 +335,22 @@ function downloadExercises(){
       });
     }catch(e){}
   };
+  // ─── Shared mic stream cache (kills iOS recording chime by reusing stream) ──
+  window._exGetMicStream=window._exGetMicStream||function(){
+    if(window._exMicStream && window._exMicStream.active){
+      return Promise.resolve(window._exMicStream);
+    }
+    return navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){
+      window._exMicStream=s;
+      return s;
+    });
+  };
+  window._exReleaseMicStream=window._exReleaseMicStream||function(){
+    if(window._exMicStream){
+      try{window._exMicStream.getTracks().forEach(function(t){t.stop();});}catch(e){}
+      window._exMicStream=null;
+    }
+  };
 
   // Build pronunciation exercises from AI-generated sentences (same as grammar)
   var pronExercises=[];
@@ -408,6 +480,8 @@ function downloadExercises(){
     }
 
     if(exIdx>=totalQs){
+      // Summary screen — release the mic since recording is done
+      if(window._exReleaseMicStream)window._exReleaseMicStream();
       // Summary screen
       var correct=exScores.filter(function(s,i){return s!==undefined&&grammarQs[i]&&s===grammarQs[i].answer;}).length;
       cardHtml=
@@ -422,7 +496,7 @@ function downloadExercises(){
     }
 
     var backBtn='<div style="display:flex;align-items:center;margin-bottom:16px;">'+
-      '<button onclick="showReport()" style="background:none;border:none;cursor:pointer;font-size:11px;font-weight:600;color:rgba(0,0,0,.35);font-family:inherit;display:flex;align-items:center;gap:4px;padding:0;letter-spacing:.02em;">'+
+      '<button onclick="if(window._exReleaseMicStream)window._exReleaseMicStream();showReport()" style="background:none;border:none;cursor:pointer;font-size:11px;font-weight:600;color:rgba(0,0,0,.35);font-family:inherit;display:flex;align-items:center;gap:4px;padding:0;letter-spacing:.02em;">'+
         '<svg width="13" height="13" viewBox="0 0 24 24" fill="rgba(0,0,0,.35)"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>'+
         'Relatório'+
       '</button>'+
@@ -496,14 +570,14 @@ function downloadExercises(){
       window._exPronRec.stop();
       return;
     }
-    navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+    window._exGetMicStream().then(function(stream){
       var chunks=[];
       var mt=MediaRecorder.isTypeSupported('audio/mp4')?'audio/mp4':MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')?'audio/ogg;codecs=opus':'audio/webm';
       var mr=new MediaRecorder(stream,{mimeType:mt});
       window._exPronRec=mr;
       mr.ondataavailable=function(e){if(e.data.size>0)chunks.push(e.data);};
       mr.onstop=function(){
-        stream.getTracks().forEach(function(t){t.stop();});
+        // Don't stop tracks — stream stays alive to avoid iOS chime on next record
         if(recBtn){recBtn.style.background='#e8b84b';recBtn.style.boxShadow='0 0 0 10px rgba(232,184,75,.12)';recBtn.classList.remove('ex-rec-active');}
         var recIconStop=document.getElementById('exRecIcon_'+pi);
         if(recIconStop){recIconStop.innerHTML='<path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.3 6-6.72h-1.7z"/>';}

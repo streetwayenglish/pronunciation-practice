@@ -6,18 +6,29 @@
 function _endVerifyExercises(exercises, done){
   if(!exercises||!exercises.length){done(exercises);return;}
   var list=exercises.map(function(q,i){
-    var opts=q.options.map(function(o,j){return String.fromCharCode(65+j)+') '+o;}).join('  ');
-    return '['+i+'] Q: '+q.question+'\n    '+opts+'\n    Marked correct: '+String.fromCharCode(65+q.answer);
-  }).join('\n\n');
-  var prompt='You are verifying answer keys for English grammar/vocabulary exercises. For each exercise below, check whether the "Marked correct" letter is actually the right answer. If it is wrong, return the correct option index (0=A, 1=B, 2=C, 3=D). If a question has multiple plausible answers, prefer the most standard/idiomatic English. Respond ONLY with valid JSON, no markdown, no commentary. Format: {"corrections":[{"i":<exercise_index>,"correct":<correct_index>}]}. Include ONLY exercises where the marked answer is wrong. If all are correct, return {"corrections":[]}.\n\nExercises:\n'+list;
+    var opts=q.options.map(function(o,j){return '    '+String.fromCharCode(65+j)+') '+o;}).join('\n');
+    return 'EXERCISE '+i+':\nQ: '+q.question+'\n'+opts+'\nMarked correct: '+String.fromCharCode(65+q.answer);
+  }).join('\n\n---\n\n');
+  var prompt='You are auditing answer keys for English grammar/vocabulary exercises before they are shown to a Brazilian student.\n\n'+
+    'CRITICAL INTERPRETATION RULES — read carefully:\n'+
+    '• When a question has MULTIPLE BLANKS (shown as "_____") and an option is written like "X / Y", interpret X as filling the FIRST blank and Y as filling the SECOND blank IN ORDER. Mentally substitute and read the resulting full sentence before judging. The "/" does NOT mean "X or Y" — it separates ordered fill-ins.\n'+
+    '• Example: Question "My name _____ Lucas and I _____ from Brazil." with option "is / am" means "My name is Lucas and I am from Brazil." (correct). Option "am / is" means "My name am Lucas and I is from Brazil." (gibberish).\n'+
+    '• For each option, FIRST construct the full resolved sentence in your head, THEN judge whether it is grammatically and semantically correct in standard English.\n\n'+
+    'For EACH exercise, return one of three verdicts:\n'+
+    '1. "ok" — exactly one option produces a correct resolved sentence, and that option is the marked one.\n'+
+    '2. "fix" — exactly one option produces a correct resolved sentence, but a different option is marked. Return the correct index (0=A, 1=B, 2=C, 3=D).\n'+
+    '3. "discard" — broken question. Use when: (a) two or more options produce valid correct sentences, (b) the question stem is unclear or has no unambiguous answer, (c) no option produces a correct sentence, (d) the question premise is flawed.\n\n'+
+    'BE STRICT. If the marked option produces a sentence that is wrong English, mark it "fix" with the index of the actually-correct option. If two options are both valid English, mark "discard". We would rather show fewer good questions than confuse the student with bad ones.\n\n'+
+    'Respond ONLY with valid JSON, no markdown, no commentary. Format: {"verdicts":[{"i":<index>,"v":"ok"|"fix"|"discard","correct":<index_if_fix>}]}. Include an entry for every exercise. Omit "correct" unless v is "fix".\n\n'+
+    'EXERCISES TO AUDIT:\n\n'+list;
   fetch(W+'/emma-chat',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
-      system:'You are a strict English teacher verifying answer keys. Respond ONLY with valid JSON.',
+      system:'You are a strict English teacher auditing exercise quality. You substitute options into question blanks and judge the resulting sentences. Respond ONLY with valid JSON.',
       messages:[{role:'user',content:prompt}],
       topic:'verify',
-      max_tokens:500
+      max_tokens:800
     })
   })
   .then(function(r){return r.json();})
@@ -25,14 +36,20 @@ function _endVerifyExercises(exercises, done){
     if(d.error)throw new Error(d.error);
     var text=(d.text||'').replace(/```json|```/g,'').trim();
     var res=JSON.parse(text);
-    if(res&&res.corrections&&res.corrections.length){
-      res.corrections.forEach(function(c){
-        if(typeof c.i==='number'&&typeof c.correct==='number'&&exercises[c.i]&&c.correct>=0&&c.correct<exercises[c.i].options.length){
-          exercises[c.i].answer=c.correct;
-        }
-      });
+    if(!res||!res.verdicts){done(exercises);return;}
+    var keep=[];
+    var verdictMap={};
+    res.verdicts.forEach(function(v){if(typeof v.i==='number')verdictMap[v.i]=v;});
+    for(var i=0;i<exercises.length;i++){
+      var v=verdictMap[i];
+      if(!v){keep.push(exercises[i]);continue;} // no verdict → keep as-is
+      if(v.v==='discard')continue; // drop it
+      if(v.v==='fix'&&typeof v.correct==='number'&&v.correct>=0&&v.correct<exercises[i].options.length){
+        exercises[i].answer=v.correct;
+      }
+      keep.push(exercises[i]);
     }
-    done(exercises);
+    done(keep);
   })
   .catch(function(){done(exercises);}); // fail open — never block the report
 }
@@ -340,6 +357,7 @@ function emmaEnd(){
     '"exercises":[{"question":"complete the sentence / choose the correct form","options":["opt A","opt B","opt C","opt D"],"answer":0,"tip":"brief grammar explanation"}],'+
     '"pronSentences":["correct English sentence relevant to this conversation","...","...","..."]}'+
     ' Rules: max 3 mistakes, max 3 improvements. Each "detail" field MUST be 20-40 words (concise and actionable, no fluff). The "summary" and "positive" fields MUST each be a single sentence. Generate 8 exercises based on grammar mistakes and vocabulary from this conversation — mix multiple choice, sentence completion and error correction. answer is 0-based index of correct option.'+
+    ' CRITICAL exercise rule: each question MUST have EXACTLY ONE correct answer; the other three options must be unambiguously wrong (clear grammatical errors, factually incorrect, or obviously inappropriate for the context). Do NOT create questions where multiple options could be considered correct in standard English. For example, do NOT ask "choose the correct form" if both an uncontracted and contracted version are grammatically valid — only one option should be correct.'+
     ' Generate exactly 4 pronSentences: correct natural English sentences (8-15 words) relevant to the conversation.'+(pronWords.length>0?' Each sentence must include at least one of these poorly-pronounced words (lowest score first): '+pronWords.map(function(w){return w.word;}).join(', ')+'.':'')+
     ' Match the vocabulary complexity of the student\'s own sentences — keep it simple if they spoke simply. Be kind and practical.';
   fetch(W+'/emma-chat',{
