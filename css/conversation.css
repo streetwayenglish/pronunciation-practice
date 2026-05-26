@@ -40,6 +40,7 @@
   /* Lock the conversation tab to viewport — Emma video stays at top, dock at bottom, bubbles scroll BEHIND both */
   body.tab-conversation {
     overflow: hidden;
+    background: #050403;
   }
   body.tab-conversation .emma-card {
     border-radius: 0;
