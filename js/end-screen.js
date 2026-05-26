@@ -18,6 +18,212 @@ function emmaEndAndBack(){
   showTopicPage();
 }
 
+// ─── Score → visual mapping (color + bar fill out of 10) ──────────────
+function _endScoreToVisual(score){
+  var s=(score||'B').toString().toUpperCase().trim();
+  if(s==='A+')return{color:'green',filled:10};
+  if(s==='A') return{color:'green',filled:9};
+  if(s==='B+')return{color:'yellow',filled:8};
+  if(s==='B') return{color:'yellow',filled:7};
+  if(s==='C+')return{color:'orange',filled:6};
+  if(s==='C') return{color:'orange',filled:5};
+  if(s==='D') return{color:'red',filled:3};
+  return{color:'yellow',filled:7};
+}
+
+// ─── Wrap single-quoted English phrases (handles contractions) in <q> ──
+function _endStyleQuotes(text){
+  return(text||'').replace(/'([A-Za-z][^']*(?:'\w[^']*)*)'/g,'<q>$1</q>');
+}
+
+// ─── Loading screen status message cycle ──────────────────────────────
+var _endLoadingTimer=null;
+function _endStartLoadingCycle(){
+  var messages=['Analisando a conversa','Verificando sua pronúncia','Identificando pontos a melhorar','Gerando seu relatório'];
+  var idx=0;
+  if(_endLoadingTimer)clearInterval(_endLoadingTimer);
+  _endLoadingTimer=setInterval(function(){
+    idx=(idx+1)%messages.length;
+    var el=document.getElementById('endLoadingStatus');
+    if(!el)return;
+    el.style.opacity='0';
+    setTimeout(function(){
+      var e=document.getElementById('endLoadingStatus');
+      if(e){e.textContent=messages[idx];e.style.opacity='1';}
+    },280);
+  },2200);
+}
+function _endStopLoadingCycle(){
+  if(_endLoadingTimer){clearInterval(_endLoadingTimer);_endLoadingTimer=null;}
+}
+
+// ─── Shared styles (injected once per render) ─────────────────────────
+var _endStyles='\
+.end-page,.end-loading{background:#f6f5f1;font-family:-apple-system,BlinkMacSystemFont,"DM Sans",sans-serif;color:#0a0a0a;min-height:100vh;margin:0 -1rem -4rem;}\
+.end-page{padding:18px 14px 32px;}\
+.end-loading{padding:40px 24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;}\
+.end-card{background:#fff;border-radius:16px;margin-bottom:10px;padding:20px;}\
+.end-card-title{font-size:15px;font-weight:700;color:#0a0a0a;letter-spacing:-.01em;margin-bottom:14px;}\
+.end-hero-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(0,0,0,.42);margin-bottom:10px;}\
+.end-hero-row{display:flex;align-items:center;gap:14px;margin-bottom:18px;}\
+.end-hero-grade{font-size:38px;font-weight:800;letter-spacing:-.04em;line-height:1;flex-shrink:0;}\
+.end-color-green{color:#22c55e;}.end-color-yellow{color:#e8b84b;}.end-color-orange{color:#f59e0b;}.end-color-red{color:#ef4444;}\
+.end-bar{display:flex;gap:5px;align-items:center;height:30px;}\
+.end-bar span{width:8px;height:100%;background:#ececef;border-radius:100px;}\
+.end-bar span.f.end-color-green{background:#22c55e;}\
+.end-bar span.f.end-color-yellow{background:#e8b84b;}\
+.end-bar span.f.end-color-orange{background:#f59e0b;}\
+.end-bar span.f.end-color-red{background:#ef4444;}\
+.end-hero-sub{font-size:13.5px;color:rgba(0,0,0,.55);line-height:1.5;letter-spacing:-.005em;}\
+.end-positive{margin-top:16px;padding:12px 14px;background:rgba(45,122,58,.07);border-radius:10px;display:flex;gap:10px;align-items:flex-start;}\
+.end-positive-icon{flex-shrink:0;width:14px;height:14px;color:#2d7a3a;margin-top:2px;}\
+.end-positive-text{font-size:13px;line-height:1.5;color:#1f5e2c;letter-spacing:-.005em;}\
+.end-row{display:flex;gap:12px;align-items:flex-start;padding:14px 0;border-bottom:1px solid #f1f0f3;}\
+.end-row:first-of-type{padding-top:0;}\
+.end-row:last-of-type{padding-bottom:0;border-bottom:none;}\
+.end-row-badge{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-weight:800;}\
+.end-badge-mistake{background:rgba(192,57,43,.1);color:#c0392b;font-size:11px;}\
+.end-badge-next{background:rgba(232,184,75,.16);color:#b88a2e;}\
+.end-badge-next svg{width:13px;height:13px;}\
+.end-row-body{flex:1;min-width:0;}\
+.end-row-title{font-size:14px;font-weight:600;color:#0a0a0a;margin-bottom:4px;line-height:1.35;letter-spacing:-.005em;}\
+.end-row-detail{font-size:12.5px;color:rgba(0,0,0,.55);line-height:1.55;}\
+.end-row-detail q{quotes:"\\27" "\\27";color:rgba(0,0,0,.78);font-weight:500;}\
+.end-pills{display:flex;flex-wrap:wrap;gap:7px;}\
+.end-pill{border:none;background:rgba(0,0,0,.04);border-radius:100px;padding:9px 14px;font-family:inherit;font-size:13.5px;font-weight:600;color:#0a0a0a;cursor:pointer;display:inline-flex;align-items:baseline;gap:7px;transition:transform .1s,background .15s;letter-spacing:-.005em;}\
+.end-pill:active{transform:scale(.96);}\
+.end-pill-pct{font-size:11px;font-weight:700;opacity:.65;}\
+.end-pill-r{background:rgba(192,57,43,.1);color:#c0392b;}\
+.end-pill-y{background:rgba(232,184,75,.16);color:#8a6d00;}\
+.end-pill-g{background:rgba(45,122,58,.1);color:#2d7a3a;}\
+.end-actions{margin-top:20px;display:flex;flex-direction:column;gap:10px;}\
+.end-primary-btn{width:100%;padding:14px;border-radius:13px;background:#0a0a0a;color:#fff;border:none;font-family:inherit;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;letter-spacing:-.005em;}\
+.end-primary-btn svg{width:16px;height:16px;}\
+.end-secondary-row{display:flex;gap:8px;}\
+.end-secondary-btn{flex:1;padding:11px 6px;border-radius:11px;background:#fff;border:1px solid #ececef;color:rgba(0,0,0,.7);font-family:inherit;font-size:11.5px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;letter-spacing:-.005em;}\
+.end-secondary-btn svg{width:14px;height:14px;flex-shrink:0;}\
+.end-bar-loading span{animation:endBarFill 2.6s ease-in-out infinite;}\
+.end-bar-loading span:nth-child(1){animation-delay:0s;}\
+.end-bar-loading span:nth-child(2){animation-delay:.12s;}\
+.end-bar-loading span:nth-child(3){animation-delay:.24s;}\
+.end-bar-loading span:nth-child(4){animation-delay:.36s;}\
+.end-bar-loading span:nth-child(5){animation-delay:.48s;}\
+.end-bar-loading span:nth-child(6){animation-delay:.60s;}\
+.end-bar-loading span:nth-child(7){animation-delay:.72s;}\
+.end-bar-loading span:nth-child(8){animation-delay:.84s;}\
+.end-bar-loading span:nth-child(9){animation-delay:.96s;}\
+.end-bar-loading span:nth-child(10){animation-delay:1.08s;}\
+@keyframes endBarFill{0%,55%{background:#ececef;transform:scaleY(.85);}65%{background:#e8b84b;transform:scaleY(1.08);}100%{background:#ececef;transform:scaleY(.85);}}\
+.end-loading-status{font-size:24px;font-weight:700;color:rgba(0,0,0,.85);letter-spacing:-.02em;transition:opacity .35s ease;text-align:center;max-width:290px;line-height:1.25;}\
+.end-loading-sub{font-size:13px;color:rgba(0,0,0,.4);letter-spacing:-.005em;margin-top:-14px;display:flex;align-items:center;gap:5px;}\
+.end-loading-dots{display:inline-flex;gap:3px;align-items:center;}\
+.end-loading-dots span{width:3px;height:3px;border-radius:50%;background:rgba(0,0,0,.35);animation:endDot 1.4s ease-in-out infinite;}\
+.end-loading-dots span:nth-child(2){animation-delay:.2s;}\
+.end-loading-dots span:nth-child(3){animation-delay:.4s;}\
+@keyframes endDot{0%,60%,100%{opacity:.25;}30%{opacity:1;}}\
+';
+
+// ─── HTML builders ────────────────────────────────────────────────────
+function _endBuildLoadingHTML(){
+  return '<style>'+_endStyles+'</style>'+
+    '<div class="end-loading">'+
+      '<div class="end-bar end-bar-loading">'+
+        '<span></span><span></span><span></span><span></span><span></span>'+
+        '<span></span><span></span><span></span><span></span><span></span>'+
+      '</div>'+
+      '<div class="end-loading-status" id="endLoadingStatus">Analisando a conversa</div>'+
+      '<div class="end-loading-sub"><span>só um instante</span>'+
+      '<span class="end-loading-dots"><span></span><span></span><span></span></span></div>'+
+    '</div>';
+}
+
+function _endBuildReportHTML(r,pronWords){
+  var v=_endScoreToVisual(r.score);
+  var i;
+  // Score bar
+  var barHTML='';
+  for(i=0;i<10;i++){barHTML+='<span class="'+(i<v.filled?'f end-color-'+v.color:'')+'"></span>';}
+
+  // Hero card (score + headline + summary + inline positive)
+  var heroHTML='<div class="end-card">'+
+    '<div class="end-hero-label">Sua nota</div>'+
+    '<div class="end-hero-row">'+
+      '<div class="end-hero-grade end-color-'+v.color+'">'+(r.score||'B')+'</div>'+
+      '<div class="end-bar">'+barHTML+'</div>'+
+    '</div>'+
+    '<div class="end-hero-sub">'+(r.headline||'')+(r.summary?' '+r.summary:'')+'</div>'+
+    (r.positive?'<div class="end-positive">'+
+      '<svg class="end-positive-icon" viewBox="0 0 24 24"><path d="M12 1.5l2 8 8 2-8 2-2 8-2-8-8-2 8-2z" fill="currentColor"/></svg>'+
+      '<span class="end-positive-text">'+_endStyleQuotes(r.positive)+'</span>'+
+    '</div>':'')+
+  '</div>';
+
+  // Mistakes card
+  var mistakesHTML='';
+  if(r.mistakes&&r.mistakes.length>0){
+    mistakesHTML='<div class="end-card"><div class="end-card-title">Erros para corrigir</div>'+
+      r.mistakes.map(function(m,i){
+        return '<div class="end-row">'+
+          '<div class="end-row-badge end-badge-mistake">'+(i+1)+'</div>'+
+          '<div class="end-row-body">'+
+            '<div class="end-row-title">'+(m.title||'')+'</div>'+
+            '<div class="end-row-detail">'+_endStyleQuotes(m.detail||'')+'</div>'+
+          '</div>'+
+        '</div>';
+      }).join('')+
+    '</div>';
+  }
+
+  // Next steps card
+  var arrowSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 5 19 12 13 19"/></svg>';
+  var nextHTML='';
+  if(r.improvements&&r.improvements.length>0){
+    nextHTML='<div class="end-card"><div class="end-card-title">Próximos passos</div>'+
+      r.improvements.map(function(imp){
+        return '<div class="end-row">'+
+          '<div class="end-row-badge end-badge-next">'+arrowSvg+'</div>'+
+          '<div class="end-row-body">'+
+            '<div class="end-row-title">'+(imp.title||'')+'</div>'+
+            '<div class="end-row-detail">'+_endStyleQuotes(imp.detail||'')+'</div>'+
+          '</div>'+
+        '</div>';
+      }).join('')+
+    '</div>';
+  }
+
+  // Pronunciation pills card
+  var pronHTML='';
+  if(pronWords&&pronWords.length>0){
+    pronHTML='<div class="end-card"><div class="end-card-title">Pronúncia · treinar</div>'+
+      '<div class="end-pills">'+
+        pronWords.map(function(w){
+          var cls=w.score<60?'r':w.score<80?'y':'g';
+          return '<button class="end-pill end-pill-'+cls+'" onclick="playCorrectWord(this)" data-word="'+w.word+'">'+w.word+
+            ' <span class="end-pill-pct">'+w.score+'%</span></button>';
+        }).join('')+
+      '</div>'+
+    '</div>';
+  }
+
+  // Actions (all icons as inline SVG — no emoji)
+  var refreshIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3.5-7.1"/><polyline points="21 3 21 9 15 9"/></svg>';
+  var docIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+  var chatIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+  var pencilIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+  var actionsHTML='<div class="end-actions">'+
+    '<button class="end-primary-btn" onclick="renderEmma()">'+refreshIcon+' Nova conversa</button>'+
+    '<div class="end-secondary-row">'+
+      '<button class="end-secondary-btn" onclick="downloadReport()">'+docIcon+' Salvar PDF</button>'+
+      '<button class="end-secondary-btn" onclick="downloadTranscript()">'+chatIcon+' Transcript</button>'+
+      '<button class="end-secondary-btn" onclick="downloadExercises()">'+pencilIcon+' Exercícios</button>'+
+    '</div>'+
+  '</div>';
+
+  return '<style>'+_endStyles+'</style>'+
+    '<div class="end-page">'+heroHTML+mistakesHTML+nextHTML+pronHTML+actionsHTML+'</div>';
+}
+
+// ─── Main end-screen entry point ──────────────────────────────────────
 function emmaEnd(){
   // Save progress
   if(window._sessionExpressions && window._sessionExpressions.length > 0){
@@ -36,30 +242,14 @@ function emmaEnd(){
   var history=emmaHistory.slice();
   emmaHistory=[];
   var area=document.getElementById('area');
-  // Show warm completion message first
-  var unit = getCurrentUnit(emmaTopic);
-  var unitInfo = unit ? ' — '+unit.title : '';
-  area.innerHTML=renderModeTabs()+
-    '<div style="background:#fff;border-radius:20px;overflow:hidden;border:1px solid #ede9e2;box-shadow:0 2px 20px rgba(0,0,0,.06);">'+
-      '<div style="background:#0a0a0a;padding:28px 28px 24px;display:flex;align-items:center;gap:16px;">'+
-        '<div style="position:relative;width:64px;height:64px;flex-shrink:0;">'+
-          '<svg width="64" height="64" viewBox="0 0 64 64">'+
-            '<circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5"/>'+
-            '<circle cx="32" cy="32" r="26" fill="none" stroke="#e8b84b" stroke-width="5" stroke-dasharray="163" stroke-dashoffset="40" stroke-linecap="round" transform="rotate(-90 32 32)" style="filter:blur(1.5px)"/>'+
-          '</svg>'+
-          '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:rgba(232,184,75,.35);filter:blur(4px);">B+</div>'+
-        '</div>'+
-        '<div>'+
-          '<div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:4px;">Calculando sua nota...</div>'+
-          '<div style="font-size:12px;color:rgba(255,255,255,.3);">Session complete'+unitInfo+'</div>'+
-        '</div>'+
-      '</div>'+
-      '<div style="padding:18px 28px;display:flex;align-items:center;gap:10px;">'+
-        '<div style="width:18px;height:18px;border-radius:50%;border:2.5px solid #f0ede8;border-top-color:#e8b84b;animation:spin .8s linear infinite;flex-shrink:0;"></div>'+
-        '<div style="font-size:12px;color:#bbb;">Analisando a conversa...</div>'+
-      '</div>'+
-    '</div>';
+
+  // Show loading screen with cycling status messages
+  area.innerHTML=renderModeTabs()+_endBuildLoadingHTML();
+  _endStartLoadingCycle();
+
+  // Short conversation guard
   if(history.length<3){
+    _endStopLoadingCycle();
     area.innerHTML=renderModeTabs()+
       '<div class="card" style="text-align:center;padding:3rem 2rem;">'+
         '<div style="font-size:40px;margin-bottom:1rem;">&#128075;</div>'+
@@ -69,10 +259,13 @@ function emmaEnd(){
       '</div>';
     return;
   }
+
   var convoText=history.map(function(m){return (m.role==='user'?'Student: ':'Emma: ')+m.content;}).join(' | ');
   window._lastHistory=history;
   window._lastTopic=emmaTopic;
   var convoText2=convoText;if(convoText2.length>2000)convoText2=convoText2.slice(-2000);
+
+  // Pronunciation words — top 6 lowest-scoring (was 10)
   var pronWords=[];
   if(window._sessionPronunciationData&&window._sessionPronunciationData.length>0){
     var wordMap={};
@@ -89,9 +282,11 @@ function emmaEnd(){
       .map(function(w){return {word:w.word,score:Math.round(w.total/w.count)};})
       .filter(function(w){return w.score<90;})
       .sort(function(a,b){return a.score-b.score;})
-      .slice(0,10);
+      .slice(0,6);
   }
   var pronInfo=pronWords.length>0?(' Pronunciation data: '+JSON.stringify(pronWords)):'';
+
+  // Prompt — adds length constraint on detail fields to cap report size
   var reportPrompt='Analyze this English conversation between a Brazilian student and coach Emma. Conversation: '+convoText2+pronInfo+' '+
     'Respond ONLY with a single JSON object, no markdown, no backticks. Format: '+
     '{"headline":"título encorajador curto em português","score":"A/B/C/D","summary":"uma frase of avaliação em português",'+
@@ -100,7 +295,7 @@ function emmaEnd(){
     '"positive":"what the student did well",'+
     '"exercises":[{"question":"complete the sentence / choose the correct form","options":["opt A","opt B","opt C","opt D"],"answer":0,"tip":"brief grammar explanation"}],'+
     '"pronSentences":["correct English sentence relevant to this conversation","...","...","..."]}'+
-    ' Rules: max 3 mistakes, max 3 improvements. Generate 8 exercises based on grammar mistakes and vocabulary from this conversation — mix multiple choice, sentence completion and error correction. answer is 0-based index of correct option.'+
+    ' Rules: max 3 mistakes, max 3 improvements. Each "detail" field MUST be 20-40 words (concise and actionable, no fluff). The "summary" and "positive" fields MUST each be a single sentence. Generate 8 exercises based on grammar mistakes and vocabulary from this conversation — mix multiple choice, sentence completion and error correction. answer is 0-based index of correct option.'+
     ' Generate exactly 4 pronSentences: correct natural English sentences (8-15 words) relevant to the conversation.'+(pronWords.length>0?' Each sentence must include at least one of these poorly-pronounced words (lowest score first): '+pronWords.map(function(w){return w.word;}).join(', ')+'.':'')+
     ' Match the vocabulary complexity of the student\'s own sentences — keep it simple if they spoke simply. Be kind and practical.';
   fetch(W+'/emma-chat',{
@@ -113,65 +308,15 @@ function emmaEnd(){
     if(d.error)throw new Error(d.error);
     var text=d.text.replace(/```json|```/g,'').trim();
     var r=JSON.parse(text);
-    var pronHtml='';
-    if(pronWords&&pronWords.length>0){
-      pronHtml=pronWords.map(function(w,i){
-        var c=w.score<=60?'#c0392b':w.score<=75?'#e8b84b':'#2d7a3a';
-        return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">'+
-          '<span style="font-size:9px;font-weight:700;color:#ccc;width:12px;text-align:right;flex-shrink:0">'+(i+1)+'</span>'+
-          '<span style="font-size:12px;font-weight:600;color:#111;width:90px;flex-shrink:0">'+w.word+'</span>'+
-          '<div style="flex:1;height:6px;background:#f0ede8;border-radius:3px;overflow:hidden">'+
-            '<div style="width:'+w.score+'%;height:100%;background:'+c+';border-radius:3px;"></div></div>'+
-          '<span style="font-size:11px;font-weight:700;color:'+c+';width:30px;text-align:right;flex-shrink:0">'+w.score+'%</span></div>';
-      }).join('');
-    }
-    var ringPct=r.score==='A+'?0.97:r.score==='A'?0.90:r.score==='B+'?0.77:r.score==='B'?0.66:0.50;
-    var ringCirc=2*Math.PI*34;
-    var ringOffset=ringCirc*(1-ringPct);
-    var ringSvg='<div style="position:relative;width:80px;height:80px;flex-shrink:0">'+
-      '<svg width="80" height="80" viewBox="0 0 80 80">'+
-        '<circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="6"/>'+
-        '<circle cx="40" cy="40" r="34" fill="none" stroke="#e8b84b" stroke-width="6" stroke-dasharray="'+ringCirc+'" stroke-dashoffset="'+ringOffset+'" stroke-linecap="round" transform="rotate(-90 40 40)"/>'+
-      '</svg>'+
-      '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:800;color:#e8b84b">'+r.score+'</div></div>';
-    var mistakesHtml=r.mistakes.map(function(m,i){
-      return '<div style="display:flex;gap:10px;padding-bottom:'+(i<r.mistakes.length-1?'13px':'0')+';margin-bottom:'+(i<r.mistakes.length-1?'13px':'0')+';border-bottom:'+(i<r.mistakes.length-1?'1px solid #faf8f4':'none')+'">'+
-        '<div style="width:20px;height:20px;border-radius:50%;background:rgba(192,57,43,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:9px;font-weight:800;color:#c0392b">'+(i+1)+'</div>'+
-        '<div><div style="font-size:13px;font-weight:600;color:#0a0a0a;margin-bottom:2px;">'+m.title+'</div>'+
-        '<div style="font-size:12px;color:#888;line-height:1.5;">'+m.detail+'</div></div></div>';
-    }).join('');
-    var improvementsHtml=r.improvements.map(function(imp,i){
-      return '<div style="display:flex;gap:10px;padding-bottom:'+(i<r.improvements.length-1?'13px':'0')+';margin-bottom:'+(i<r.improvements.length-1?'13px':'0')+';border-bottom:'+(i<r.improvements.length-1?'1px solid #faf8f4':'none')+'">'+
-        '<div style="width:20px;height:20px;border-radius:50%;background:rgba(232,184,75,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:11px;color:#e8b84b;font-weight:700;">→</div>'+
-        '<div><div style="font-size:13px;font-weight:600;color:#0a0a0a;margin-bottom:2px;">'+imp.title+'</div>'+
-        '<div style="font-size:12px;color:#888;line-height:1.5;">'+imp.detail+'</div></div></div>';
-    }).join('');
-    area.innerHTML=renderModeTabs()+
-      '<div style="background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 2px 24px rgba(0,0,0,.08);border:1px solid #ede9e2;margin-bottom:1rem;">'+
-        '<div style="background:#0a0a0a;padding:28px 24px;display:flex;align-items:center;gap:18px;">'+ringSvg+
-          '<div style="flex:1;"><div style="font-size:15px;font-weight:700;color:#fff;line-height:1.3;margin-bottom:5px;">'+r.headline+'</div>'+
-          '<div style="font-size:12px;color:rgba(255,255,255,.38);line-height:1.45;">'+r.summary+'</div></div></div>'+
-        '<div style="padding:18px 24px;border-bottom:1px solid #f0ede8;">'+
-          '<div style="background:rgba(45,122,58,.06);border:1px solid rgba(45,122,58,.15);border-radius:10px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start;">'+
-            '<span style="font-size:14px;flex-shrink:0;margin-top:1px;">✦</span>'+
-            '<div style="font-size:13px;color:#2d7a3a;line-height:1.55;">'+r.positive+'</div></div></div>'+
-        '<div style="padding:18px 24px;border-bottom:1px solid #f0ede8;">'+
-          '<div style="font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#c0392b;margin-bottom:14px;">Erros para corrigir</div>'+mistakesHtml+'</div>'+
-        '<div style="padding:18px 24px;border-bottom:1px solid #f0ede8;">'+
-          '<div style="font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#e8b84b;margin-bottom:14px;">Próximos passos</div>'+improvementsHtml+'</div>'+
-        (pronHtml?'<div style="padding:18px 24px;border-bottom:1px solid #f0ede8;"><div style="font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#aaa;margin-bottom:14px;">🎙 Pronúncia — top 10 para treinar</div>'+pronHtml+'</div>':'')+
-        '<div style="padding:16px 24px;display:flex;flex-direction:column;gap:8px;">'+
-          '<button class="ab" onclick="renderEmma()" style="width:100%;padding:14px;border-radius:12px;background:#0a0a0a;border:none;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;"><span>🔄</span> Nova conversa</button>'+
-          '<div style="height:1px;background:#f0ede8;margin:2px 0;"></div>'+
-          '<div style="display:flex;gap:8px;">'+
-            '<button class="ab" onclick="downloadReport()" style="flex:1;padding:11px 6px;border-radius:11px;background:#f5f3ef;border:1px solid #e8e4de;color:#333;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;"><span style="font-size:13px;">📄</span> Salvar PDF</button>'+
-            '<button class="ab" onclick="downloadTranscript()" style="flex:1;padding:11px 6px;border-radius:11px;background:#f5f3ef;border:1px solid #e8e4de;color:#333;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;"><span style="font-size:13px;">💬</span> Transcript</button>'+
-            '<button class="ab" onclick="downloadExercises()" style="flex:1;padding:11px 6px;border-radius:11px;background:rgba(232,184,75,.08);border:1px solid rgba(232,184,75,.3);color:#7a5c00;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;"><span style="font-size:13px;">✏️</span> Exercícios</button>'+
-          '</div></div></div>';
+    _endStopLoadingCycle();
+    var area2=document.getElementById('area');
+    if(area2)area2.innerHTML=renderModeTabs()+_endBuildReportHTML(r,pronWords);
     window._lastReport=r;
   })
   .catch(function(){
-    area.innerHTML=renderModeTabs()+
+    _endStopLoadingCycle();
+    var area3=document.getElementById('area');
+    if(area3)area3.innerHTML=renderModeTabs()+
       '<div class="card" style="text-align:center;padding:3rem 2rem;">'+
         '<div style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:8px;">Ótima conversa!</div>'+
         '<div style="font-size:13px;color:var(--g400);margin-bottom:2rem;">Continue praticando todo dia.</div>'+
