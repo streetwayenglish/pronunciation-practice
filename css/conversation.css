@@ -16,6 +16,19 @@
     padding-right: max(16px, env(safe-area-inset-right, 0px));
   }
 
+  /* Nav bar text colors — base.css uses dark colors meant for a light bg.
+     On the dark conversation tab they'd be invisible. Flip them to light. */
+  body.tab-conversation .emma-back-menu {
+    background: rgba(0,0,0,.3);
+    border-color: rgba(255,255,255,.22);
+    color: rgba(255,255,255,.65);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  body.tab-conversation .emma-nav-topic {
+    color: rgba(255,255,255,.45);
+  }
+
   /* 1. Card bg pure dark — gradient lives only in video fade */
   body.tab-conversation .emma-card {
     background-image: none;
