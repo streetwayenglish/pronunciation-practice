@@ -59,7 +59,11 @@ function _endStopLoadingCycle(){
 
 // ─── Shared styles (injected once per render) ─────────────────────────
 var _endStyles='\
-.end-page,.end-loading{background:#f6f5f1;font-family:-apple-system,BlinkMacSystemFont,"DM Sans",sans-serif;color:#0a0a0a;min-height:100vh;margin:0 -1rem -4rem;}\
+.end-shell{display:flex;flex-direction:column;height:100vh;height:100dvh;background:#f6f5f1;font-family:-apple-system,BlinkMacSystemFont,"DM Sans",sans-serif;color:#0a0a0a;}\
+.end-shell .emma-nav-bar{flex-shrink:0;background:#f6f5f1;}\
+body.tab-conversation .end-shell .emma-back-menu{background:transparent;border-color:rgba(0,0,0,.12);color:rgba(0,0,0,.55);backdrop-filter:none;-webkit-backdrop-filter:none;}\
+body.tab-conversation .end-shell .emma-nav-topic{color:rgba(0,0,0,.42);}\
+.end-page,.end-loading{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;background:#f6f5f1;}\
 .end-page{padding:18px 14px 32px;}\
 .end-loading{padding:40px 24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;}\
 .end-card{background:#fff;border-radius:16px;margin-bottom:10px;padding:20px;}\
@@ -126,14 +130,16 @@ var _endStyles='\
 // ─── HTML builders ────────────────────────────────────────────────────
 function _endBuildLoadingHTML(){
   return '<style>'+_endStyles+'</style>'+
-    '<div class="end-loading">'+
-      '<div class="end-bar end-bar-loading">'+
-        '<span></span><span></span><span></span><span></span><span></span>'+
-        '<span></span><span></span><span></span><span></span><span></span>'+
+    '<div class="end-shell">'+renderModeTabs()+
+      '<div class="end-loading">'+
+        '<div class="end-bar end-bar-loading">'+
+          '<span></span><span></span><span></span><span></span><span></span>'+
+          '<span></span><span></span><span></span><span></span><span></span>'+
+        '</div>'+
+        '<div class="end-loading-status" id="endLoadingStatus">Analisando a conversa</div>'+
+        '<div class="end-loading-sub"><span>só um instante</span>'+
+        '<span class="end-loading-dots"><span></span><span></span><span></span></span></div>'+
       '</div>'+
-      '<div class="end-loading-status" id="endLoadingStatus">Analisando a conversa</div>'+
-      '<div class="end-loading-sub"><span>só um instante</span>'+
-      '<span class="end-loading-dots"><span></span><span></span><span></span></span></div>'+
     '</div>';
 }
 
@@ -220,7 +226,9 @@ function _endBuildReportHTML(r,pronWords){
   '</div>';
 
   return '<style>'+_endStyles+'</style>'+
-    '<div class="end-page">'+heroHTML+mistakesHTML+nextHTML+pronHTML+actionsHTML+'</div>';
+    '<div class="end-shell">'+renderModeTabs()+
+      '<div class="end-page">'+heroHTML+mistakesHTML+nextHTML+pronHTML+actionsHTML+'</div>'+
+    '</div>';
 }
 
 // ─── Main end-screen entry point ──────────────────────────────────────
@@ -244,7 +252,7 @@ function emmaEnd(){
   var area=document.getElementById('area');
 
   // Show loading screen with cycling status messages
-  area.innerHTML=renderModeTabs()+_endBuildLoadingHTML();
+  area.innerHTML=_endBuildLoadingHTML();
   _endStartLoadingCycle();
 
   // Short conversation guard
@@ -310,7 +318,7 @@ function emmaEnd(){
     var r=JSON.parse(text);
     _endStopLoadingCycle();
     var area2=document.getElementById('area');
-    if(area2)area2.innerHTML=renderModeTabs()+_endBuildReportHTML(r,pronWords);
+    if(area2)area2.innerHTML=_endBuildReportHTML(r,pronWords);
     window._lastReport=r;
   })
   .catch(function(){
