@@ -253,6 +253,33 @@ function downloadExercises(){
   var area=document.getElementById('area');
   if(!area)return;
 
+  // ─── Inject keyframe styles + correct-answer chime (idempotent) ─────────────
+  if(!document.getElementById('_exFxStyles')){
+    var _exS=document.createElement('style');
+    _exS.id='_exFxStyles';
+    _exS.textContent=
+      '@keyframes _exRecPulse{0%,100%{box-shadow:0 0 0 10px rgba(192,57,43,.20)}50%{box-shadow:0 0 0 18px rgba(192,57,43,.04)}}'+
+      '@keyframes _exStopBreath{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.88)}}'+
+      '.ex-rec-active{animation:_exRecPulse 1.2s ease-in-out infinite}'+
+      '.ex-rec-active svg{transform-origin:center;animation:_exStopBreath 1.2s ease-in-out infinite}';
+    document.head.appendChild(_exS);
+  }
+  window._exPlayCorrectChime=window._exPlayCorrectChime||function(){
+    try{
+      var c=new(window.AudioContext||window.webkitAudioContext)();
+      [523,659,784].forEach(function(f,i){
+        var o=c.createOscillator(),g=c.createGain();
+        o.type='triangle';o.frequency.value=f;
+        var t=c.currentTime+i*.09;
+        g.gain.setValueAtTime(0,t);
+        g.gain.linearRampToValueAtTime(.22,t+.008);
+        g.gain.exponentialRampToValueAtTime(.001,t+.13);
+        o.connect(g);g.connect(c.destination);
+        o.start(t);o.stop(t+.14);
+      });
+    }catch(e){}
+  };
+
   // Build pronunciation exercises from AI-generated sentences (same as grammar)
   var pronExercises=[];
   if(r.pronSentences&&r.pronSentences.length>0){
@@ -282,7 +309,9 @@ function downloadExercises(){
   window._exScores=exScores;
   window._exSetScore=function(qIdx,i){
     if(exScores[qIdx]!==undefined)return;
-    exScores[qIdx]=i;exIdx=qIdx;renderExercise();
+    exScores[qIdx]=i;exIdx=qIdx;
+    if(grammarQs[qIdx]&&i===grammarQs[qIdx].answer&&window._exPlayCorrectChime)window._exPlayCorrectChime();
+    renderExercise();
   };
   function renderExercise(){
     var isGrammar=exIdx<grammarTotal;
@@ -412,6 +441,7 @@ function downloadExercises(){
     if(exScores[exIdx]!==undefined)return;
     exScores[exIdx]=i;
     if(window._exScores)window._exScores[exIdx]=i;
+    if(grammarQs[exIdx]&&i===grammarQs[exIdx].answer&&window._exPlayCorrectChime)window._exPlayCorrectChime();
     renderExercise();
   };
   // Apply voice result if pending
@@ -474,7 +504,7 @@ function downloadExercises(){
       mr.ondataavailable=function(e){if(e.data.size>0)chunks.push(e.data);};
       mr.onstop=function(){
         stream.getTracks().forEach(function(t){t.stop();});
-        if(recBtn){recBtn.style.background='#e8b84b';recBtn.style.boxShadow='0 0 0 10px rgba(232,184,75,.12)';}
+        if(recBtn){recBtn.style.background='#e8b84b';recBtn.style.boxShadow='0 0 0 10px rgba(232,184,75,.12)';recBtn.classList.remove('ex-rec-active');}
         var recIconStop=document.getElementById('exRecIcon_'+pi);
         if(recIconStop){recIconStop.innerHTML='<path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.3 6-6.72h-1.7z"/>';}
         if(recLabel)recLabel.textContent='Enviando...';
@@ -505,6 +535,7 @@ function downloadExercises(){
               if(fb&&score>0){
                 var msg=score>=80?'✦ Ótimo! Continue assim.':score>=65?'Quase lá! Ouça Emma e tente de novo.':'Foque nas palavras em vermelho — ouça Emma mais uma vez.';
                 fb.innerHTML='<div style="margin-top:14px;padding:10px 14px;background:rgba(45,122,58,.06);border:1px solid rgba(45,122,58,.15);border-radius:10px;font-size:14px;color:#2d7a3a;">'+msg+'</div>';
+                if(score>=80&&window._exPlayCorrectChime)window._exPlayCorrectChime();
               }
             }).catch(function(){if(recLabel)recLabel.textContent='Erro. Tente novamente.';});
           }
@@ -537,7 +568,7 @@ function downloadExercises(){
         fr.readAsDataURL(blob);
       };
       mr.start();
-      if(recBtn){recBtn.style.background='#c0392b';recBtn.style.boxShadow='0 0 0 10px rgba(192,57,43,.12)';}
+      if(recBtn){recBtn.style.background='#c0392b';recBtn.style.boxShadow='0 0 0 10px rgba(192,57,43,.12)';recBtn.classList.add('ex-rec-active');}
       var recIconStart=document.getElementById('exRecIcon_'+pi);
       if(recIconStart){recIconStart.innerHTML='<rect x="6" y="6" width="12" height="12" rx="2"/>';}
       if(recLabel)recLabel.textContent='Gravando... toque para parar';
