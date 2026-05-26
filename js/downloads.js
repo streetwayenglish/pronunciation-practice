@@ -348,7 +348,7 @@ function downloadExercises(){
         optsHtml+tipHtml+
         '<div style="margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:8px;">'+
           '<button id="exMicBtn" onclick="mcToggleRec('+exIdx+')" style="width:52px;height:52px;border-radius:50%;background:rgba(0,0,0,.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;">'+
-            '<svg width="18" height="18" viewBox="0 0 24 24" fill="rgba(0,0,0,.45)"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.3 6-6.72h-1.7z"/></svg>'+
+            '<svg id="exMicIcon" width="18" height="18" viewBox="0 0 24 24" fill="rgba(0,0,0,.45)"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.3 6-6.72h-1.7z"/></svg>'+
           '</button>'+
           '<div id="exMicLbl" style="font-size:13px;color:#bbb;">Ou fale sua resposta</div>'+
           '<div id="exTranscript" style="font-size:14px;color:#888;min-height:16px;text-align:center;"></div>'+
@@ -363,7 +363,7 @@ function downloadExercises(){
         '<div style="font-size:15px;color:#aaa;font-weight:500;margin-bottom:14px;">Ouça e repita:</div>'+
         '<div style="background:#f8f6f2;border-radius:12px;padding:12px 14px;margin-bottom:28px;display:flex;align-items:flex-start;gap:12px;">'+
           '<button onclick="exPlayEmma('+pi+')" id="exPlayBtn_'+pi+'" style="width:34px;height:34px;border-radius:50%;flex-shrink:0;margin-top:2px;background:rgba(0,0,0,.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;">'+
-            '<svg width="12" height="12" viewBox="0 0 24 24" fill="rgba(0,0,0,.4)"><path d="M8 5v14l11-7z"/></svg>'+
+            '<svg id="exPlayIcon_'+pi+'" width="12" height="12" viewBox="0 0 24 24" fill="rgba(0,0,0,.4)"><path d="M8 5v14l11-7z"/></svg>'+
           '</button>'+
           '<div id="exWords_'+pi+'" style="flex:1;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:flex-end;">'+
             pe.sentence.split(' ').map(function(w){return '<span style="font-size:18px;font-weight:500;color:#111;">'+w+'</span>';}).join('')+
@@ -371,7 +371,7 @@ function downloadExercises(){
         '</div>'+
         '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;">'+
           '<button onclick="exToggleRec('+pi+')" id="exRecBtn_'+pi+'" style="width:64px;height:64px;border-radius:50%;background:#e8b84b;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 10px rgba(232,184,75,.12);">'+
-            '<svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.3 6-6.72h-1.7z"/></svg>'+
+            '<svg id="exRecIcon_'+pi+'" width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.3 6-6.72h-1.7z"/></svg>'+
           '</button>'+
           '<div id="exRecLabel_'+pi+'" style="font-size:13px;color:#bbb;">Toque para gravar</div>'+
         '</div>'+
@@ -380,7 +380,7 @@ function downloadExercises(){
 
     if(exIdx>=totalQs){
       // Summary screen
-      var correct=exScores.filter(function(s,i){return s===grammarQs[i]&&s!==undefined;}).length;
+      var correct=exScores.filter(function(s,i){return s!==undefined&&grammarQs[i]&&s===grammarQs[i].answer;}).length;
       cardHtml=
         '<div style="text-align:center;padding:20px 0;">'+
           '<div style="font-size:42px;margin-bottom:16px;">🎉</div>'+
@@ -435,16 +435,28 @@ function downloadExercises(){
     var pe=pronExercises[pi];
     if(!pe)return;
     var btn=document.getElementById('exPlayBtn_'+pi);
+    var icon=document.getElementById('exPlayIcon_'+pi);
+    var playSvg='<path d="M8 5v14l11-7z"/>';
+    var pauseSvg='<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';
+    function resetBtn(){
+      if(btn){btn.style.background='rgba(0,0,0,.08)';}
+      if(icon){icon.setAttribute('fill','rgba(0,0,0,.4)');icon.innerHTML=playSvg;}
+      if(pronAudio){try{pronAudio.stop();}catch(e){}pronAudio=null;}
+    }
+    // Already playing? Stop and reset.
+    if(pronAudio){resetBtn();return;}
     if(btn){btn.style.background='#0a0a0a';}
+    if(icon){icon.setAttribute('fill','#fff');icon.innerHTML=pauseSvg;}
     fetch(W+'/emma-speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:pe.sentence})})
     .then(function(r){return r.arrayBuffer();})
     .then(function(ab){
       var ctx=new (window.AudioContext||window.webkitAudioContext)();
       return ctx.decodeAudioData(ab).then(function(buf){
         var src=ctx.createBufferSource();src.buffer=buf;src.connect(ctx.destination);src.start();
-        src.onended=function(){if(btn){btn.style.background='rgba(0,0,0,.08)';}};
+        pronAudio=src;
+        src.onended=function(){if(pronAudio===src)resetBtn();};
       });
-    }).catch(function(){if(btn){btn.style.background='rgba(0,0,0,.08)';}});
+    }).catch(resetBtn);
   };
 
   window.exToggleRec=function(pi){
@@ -463,6 +475,8 @@ function downloadExercises(){
       mr.onstop=function(){
         stream.getTracks().forEach(function(t){t.stop();});
         if(recBtn){recBtn.style.background='#e8b84b';recBtn.style.boxShadow='0 0 0 10px rgba(232,184,75,.12)';}
+        var recIconStop=document.getElementById('exRecIcon_'+pi);
+        if(recIconStop){recIconStop.innerHTML='<path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.3 6-6.72h-1.7z"/>';}
         if(recLabel)recLabel.textContent='Enviando...';
         var blob=new Blob(chunks,{type:mt});
         var fr=new FileReader();
@@ -524,6 +538,8 @@ function downloadExercises(){
       };
       mr.start();
       if(recBtn){recBtn.style.background='#c0392b';recBtn.style.boxShadow='0 0 0 10px rgba(192,57,43,.12)';}
+      var recIconStart=document.getElementById('exRecIcon_'+pi);
+      if(recIconStart){recIconStart.innerHTML='<rect x="6" y="6" width="12" height="12" rx="2"/>';}
       if(recLabel)recLabel.textContent='Gravando... toque para parar';
     }).catch(function(){});
   };

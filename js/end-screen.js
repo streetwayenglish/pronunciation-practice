@@ -1,6 +1,42 @@
 // ============================================================================
 // END SCREEN — session end UI, coach playback, word popup
 // ============================================================================
+
+// ─── Verify exercise answer keys against the LLM (catches wrong "answer" indices) ─
+function _endVerifyExercises(exercises, done){
+  if(!exercises||!exercises.length){done(exercises);return;}
+  var list=exercises.map(function(q,i){
+    var opts=q.options.map(function(o,j){return String.fromCharCode(65+j)+') '+o;}).join('  ');
+    return '['+i+'] Q: '+q.question+'\n    '+opts+'\n    Marked correct: '+String.fromCharCode(65+q.answer);
+  }).join('\n\n');
+  var prompt='You are verifying answer keys for English grammar/vocabulary exercises. For each exercise below, check whether the "Marked correct" letter is actually the right answer. If it is wrong, return the correct option index (0=A, 1=B, 2=C, 3=D). If a question has multiple plausible answers, prefer the most standard/idiomatic English. Respond ONLY with valid JSON, no markdown, no commentary. Format: {"corrections":[{"i":<exercise_index>,"correct":<correct_index>}]}. Include ONLY exercises where the marked answer is wrong. If all are correct, return {"corrections":[]}.\n\nExercises:\n'+list;
+  fetch(W+'/emma-chat',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      system:'You are a strict English teacher verifying answer keys. Respond ONLY with valid JSON.',
+      messages:[{role:'user',content:prompt}],
+      topic:'verify',
+      max_tokens:500
+    })
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.error)throw new Error(d.error);
+    var text=(d.text||'').replace(/```json|```/g,'').trim();
+    var res=JSON.parse(text);
+    if(res&&res.corrections&&res.corrections.length){
+      res.corrections.forEach(function(c){
+        if(typeof c.i==='number'&&typeof c.correct==='number'&&exercises[c.i]&&c.correct>=0&&c.correct<exercises[c.i].options.length){
+          exercises[c.i].answer=c.correct;
+        }
+      });
+    }
+    done(exercises);
+  })
+  .catch(function(){done(exercises);}); // fail open — never block the report
+}
+
 function emmaEndAndBack(){
   // End conversation and return to topic selection
   if(window._sessionExpressions && window._sessionExpressions.length > 0){
@@ -316,10 +352,13 @@ function emmaEnd(){
     if(d.error)throw new Error(d.error);
     var text=d.text.replace(/```json|```/g,'').trim();
     var r=JSON.parse(text);
-    _endStopLoadingCycle();
-    var area2=document.getElementById('area');
-    if(area2)area2.innerHTML=_endBuildReportHTML(r,pronWords);
-    window._lastReport=r;
+    _endVerifyExercises(r.exercises||[],function(verified){
+      r.exercises=verified;
+      _endStopLoadingCycle();
+      var area2=document.getElementById('area');
+      if(area2)area2.innerHTML=_endBuildReportHTML(r,pronWords);
+      window._lastReport=r;
+    });
   })
   .catch(function(){
     _endStopLoadingCycle();
