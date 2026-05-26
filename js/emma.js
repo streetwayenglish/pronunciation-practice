@@ -321,7 +321,7 @@ function emmaAddCorrectionBubble(original,correction){
   wrap.scrollTop=wrap.scrollHeight;
 }
 
-var _pronData={};var _pronBubbleCounter=0;var _pronAudio=null;window._sessionPronunciationData=[];
+var _pronData={};var _pronBubbleCounter=0;var _pronAudio=null;var _pronEmmaSrc=null;var _pronCurrentBtn=null;window._sessionPronunciationData=[];
 
 function pronCls(s){return s>=80?'g':s>=65?'y':'r';}
 function pronColor(s){return s>=80?'#1a7f44':s>=65?'#8a6d00':'#b91c1c';}
@@ -478,11 +478,55 @@ function showPronunciationPanel(bubbleId){
   if(by)by.onclick=function(){pronPlayStudent(bubbleId);};if(be)be.onclick=function(){pronPlayEmma(data.transcript);};
 }
 
-function pronPlayStudent(id){var data=_pronData[id];if(!data||!data.audioB64)return;if(_pronAudio){_pronAudio.pause();_pronAudio=null;}var raw=atob(data.audioB64),arr=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)arr[i]=raw.charCodeAt(i);var blob=new Blob([arr],{type:data.audioMime||'audio/mp4'});var url=URL.createObjectURL(blob);_pronAudio=new Audio(url);_pronAudio.play();_pronAudio.onended=function(){URL.revokeObjectURL(url);};}
+// Stops any currently-playing pronunciation audio and resets button visual state
+function pronStopAll(){
+  if(_pronAudio){try{_pronAudio.pause();}catch(e){}_pronAudio=null;}
+  if(_pronEmmaSrc){try{_pronEmmaSrc.stop();}catch(e){}_pronEmmaSrc=null;}
+  var byb=document.getElementById('pronBtnYou');if(byb)byb.classList.remove('playing');
+  var beb=document.getElementById('pronBtnEmma');if(beb)beb.classList.remove('playing');
+  _pronCurrentBtn=null;
+}
 
-function pronPlayEmma(transcript){if(!transcript)return;var btn=document.getElementById('pronBtnEmma');if(btn){btn.style.color='#8a6d00';btn.style.background='rgba(201,162,39,.12)';}fetch(W+'/emma-speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:transcript})}).then(function(r){return r.arrayBuffer();}).then(function(ab){var ctx=new (window.AudioContext||window.webkitAudioContext)();return ctx.decodeAudioData(ab).then(function(buf){var src=ctx.createBufferSource();src.buffer=buf;src.connect(ctx.destination);src.start();src.onended=function(){if(btn){btn.style.color='';btn.style.background='';}}; });}).catch(function(){if(btn){btn.style.color='';btn.style.background='';}});}
+function pronPlayStudent(id){
+  var data=_pronData[id];if(!data||!data.audioB64)return;
+  var btn=document.getElementById('pronBtnYou');
+  // Tap-toggle: if this button is already playing, stop and return
+  if(btn && btn.classList.contains('playing')){pronStopAll();return;}
+  pronStopAll();
+  var raw=atob(data.audioB64),arr=new Uint8Array(raw.length);
+  for(var i=0;i<raw.length;i++)arr[i]=raw.charCodeAt(i);
+  var blob=new Blob([arr],{type:data.audioMime||'audio/mp4'});
+  var url=URL.createObjectURL(blob);
+  _pronAudio=new Audio(url);
+  if(btn){btn.classList.add('playing');_pronCurrentBtn=btn;}
+  _pronAudio.play();
+  _pronAudio.onended=function(){URL.revokeObjectURL(url);if(btn)btn.classList.remove('playing');if(_pronCurrentBtn===btn)_pronCurrentBtn=null;_pronAudio=null;};
+}
 
-function closePronPanel(){var el=document.getElementById('pronOverlay');if(el)el.remove();if(_pronAudio){_pronAudio.pause();_pronAudio=null;}}
+function pronPlayEmma(transcript){
+  if(!transcript)return;
+  var btn=document.getElementById('pronBtnEmma');
+  // Tap-toggle: if this button is already playing, stop and return
+  if(btn && btn.classList.contains('playing')){pronStopAll();return;}
+  pronStopAll();
+  if(btn){btn.classList.add('playing');_pronCurrentBtn=btn;}
+  fetch(W+'/emma-speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:transcript})})
+    .then(function(r){return r.arrayBuffer();})
+    .then(function(ab){
+      if(_pronCurrentBtn!==btn)return; // user switched/stopped during fetch
+      var ctx=new (window.AudioContext||window.webkitAudioContext)();
+      return ctx.decodeAudioData(ab).then(function(buf){
+        if(_pronCurrentBtn!==btn)return;
+        var src=ctx.createBufferSource();src.buffer=buf;src.connect(ctx.destination);
+        _pronEmmaSrc=src;
+        src.start();
+        src.onended=function(){if(btn)btn.classList.remove('playing');if(_pronCurrentBtn===btn)_pronCurrentBtn=null;if(_pronEmmaSrc===src)_pronEmmaSrc=null;};
+      });
+    })
+    .catch(function(){if(btn)btn.classList.remove('playing');if(_pronCurrentBtn===btn)_pronCurrentBtn=null;});
+}
+
+function closePronPanel(){var el=document.getElementById('pronOverlay');if(el)el.remove();pronStopAll();}
 
 function closeSuggestion(){var p=document.getElementById('suggestionPopup');if(p)p.remove();var b=document.getElementById('suggestionBdrop');if(b)b.remove();}
 
