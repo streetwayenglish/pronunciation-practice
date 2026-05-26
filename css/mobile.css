@@ -33,9 +33,9 @@
 .pron-ring-wrap{position:relative;width:80px;height:80px;flex-shrink:0;}
 .pron-ring-wrap svg{transform:rotate(-90deg);}
 .pron-ring-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.pron-ring-num{font-size:22px;font-weight:700;letter-spacing:-1px;line-height:1;}
+.pron-ring-num{font-size:23px;font-weight:700;letter-spacing:-1px;line-height:1;}
 .pron-ring-lbl{font-size:8px;color:rgba(0,0,0,.3);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-top:2px;}
-.pron-right{flex:1;}.pron-transcript{font-size:15px;font-weight:600;color:#111;line-height:1.45;margin-bottom:14px;}
+.pron-right{flex:1;}.pron-transcript{font-size:16px;font-weight:600;color:#111;line-height:1.45;margin-bottom:14px;}
 .pron-sub-scores{display:flex;gap:0;}
 .pron-sub{padding:0 14px 0 0;border-right:1px solid #f0ede8;margin-right:14px;}
 .pron-sub:last-child{border-right:none;margin-right:0;padding-right:0;}
@@ -43,7 +43,7 @@
 .pron-sub-num span{font-size:11px;color:rgba(0,0,0,.3);font-weight:400;}
 .pron-sub-lbl{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(0,0,0,.28);margin-top:2px;}
 .pron-words-section{padding:22px 28px 28px;border-bottom:1px solid #f0ede8;}
-.pron-words-lbl{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(0,0,0,.22);margin-bottom:14px;}
+.pron-words-lbl{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(0,0,0,.22);margin-bottom:14px;}
 .pron-words-grid{display:flex;flex-wrap:wrap;gap:8px;}
 .pron-word-chip{display:inline-flex;flex-direction:column;align-items:center;gap:3px;padding:9px 16px;border-radius:12px;cursor:pointer;border:2px solid transparent;transition:border-color .12s;}
 .pron-word-chip.g{background:rgba(26,127,68,.09);border-color:rgba(26,127,68,.2);}
@@ -72,6 +72,20 @@
 .pron-btns{display:flex;gap:24px;padding:0 28px;justify-content:center;}
 .pron-btn-p{width:44px;height:44px;border-radius:50%;background:#f5f3ef;border:1px solid #e8e4de;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
 .pron-btn-s{width:44px;height:44px;border-radius:50%;background:#f5f3ef;border:1px solid #e8e4de;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+/* Active / playing state — black bg, yellow icon (matches app brand) */
+.pron-btn-p:active,
+.pron-btn-s:active,
+.pron-btn-p.playing,
+.pron-btn-s.playing {
+  background: #0a0a0a;
+  border-color: #0a0a0a;
+}
+.pron-btn-p:active svg,
+.pron-btn-s:active svg,
+.pron-btn-p.playing svg,
+.pron-btn-s.playing svg {
+  fill: #f5c842;
+}
 /* WORD PRACTICE */
 .word-practice{margin-top:14px;border-top:1px solid #f0ede8;padding-top:14px;}
 .word-practice-lbl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(0,0,0,.28);margin-bottom:10px;}
