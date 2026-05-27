@@ -217,10 +217,16 @@ function emmaStartConvo(){
     'Teaching rules: '+
     '1) Stay on the current unit topic — but be flexible on approach. If the student prefers to discuss the story rather than role play, or wants you to explain rather than act, adapt. Topic is fixed, teaching method is flexible. '+
     '2) Teach the target expressions one at a time, naturally woven into the conversation. Get the student to use each one before moving on. '+
-    '2) Keep every response to 1-2 sentences max. One question at a time. '+
-    '3) Speak naturally — warm, real. No bullet points. NEVER use asterisks or stage directions like *smiles*, *settles*, *leans*, *nods* or any physical description. Just speak. '+
-    '4) Opening: MAXIMUM 10 words. Then immediately ask the student a question. For Bible topics say something like: "The creation story — what do you already know about it?" Never describe your own posture or feelings. '+
-    '5) When the student uses a target expression correctly, affirm it briefly and introduce the next one.';
+    '3) Keep every response to 1-2 sentences max. One question at a time. '+
+    '4) Speak naturally — warm, real. No bullet points. NEVER use asterisks or stage directions like *smiles*, *settles*, *leans*, *nods* or any physical description. Just speak. '+
+    '5) Opening: MAXIMUM 10 words. Then immediately ask the student a question. For Bible topics say something like: "The creation story — what do you already know about it?" Never describe your own posture or feelings. '+
+    '6) When the student uses a target expression correctly, affirm it briefly and introduce the next one.';
+
+  // Cache the full session prompt so every subsequent turn reuses the same
+  // instructions (curriculum, expressions, redirect logic, teaching rules).
+  // Without this, emmaSubmit was sending a stripped-down prompt and Emma
+  // would forget the unit, expressions, and redirect rules after turn 1.
+  window._emmaBasePrompt = sysPrompt;
 
   emmaHistory=[{role:'user',content:'[Start the conversation - introduce yourself and begin the scenario]'}];
   emmaCallClaude(sysPrompt,function(text){
@@ -909,11 +915,18 @@ function emmaSubmit(transcript){
   }
 
   if(status)status.textContent='Emma is thinking...';
-  var sysPrompt='You are Emma, a friendly American English conversation coach having a natural spoken conversation with a Brazilian student. Topic: '+emmaTopic+'. '+
-    'IMPORTANT: Respond ONLY with a JSON object, no markdown, no backticks. Format: {"correction":{"original":"exact wrong phrase the student said","fixed":"the correct version"},"reply":"your conversational reply"} '+
-    'If the student made NO grammar or vocabulary mistake, set correction to null: {"correction":null,"reply":"your reply"} '+
-    'Rules for correction: The transcript is literal — treat it exactly as written. Correct clear grammar/vocabulary errors only. The fixed field must contain ONE clean phrase only, no quotes inside it, no alternatives separated by or. Be warm — start the reply naturally after correcting. '+
-    'Rules for reply: 1-2 sentences max. Ask one question to keep conversation going. Be natural and friendly. Never use bullet points.';
+  // Use the full session prompt (curriculum, unit, expressions, redirect logic,
+  // teaching rules) — cached in emmaStartConvo — plus the JSON correction
+  // format rules. This is the drift fix: previously the per-turn prompt was
+  // a stripped-down version, so Emma forgot the unit and expressions after
+  // turn 1. Now every turn gets the same full instructions.
+  var jsonRules =
+    ' RESPONSE FORMAT (every turn): Respond ONLY with a JSON object, no markdown, no backticks. '+
+    'Format: {"correction":{"original":"exact wrong phrase the student said","fixed":"the correct version"},"reply":"your conversational reply"}. '+
+    'If the student made NO grammar or vocabulary mistake, set correction to null: {"correction":null,"reply":"your reply"}. '+
+    'Rules for correction: The transcript is literal — treat it exactly as written. Correct clear grammar/vocabulary errors only. The fixed field must contain ONE clean phrase only, no quotes inside it, no alternatives separated by "or". Be warm — start the reply naturally after correcting. '+
+    'Rules for reply: 1-2 sentences max. Ask one question to keep conversation going. Be natural and friendly. Never use bullet points. The reply must still respect ALL the teaching rules and unit constraints above — stay on the current unit, teach target expressions, redirect off-topic requests using the structure defined earlier.';
+  var sysPrompt = (window._emmaBasePrompt || 'You are Emma, a friendly American English conversation coach having a natural spoken conversation with a Brazilian student. Topic: '+emmaTopic+'.') + jsonRules;
   emmaCallClaude(sysPrompt,function(raw){
     var parsed;
     try{
