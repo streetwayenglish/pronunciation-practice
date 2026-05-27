@@ -178,6 +178,23 @@ function emmaStartConvo(){
   window._sessionExpressions = sessionExprs;
   window._expressionsTaught = 0;
 
+  // ── Warm-up bridge ──────────────────────────────────────────────────────
+  // Pull the 5 phrases the student just rehearsed in the warm-up and pass
+  // them into Emma's system prompt. Same phrases as the warm-up screen
+  // (warmup.js exposes getWarmupPhrases). Cached with the base prompt so it
+  // persists across all turns of the session.
+  var unitNum = (unit && unit.unit) || 1;
+  var practicedPhrases = (typeof window.getWarmupPhrases === 'function')
+    ? window.getWarmupPhrases(emmaTopic, unitNum)
+    : [];
+  var practicedContext = '';
+  if (practicedPhrases.length > 0) {
+    practicedContext =
+      'PRACTICED PHRASES: The student JUST rehearsed these 5 phrases in the warm-up (pronunciation drill) — they have them fresh in mind and can deploy them. Create natural opportunities for the student to use these phrases during the conversation, but do not force any of them. If a phrase does not fit naturally in the flow, skip it. Quality of integration over quantity of phrases used. ' +
+      'Phrases: ' + practicedPhrases.map(function(p,i){return (i+1)+') "'+p+'"';}).join(' | ') + '. ';
+  }
+  window._practicedPhrases = practicedPhrases;
+
   var curriculumContext = '';
   if (unit && sessionExprs.length > 0) {
     curriculumContext =
@@ -204,6 +221,7 @@ function emmaStartConvo(){
   var sysPrompt='You are Emma, an English coach. This session has ONE topic and ONE scenario — listed below. You will not deviate from it under any circumstances. '+
     'Topic: '+emmaTopic+'. Unit: '+unitTitle0+'. '+
     curriculumContext+
+    practicedContext+
     'Your approach this session: '+unitScenario0+' '+
     'TEACHING APPROACH: Teach English through natural conversation about the unit topic. '+
     'FLEXIBLE: The student can ask questions, request explanations, change the teaching approach, say they do not want to role play, ask for more detail, or engage in any way they choose — as long as the SUBJECT stays on the current unit. All of these are valid and you should adapt immediately: "can you tell me more about Noah?", "what happened next?", "explain that to me", "I prefer you just tell me the story", "can we discuss this differently?". These are NOT topic switches — they are engagement choices. '+

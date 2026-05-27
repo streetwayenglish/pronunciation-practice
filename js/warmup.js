@@ -148,6 +148,17 @@ function _wuBuildPhrases(topic, unitNum){
   });
 }
 
+// ─── Bridge to Emma chat ────────────────────────────────────────────────────
+// Expose the practiced phrases for the current topic+unit so emma.js can
+// inject them into Emma's system prompt. Returns just the English strings
+// (the chat doesn't need stems or pt translations).
+window.getWarmupPhrases = function(topic, unitNum){
+  var prefix = WU_PREFIX[topic] || 'conv';
+  var table = WU_PHRASES[prefix] || WU_PHRASES.conv;
+  var uIdx = Math.min(Math.max(0, (unitNum||1)-1), table.length-1);
+  return (table[uIdx] || []).slice();
+};
+
 // State
 var _wuPhrases=[], _wuIdx=0, _wuState='idle';
 var _wuAudio=null, _wuMr=null, _wuChunks=[], _wuRec=false, _wuSR=null, _wuMatchedWords=[];
