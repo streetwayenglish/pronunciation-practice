@@ -2,71 +2,105 @@
 // END SCREEN — session end UI, coach playback, word popup
 // ============================================================================
 
-// ─── Verify exercise answer keys against the LLM (catches wrong "answer" indices) ─
-function _endVerifyExercises(exercises, done){
-  if(!exercises||!exercises.length){done(exercises);return;}
-  var list=exercises.map(function(q,i){
+// ─── Verify exercise answer keys + pron sentences against the LLM ─
+// Catches wrong "answer" indices on grammar Qs and grammar errors in pron sentences.
+function _endVerifyExercises(exercises, pronSentences, done){
+  if((!exercises||!exercises.length)&&(!pronSentences||!pronSentences.length)){
+    done({exercises:exercises||[],pronSentences:pronSentences||[]});return;
+  }
+  var exList=(exercises||[]).map(function(q,i){
     var opts=q.options.map(function(o,j){return '    '+String.fromCharCode(65+j)+') '+o;}).join('\n');
     return 'EXERCISE '+i+':\nQ: '+q.question+'\n'+opts+'\nMarked correct: '+String.fromCharCode(65+q.answer)+'\nHint shown to student: '+(q.tip||'(none)');
   }).join('\n\n---\n\n');
-  var prompt='You are auditing answer keys for English grammar/vocabulary exercises before they are shown to a Brazilian student.\n\n'+
-    'CRITICAL INTERPRETATION RULES — read carefully:\n'+
-    '• When a question has MULTIPLE BLANKS (shown as "_____") and an option is written like "X / Y", interpret X as filling the FIRST blank and Y as filling the SECOND blank IN ORDER. Mentally substitute and read the resulting full sentence before judging. The "/" does NOT mean "X or Y" — it separates ordered fill-ins.\n'+
-    '• Example: Question "My name _____ Lucas and I _____ from Brazil." with option "is / am" means "My name is Lucas and I am from Brazil." (correct). Option "am / is" means "My name am Lucas and I is from Brazil." (gibberish).\n'+
-    '• Each exercise includes a HINT field — the educational explanation shown to the student after they answer. The hint MUST be consistent with the marked correct answer. If the hint clearly explains a rule pointing to a different option than what is marked correct, FIX the answer to match what the hint teaches. The hint is high-signal ground truth about the intended answer.\n'+
-    '• Example: Question "What ___ your name?" with options A) is B) are C) be D) am, marked correct: B, hint: "Use \'is\' com \'what\'." — the hint contradicts the marked answer; FIX to A.\n'+
-    '• For each option, FIRST construct the full resolved sentence in your head, THEN judge whether it is grammatically and semantically correct in standard, natural English (the kind a native speaker would actually say).\n\n'+
-    'For EACH exercise, return one of three verdicts:\n'+
-    '1. "ok" — exactly one option produces a correct natural-sounding sentence, the marked option is that one, AND the hint is consistent with the marked answer.\n'+
-    '2. "fix" — exactly one option produces a correct sentence, but a different option is marked (OR the hint contradicts the marked answer). Return the correct index (0=A, 1=B, 2=C, 3=D).\n'+
-    '3. "discard" — broken question. Use when: (a) two or more options produce valid correct sentences in standard English, (b) the question stem is awkward, unclear, or unnatural English even after the correct option is filled in, (c) NO option produces a natural-sounding sentence, (d) the question premise is flawed.\n\n'+
-    'BE STRICT. If the marked option produces wrong or awkward English, that is "fix" (if another option is clearly right) or "discard" (if nothing works). If two options are both grammatically valid in standard English, "discard" — do not pick the "more idiomatic" one. We would rather show 4 great questions than 8 with two duds.\n\n'+
-    'Respond ONLY with valid JSON, no markdown, no commentary, no preamble. Format: {"verdicts":[{"i":<index>,"v":"ok"|"fix"|"discard","correct":<index_if_fix>}]}. Include an entry for EVERY exercise. Omit "correct" unless v is "fix".\n\n'+
-    'EXERCISES TO AUDIT:\n\n'+list;
+  var pronList=(pronSentences||[]).map(function(s,i){
+    return 'SENTENCE '+i+': "'+s+'"';
+  }).join('\n');
+  var prompt='You are auditing English learning material before it is shown to a Brazilian student. There are two sections to audit: grammar EXERCISES and pronunciation SENTENCES.\n\n'+
+    '== EXERCISES ==\n'+
+    'CRITICAL RULES:\n'+
+    '• When an option is written like "X / Y" for a question with multiple blanks (_____), interpret X as filling the FIRST blank and Y as filling the SECOND in order. The "/" does NOT mean "X or Y".\n'+
+    '• Each exercise has a HINT — the explanation shown to the student. The hint MUST be consistent with the marked correct answer. If the hint clearly teaches a rule pointing to a different option than what is marked, FIX the answer to match the hint. The hint is ground truth.\n'+
+    '• For each option, construct the full resolved sentence and judge it in natural, standard English.\n\n'+
+    'Return one verdict per exercise:\n'+
+    '1. "ok" — exactly one option produces natural correct English, the marked option is that one, and the hint is consistent.\n'+
+    '2. "fix" — the marked answer is wrong (or the hint contradicts it). Return the correct index.\n'+
+    '3. "discard" — broken: multiple options valid, awkward English in all, or unclear question.\n\n'+
+    '== PRON SENTENCES ==\n'+
+    'Each pronunciation sentence will be read aloud by Emma and repeated by the student. They MUST be natural, grammatically correct English the way a native speaker would say it.\n\n'+
+    'Return one verdict per sentence:\n'+
+    '1. "ok" — natural standard English, no changes needed.\n'+
+    '2. "rewrite" — has a grammar error or unnatural phrasing, but the intent is clear and fixable. Return a "text" field with the corrected sentence (same meaning, natural English, similar length).\n'+
+    '3. "discard" — broken or nonsensical, cannot be salvaged.\n'+
+    'Example: "have you browsing around the venue" → rewrite to "have you been browsing around the venue" (missing "been").\n'+
+    'Example: "I am go to store" → rewrite to "I am going to the store".\n\n'+
+    'Respond ONLY with valid JSON, no markdown, no preamble. Format:\n'+
+    '{"exerciseVerdicts":[{"i":<index>,"v":"ok"|"fix"|"discard","correct":<index_if_fix>}],"sentenceVerdicts":[{"i":<index>,"v":"ok"|"rewrite"|"discard","text":"<rewrite_if_rewrite>"}]}\n'+
+    'Include an entry for EVERY exercise and EVERY sentence.\n\n'+
+    'EXERCISES:\n\n'+(exList||'(none)')+
+    '\n\n=================\n\nPRON SENTENCES:\n\n'+(pronList||'(none)');
   fetch(W+'/emma-chat',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
-      system:'You are a strict English teacher auditing exercise quality. You substitute options into question blanks, cross-check with the hint, and judge the resulting sentences. Respond ONLY with valid JSON.',
+      system:'You are a strict English teacher auditing material quality. Respond ONLY with valid JSON.',
       messages:[{role:'user',content:prompt}],
       topic:'verify',
-      max_tokens:900
+      max_tokens:1200
     })
   })
   .then(function(r){return r.json();})
   .then(function(d){
     if(d.error)throw new Error(d.error);
     var text=(d.text||'').replace(/```json|```/g,'').trim();
-    // Robust JSON extract: try direct parse first, then find the verdicts object
     var res;
     try { res=JSON.parse(text); }
     catch(e){
-      var m=text.match(/\{[\s\S]*?"verdicts"[\s\S]*\}/);
+      var m=text.match(/\{[\s\S]*?"exerciseVerdicts"[\s\S]*\}/);
       if(m){ try { res=JSON.parse(m[0]); } catch(e2){} }
     }
-    if(!res||!res.verdicts){
-      console.warn('[verifier] no verdicts in response, passing through unverified',text.slice(0,200));
-      done(exercises);return;
+    if(!res){
+      console.warn('[verifier] no verdicts, passing through unverified',text.slice(0,200));
+      done({exercises:exercises||[],pronSentences:pronSentences||[]});return;
     }
-    var keep=[];
-    var verdictMap={};
-    res.verdicts.forEach(function(v){if(typeof v.i==='number')verdictMap[v.i]=v;});
-    var fixedCount=0,discardedCount=0;
-    for(var i=0;i<exercises.length;i++){
-      var v=verdictMap[i];
-      if(!v){keep.push(exercises[i]);continue;} // no verdict → keep as-is
-      if(v.v==='discard'){discardedCount++;continue;}
+
+    // Process exercise verdicts
+    var keptExercises=[];
+    var exFixed=0,exDiscarded=0;
+    var exMap={};
+    (res.exerciseVerdicts||[]).forEach(function(v){if(typeof v.i==='number')exMap[v.i]=v;});
+    for(var i=0;i<(exercises||[]).length;i++){
+      var v=exMap[i];
+      if(!v){keptExercises.push(exercises[i]);continue;}
+      if(v.v==='discard'){exDiscarded++;continue;}
       if(v.v==='fix'&&typeof v.correct==='number'&&v.correct>=0&&v.correct<exercises[i].options.length){
-        exercises[i].answer=v.correct;fixedCount++;
+        exercises[i].answer=v.correct;exFixed++;
       }
-      keep.push(exercises[i]);
+      keptExercises.push(exercises[i]);
     }
-    console.log('[verifier] '+fixedCount+' fixed, '+discardedCount+' discarded, '+keep.length+' kept of '+exercises.length);
-    done(keep);
+
+    // Process pron sentence verdicts
+    var keptSentences=[];
+    var senRewritten=0,senDiscarded=0;
+    var senMap={};
+    (res.sentenceVerdicts||[]).forEach(function(v){if(typeof v.i==='number')senMap[v.i]=v;});
+    for(var j=0;j<(pronSentences||[]).length;j++){
+      var sv=senMap[j];
+      if(!sv){keptSentences.push(pronSentences[j]);continue;}
+      if(sv.v==='discard'){senDiscarded++;continue;}
+      if(sv.v==='rewrite'&&typeof sv.text==='string'&&sv.text.length>3){
+        keptSentences.push(sv.text);senRewritten++;
+      } else {
+        keptSentences.push(pronSentences[j]);
+      }
+    }
+
+    console.log('[verifier] exercises: '+exFixed+' fixed, '+exDiscarded+' discarded, '+keptExercises.length+' kept of '+(exercises||[]).length+
+      '; sentences: '+senRewritten+' rewritten, '+senDiscarded+' discarded, '+keptSentences.length+' kept of '+(pronSentences||[]).length);
+    done({exercises:keptExercises,pronSentences:keptSentences});
   })
   .catch(function(err){
-    console.warn('[verifier] failed, passing exercises through unverified:',err&&err.message);
-    done(exercises);
+    console.warn('[verifier] failed, passing through unverified:',err&&err.message);
+    done({exercises:exercises||[],pronSentences:pronSentences||[]});
   });
 }
 
@@ -386,8 +420,9 @@ function emmaEnd(){
     if(d.error)throw new Error(d.error);
     var text=d.text.replace(/```json|```/g,'').trim();
     var r=JSON.parse(text);
-    _endVerifyExercises(r.exercises||[],function(verified){
-      r.exercises=verified;
+    _endVerifyExercises(r.exercises||[],r.pronSentences||[],function(result){
+      r.exercises=result.exercises;
+      r.pronSentences=result.pronSentences;
       _endStopLoadingCycle();
       var area2=document.getElementById('area');
       if(area2)area2.innerHTML=_endBuildReportHTML(r,pronWords);
