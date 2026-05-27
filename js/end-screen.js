@@ -7,51 +7,67 @@ function _endVerifyExercises(exercises, done){
   if(!exercises||!exercises.length){done(exercises);return;}
   var list=exercises.map(function(q,i){
     var opts=q.options.map(function(o,j){return '    '+String.fromCharCode(65+j)+') '+o;}).join('\n');
-    return 'EXERCISE '+i+':\nQ: '+q.question+'\n'+opts+'\nMarked correct: '+String.fromCharCode(65+q.answer);
+    return 'EXERCISE '+i+':\nQ: '+q.question+'\n'+opts+'\nMarked correct: '+String.fromCharCode(65+q.answer)+'\nHint shown to student: '+(q.tip||'(none)');
   }).join('\n\n---\n\n');
   var prompt='You are auditing answer keys for English grammar/vocabulary exercises before they are shown to a Brazilian student.\n\n'+
     'CRITICAL INTERPRETATION RULES — read carefully:\n'+
     '• When a question has MULTIPLE BLANKS (shown as "_____") and an option is written like "X / Y", interpret X as filling the FIRST blank and Y as filling the SECOND blank IN ORDER. Mentally substitute and read the resulting full sentence before judging. The "/" does NOT mean "X or Y" — it separates ordered fill-ins.\n'+
     '• Example: Question "My name _____ Lucas and I _____ from Brazil." with option "is / am" means "My name is Lucas and I am from Brazil." (correct). Option "am / is" means "My name am Lucas and I is from Brazil." (gibberish).\n'+
-    '• For each option, FIRST construct the full resolved sentence in your head, THEN judge whether it is grammatically and semantically correct in standard English.\n\n'+
+    '• Each exercise includes a HINT field — the educational explanation shown to the student after they answer. The hint MUST be consistent with the marked correct answer. If the hint clearly explains a rule pointing to a different option than what is marked correct, FIX the answer to match what the hint teaches. The hint is high-signal ground truth about the intended answer.\n'+
+    '• Example: Question "What ___ your name?" with options A) is B) are C) be D) am, marked correct: B, hint: "Use \'is\' com \'what\'." — the hint contradicts the marked answer; FIX to A.\n'+
+    '• For each option, FIRST construct the full resolved sentence in your head, THEN judge whether it is grammatically and semantically correct in standard, natural English (the kind a native speaker would actually say).\n\n'+
     'For EACH exercise, return one of three verdicts:\n'+
-    '1. "ok" — exactly one option produces a correct resolved sentence, and that option is the marked one.\n'+
-    '2. "fix" — exactly one option produces a correct resolved sentence, but a different option is marked. Return the correct index (0=A, 1=B, 2=C, 3=D).\n'+
-    '3. "discard" — broken question. Use when: (a) two or more options produce valid correct sentences, (b) the question stem is unclear or has no unambiguous answer, (c) no option produces a correct sentence, (d) the question premise is flawed.\n\n'+
-    'BE STRICT. If the marked option produces a sentence that is wrong English, mark it "fix" with the index of the actually-correct option. If two options are both valid English, mark "discard". We would rather show fewer good questions than confuse the student with bad ones.\n\n'+
-    'Respond ONLY with valid JSON, no markdown, no commentary. Format: {"verdicts":[{"i":<index>,"v":"ok"|"fix"|"discard","correct":<index_if_fix>}]}. Include an entry for every exercise. Omit "correct" unless v is "fix".\n\n'+
+    '1. "ok" — exactly one option produces a correct natural-sounding sentence, the marked option is that one, AND the hint is consistent with the marked answer.\n'+
+    '2. "fix" — exactly one option produces a correct sentence, but a different option is marked (OR the hint contradicts the marked answer). Return the correct index (0=A, 1=B, 2=C, 3=D).\n'+
+    '3. "discard" — broken question. Use when: (a) two or more options produce valid correct sentences in standard English, (b) the question stem is awkward, unclear, or unnatural English even after the correct option is filled in, (c) NO option produces a natural-sounding sentence, (d) the question premise is flawed.\n\n'+
+    'BE STRICT. If the marked option produces wrong or awkward English, that is "fix" (if another option is clearly right) or "discard" (if nothing works). If two options are both grammatically valid in standard English, "discard" — do not pick the "more idiomatic" one. We would rather show 4 great questions than 8 with two duds.\n\n'+
+    'Respond ONLY with valid JSON, no markdown, no commentary, no preamble. Format: {"verdicts":[{"i":<index>,"v":"ok"|"fix"|"discard","correct":<index_if_fix>}]}. Include an entry for EVERY exercise. Omit "correct" unless v is "fix".\n\n'+
     'EXERCISES TO AUDIT:\n\n'+list;
   fetch(W+'/emma-chat',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
-      system:'You are a strict English teacher auditing exercise quality. You substitute options into question blanks and judge the resulting sentences. Respond ONLY with valid JSON.',
+      system:'You are a strict English teacher auditing exercise quality. You substitute options into question blanks, cross-check with the hint, and judge the resulting sentences. Respond ONLY with valid JSON.',
       messages:[{role:'user',content:prompt}],
       topic:'verify',
-      max_tokens:800
+      max_tokens:900
     })
   })
   .then(function(r){return r.json();})
   .then(function(d){
     if(d.error)throw new Error(d.error);
     var text=(d.text||'').replace(/```json|```/g,'').trim();
-    var res=JSON.parse(text);
-    if(!res||!res.verdicts){done(exercises);return;}
+    // Robust JSON extract: try direct parse first, then find the verdicts object
+    var res;
+    try { res=JSON.parse(text); }
+    catch(e){
+      var m=text.match(/\{[\s\S]*?"verdicts"[\s\S]*\}/);
+      if(m){ try { res=JSON.parse(m[0]); } catch(e2){} }
+    }
+    if(!res||!res.verdicts){
+      console.warn('[verifier] no verdicts in response, passing through unverified',text.slice(0,200));
+      done(exercises);return;
+    }
     var keep=[];
     var verdictMap={};
     res.verdicts.forEach(function(v){if(typeof v.i==='number')verdictMap[v.i]=v;});
+    var fixedCount=0,discardedCount=0;
     for(var i=0;i<exercises.length;i++){
       var v=verdictMap[i];
       if(!v){keep.push(exercises[i]);continue;} // no verdict → keep as-is
-      if(v.v==='discard')continue; // drop it
+      if(v.v==='discard'){discardedCount++;continue;}
       if(v.v==='fix'&&typeof v.correct==='number'&&v.correct>=0&&v.correct<exercises[i].options.length){
-        exercises[i].answer=v.correct;
+        exercises[i].answer=v.correct;fixedCount++;
       }
       keep.push(exercises[i]);
     }
+    console.log('[verifier] '+fixedCount+' fixed, '+discardedCount+' discarded, '+keep.length+' kept of '+exercises.length);
     done(keep);
   })
-  .catch(function(){done(exercises);}); // fail open — never block the report
+  .catch(function(err){
+    console.warn('[verifier] failed, passing exercises through unverified:',err&&err.message);
+    done(exercises);
+  });
 }
 
 function emmaEndAndBack(){

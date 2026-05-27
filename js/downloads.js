@@ -387,7 +387,8 @@ function downloadExercises(){
   };
   function renderExercise(){
     var isGrammar=exIdx<grammarTotal;
-    var isPron=exIdx>=grammarTotal;
+    var isPron=exIdx>=grammarTotal&&exIdx<totalQs;
+    var isSummary=exIdx>=totalQs;
     var pct=Math.round((exIdx/totalQs)*100);
     var grammarPct=isGrammar?Math.round((exIdx/grammarTotal)*100):100;
     var pronPct=isPron?Math.round(((exIdx-grammarTotal)/Math.max(pronTotal,1))*100):0;
@@ -477,7 +478,7 @@ function downloadExercises(){
         '<div id="exPronFeedback_'+pi+'"></div>';
     }
 
-    if(exIdx>=totalQs){
+    if(isSummary){
       // Summary screen — release the mic since recording is done
       if(window._exReleaseMicStream)window._exReleaseMicStream();
 
@@ -636,8 +637,10 @@ function downloadExercises(){
                 if(score>0){
                   var sColor=score>=80?'#2d7a3a':score>=65?'#e8b84b':'#c0392b';
                   recLabel.innerHTML=
-                    '<div style="font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#bbb;margin-bottom:4px;">Sua pontuação</div>'+
-                    '<div style="font-size:34px;font-weight:800;color:'+sColor+';line-height:1;letter-spacing:-.03em;">'+score+'<span style="font-size:18px;font-weight:600;opacity:.55;">%</span></div>';
+                    '<div style="display:flex;flex-direction:column;align-items:center;">'+
+                      '<div style="font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#bbb;margin-bottom:4px;">Sua pontuação</div>'+
+                      '<div style="font-size:34px;font-weight:800;color:'+sColor+';line-height:1;letter-spacing:-.03em;">'+score+'<span style="font-size:18px;font-weight:600;opacity:.55;">%</span></div>'+
+                    '</div>';
                 } else {
                   recLabel.textContent='Toque para gravar novamente';
                 }
