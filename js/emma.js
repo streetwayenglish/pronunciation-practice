@@ -1,6 +1,23 @@
 // ============================================================================
 // EMMA — conversational coach: bubbles, speak, record, submit, pron panel
 // ============================================================================
+
+// ─── Correction bubble visual hierarchy ────────────────────────────────────
+// Scale the corrected line up so it reads as the pedagogical takeaway, and
+// keep the strikethrough wrong line smaller and muted as background context.
+// Injected once at script load; uses !important to override anything in
+// mobile.css without touching that file.
+(function _emmaInjectCorrectionStyles(){
+  if(document.getElementById('_emmaCorrectionStyles'))return;
+  var s=document.createElement('style');
+  s.id='_emmaCorrectionStyles';
+  s.textContent=
+    '.emma-correction{padding:14px 4px 16px 14px !important;margin:14px 0 !important;}'+
+    '.emma-correction .corr-wrong{display:block !important;font-size:13px !important;line-height:1.45 !important;opacity:.55 !important;text-decoration:line-through !important;margin-bottom:6px !important;}'+
+    '.emma-correction .corr-fix{display:block !important;font-size:18px !important;line-height:1.4 !important;font-weight:600 !important;color:#fff !important;letter-spacing:-.005em !important;}';
+  document.head.appendChild(s);
+})();
+
 function renderEmma(){
   var area=document.getElementById('area');
   var pf=document.getElementById('pf');var pl=document.getElementById('pl');
