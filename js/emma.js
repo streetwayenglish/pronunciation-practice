@@ -13,8 +13,8 @@
   s.id='_emmaCorrectionStyles';
   s.textContent=
     '.emma-correction{padding:14px 4px 16px 14px !important;margin:14px 0 !important;}'+
-    '.emma-correction .corr-wrong{display:block !important;font-size:13px !important;line-height:1.45 !important;opacity:.55 !important;text-decoration:line-through !important;margin-bottom:6px !important;}'+
-    '.emma-correction .corr-fix{display:block !important;font-size:18px !important;line-height:1.4 !important;font-weight:600 !important;color:#fff !important;letter-spacing:-.005em !important;}';
+    '.emma-correction .corr-wrong{display:block !important;font-size:15px !important;line-height:1.45 !important;opacity:.55 !important;text-decoration:line-through !important;margin-bottom:6px !important;}'+
+    '.emma-correction .corr-fix{display:block !important;font-size:17px !important;line-height:1.4 !important;font-weight:600 !important;color:#fff !important;letter-spacing:-.005em !important;}';
   document.head.appendChild(s);
 })();
 
