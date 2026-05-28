@@ -239,7 +239,13 @@ function emmaStartConvo(){
     '4) Speak naturally — warm, real. No bullet points. NEVER use asterisks or stage directions like *smiles*, *settles*, *leans*, *nods* or any physical description. Just speak. '+
     '5) Opening: MAXIMUM 10 words. Then immediately ask the student a question. For Bible topics say something like: "The creation story — what do you already know about it?" Never describe your own posture or feelings. '+
     '6) When the student uses a target expression correctly, affirm it briefly and introduce the next one. '+
-    '7) PACING: This is a full conversation session targeting 5-7 minutes of talk (roughly 12-18 student turns). Do not let the scenario end prematurely. If the natural scenario (e.g. ordering coffee, checking in at the airport) would resolve in 3-4 turns, extend it: add a complication ("oh, your flight was just delayed — can you help me understand the rebooking?"), introduce a related sub-scene ("now you are at the gate and another traveler strikes up a conversation"), or deepen with follow-up questions about the student\'s real-life experience with similar situations. Only wrap up when the student has had a meaningful conversation, used multiple target expressions, and had a chance to use most of the practiced phrases. If a sub-scene fully resolves and you still have runway, smoothly suggest a related round: "Nice work — want to try a related scenario? Imagine now that...". Never let the chat feel like a 90-second drill.';
+    '7) PACING — this is the most important rule for session quality. The conversation must last AT LEAST 12 student turns (a "student turn" = one message from the student; do not count your own replies). Do not wrap up before then under any circumstances. Track your student-turn count internally. '+
+    'BEFORE the student has spoken 12 times: you are FORBIDDEN from ending or winding down. If the natural scenario resolves before then (e.g. the airport check-in is done, the coffee is ordered, the appointment is booked), you MUST immediately extend with one of: '+
+    '(a) a complication — "oh actually, my flight just got delayed, can you help me figure out the rebooking?", "wait, I forgot to ask — do you have any window seats?", "actually I just realized my passport expires next month, is that going to be a problem?". '+
+    '(b) a related sub-scene — "great, now imagine you have made it to the gate and the person next to you starts a conversation", "perfect, now you are at the hotel checking in", "now imagine the flight attendant comes by". '+
+    '(c) a real-life pivot — "tell me, have you ever had a stressful airport experience? what happened?", "what is the most memorable trip you have taken?". '+
+    'AFTER the student has spoken 12 times: you may begin to wrap up IF the student has used multiple target expressions and had a meaningful conversation. Even then, prefer offering one more related round: "Nice work — want to try a related scenario? Imagine now that you...". '+
+    'A clean scenario resolution is NOT permission to end. You are running a 5-7 minute coaching session, not a transactional roleplay. The student paid for a conversation. Give them one.';
 
   // Cache the full session prompt so every subsequent turn reuses the same
   // instructions (curriculum, expressions, redirect logic, teaching rules).
@@ -943,8 +949,10 @@ function emmaSubmit(transcript){
     ' RESPONSE FORMAT (every turn): Respond ONLY with a JSON object, no markdown, no backticks. '+
     'Format: {"correction":{"original":"exact wrong phrase the student said","fixed":"the correct version"},"reply":"your conversational reply"}. '+
     'If the student made NO grammar or vocabulary mistake, set correction to null: {"correction":null,"reply":"your reply"}. '+
-    'Rules for correction: The transcript is literal — treat it exactly as written. Correct clear grammar/vocabulary errors only. The fixed field must contain ONE clean phrase only, no quotes inside it, no alternatives separated by "or". Be warm — start the reply naturally after correcting. '+
-    'Rules for reply: 1-2 sentences max. Ask one question to keep conversation going. Be natural and friendly. Never use bullet points. The reply must still respect ALL the teaching rules and unit constraints above — stay on the current unit, teach target expressions, redirect off-topic requests using the structure defined earlier.';
+    'CRITICAL: When the student makes a mistake, ALWAYS use the correction structure. NEVER inline a correction in the reply text (do not say "instead of X we say Y" in the reply). The correction is ALWAYS in the structured "correction" field, and the "reply" field is your normal conversational continuation as if no correction was needed. The UI renders the correction separately with strikethrough — your inline corrections create duplicate confusing output. '+
+    'CRITICAL JSON: The reply field is a JSON string — do NOT include unescaped double quotes inside it. If you need to quote a word in the reply, use single quotes: "reply": "Great, you used \'thank you\' nicely". If you must use a double quote, escape it: "reply": "She said \\"hello\\"". Unescaped quotes will break parsing and the student will see a broken reply. '+
+    'Rules for correction field: The transcript is literal — treat it exactly as written. Correct clear grammar/vocabulary errors only. The fixed field must contain ONE clean phrase only, no quotes inside it, no alternatives separated by "or". '+
+    'Rules for reply field: 1-2 sentences max. Ask one question to keep conversation going. Be natural and friendly. Never use bullet points. The reply must still respect ALL the teaching rules and unit constraints above — stay on the current unit, teach target expressions, redirect off-topic requests using the structure defined earlier.';
   var sysPrompt = (window._emmaBasePrompt || 'You are Emma, a friendly American English conversation coach having a natural spoken conversation with a Brazilian student. Topic: '+emmaTopic+'.') + jsonRules;
   emmaCallClaude(sysPrompt,function(raw){
     var parsed;
@@ -957,11 +965,29 @@ function emmaSubmit(transcript){
       if(start>=0&&end>start)clean=clean.slice(start,end+1);
       parsed=JSON.parse(clean);
     }catch(e){
-      // Try extracting reply with regex as fallback
-      var replyMatch=raw.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+      // Multi-strategy reply extraction — Haiku occasionally produces JSON
+      // with unescaped quotes in the reply, which broke the old single-regex
+      // approach (truncated reply at first stray quote). Try several
+      // extraction strategies and pick the most complete one.
+      var rawClean=raw.replace(/```json|```/g,'').trim();
+      var candidates=[];
+      // Strategy 1: strict regex (works for valid JSON strings)
+      var m1=raw.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+      if(m1)candidates.push(m1[1]);
+      // Strategy 2: between "reply":" and the last quote before }
+      var ri=rawClean.indexOf('"reply"');
+      if(ri>=0){
+        var ci=rawClean.indexOf(':',ri);
+        var qi=rawClean.indexOf('"',ci);
+        var endQuote=rawClean.lastIndexOf('"');
+        if(qi>=0&&endQuote>qi+1){
+          candidates.push(rawClean.slice(qi+1,endQuote).replace(/\\n/g,'\n').replace(/\\"/g,'"'));
+        }
+      }
+      // Pick the longest plausible candidate (capped to avoid noise)
+      var replyText=candidates.filter(function(c){return c&&c.length<1500;}).sort(function(a,b){return b.length-a.length;})[0]||rawClean||raw;
       var origMatch=raw.match(/"original"\s*:\s*"((?:[^"\\]|\\.)*)"/);
       var fixMatch=raw.match(/"fixed"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-      var replyText=replyMatch?replyMatch[1]:raw.replace(/```json|```/g,'').replace(/[\s\S]*"reply"\s*:\s*"/,'').replace(/"[\s\S]*/,'').trim()||raw;
       parsed={
         correction:(origMatch&&fixMatch)?{original:origMatch[1],fixed:fixMatch[1]}:null,
         reply:replyText
@@ -975,6 +1001,7 @@ function emmaSubmit(transcript){
       spoken=corrExplanation;
       emmaAddBubble('emma',corrExplanation.trim());
       window._emmaWaitingForRepeat=parsed.correction.fixed;
+      window._emmaLastFixed=parsed.correction.fixed;
       window._emmaPendingReply=reply;
       emmaHistory.push({role:'assistant',content:corrExplanation});
       emmaStateSpeaking();
