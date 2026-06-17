@@ -772,10 +772,10 @@
 <style id="phone-app-strip">
 /* Strip the device-mockup frame -> real full-viewport phone app. Design untouched. */
 html,body{height:100%;}
-body{background:#F3F0E8 !important;padding:0 !important;margin:0 !important;display:block !important;min-height:100dvh !important;}
+body{background:#F3F0E8 !important;padding:0 !important;margin:0 !important;display:block !important;position:relative !important;height:100% !important;min-height:100% !important;}
 body::before{display:none !important;}
 .stage{position:static !important;z-index:auto !important;}
-.iphone{position:fixed !important;inset:0 !important;width:100% !important;height:100dvh !important;
+.iphone{position:absolute !important;inset:0 !important;width:100% !important;height:100% !important;
   background:#F3F0E8 !important;border-radius:0 !important;padding:0 !important;box-shadow:none !important;}
 .iphone::before,.iphone::after{display:none !important;}
 .btn-side{display:none !important;}
