@@ -136,6 +136,7 @@
     var main = document.querySelector('.main'); if(main) main.style.display = 'none';
     var hdr  = document.querySelector('.hdr');  if(hdr)  hdr.style.display  = 'none';
     var cp = document.getElementById('cpOverlay'); if(cp) cp.remove();
+    var h2 = document.getElementById('home2Layer'); if(h2) h2.style.display = 'none';
   }
 
   SWBeginner.openUnit = function(n){
