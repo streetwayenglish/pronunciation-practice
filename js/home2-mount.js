@@ -259,6 +259,53 @@
     }
   }
 
+  // home2 data-path -> CURRICULUM key, including starter -> Beginner
+  var PATH_TO_CURRIC = {
+    'starter':'Beginner',
+    'conversation':'Conversation',
+    'business-english':'Business English',
+    'travel-english':'Travel English',
+    'job-interview':'Job Interview',
+    'bible':'The Bible in English'
+  };
+  function pathPct(curricKey){
+    try{
+      var p = window.getProgress && getProgress(curricKey);
+      var unit = (p && p.unit) || 1;
+      var total = (window.CURRICULUM && CURRICULUM[curricKey] && CURRICULUM[curricKey].length)
+                  ? CURRICULUM[curricKey].length : (curricKey === 'Beginner' ? 20 : 0);
+      if(!total) return null;
+      return Math.max(0, Math.min(100, Math.round((unit - 1) / total * 100)));
+    }catch(e){ return null; }
+  }
+  function refreshTodayAndPaths(){
+    var R = document.getElementById('h2root'); if(!R) return;
+
+    // Path cards -> live progress fill
+    R.querySelectorAll('.card[data-path]').forEach(function(card){
+      var ck = PATH_TO_CURRIC[card.getAttribute('data-path')]; if(!ck) return;
+      var pct = pathPct(ck); if(pct == null) return;
+      var fill = card.querySelector('.card-fill'); if(fill) fill.style.width = pct + '%';
+    });
+
+    // Today "Continue" hero -> anchored to the Beginner course
+    var cur = currentUnit();
+    var u = UNITS[cur - 1] || UNITS[0];
+    var eg = R.querySelector('.t-eyebrow .g'), ew = R.querySelector('.t-eyebrow .w');
+    if(eg) eg.textContent = 'BEGINNER';
+    if(ew) ew.textContent = ' \u00B7 UNIT ' + cur;
+    var title = R.querySelector('.t-title'); if(title) title.textContent = u.t;
+    var pct = Math.round((cur - 1) / 20 * 100);
+    var fill = R.querySelector('.t-prog > i'); if(fill) fill.style.width = pct + '%';
+    var lbl = R.querySelector('.t-prog-lbl'); if(lbl) lbl.innerHTML = '<b>' + pct + '%</b> \u00B7 Unit ' + cur + ' of 20';
+    var cont = R.querySelector('.t-continue');
+    if(cont) cont.onclick = function(){
+      var part = 1;
+      for(var p = 1; p <= 3; p++){ if(!partDone(cur, p)){ part = p; break; } }
+      if(window.SWBeginner && SWBeginner.openUnit) SWBeginner.openUnit(cur, part);
+    };
+  }
+
   var wired = false;
   function wireContent(){
     if(wired) return;
@@ -317,7 +364,7 @@
     host.style.height = '100dvh';
     host.style.zIndex = '50';
     host.style.background = '#F3F0E8';
-    build().then(function(){ sizeRoot(); wireContent(); refreshBeginnerStates(); }).catch(function(e){ console.warn('[home2] build failed', e); });
+    build().then(function(){ sizeRoot(); wireContent(); refreshBeginnerStates(); refreshTodayAndPaths(); }).catch(function(e){ console.warn('[home2] build failed', e); });
   }
   function hideHome2(){ var host = layerEl(); if(host) host.style.display = 'none'; }
   window.SWHome2 = { show: showHome2, hide: hideHome2 };
