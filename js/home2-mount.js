@@ -20,8 +20,13 @@
   function showHome2(){
     var layer=L(), frame=F();
     if(!layer || !frame){ console.warn('[home2] #home2Layer / #home2Frame missing'); return; }
-    if(!frame.getAttribute('src')) frame.setAttribute('src', PLAYER);
+    // Reveal FIRST. iOS Safari will not load an iframe whose container was
+    // display:none at the moment src was set, and never retries — so set src
+    // only after the layer is visible.
     layer.style.display='block';
+    requestAnimationFrame(function(){
+      if(frame.getAttribute('src') !== PLAYER) frame.setAttribute('src', PLAYER);
+    });
   }
   function hideHome2(){ var layer=L(); if(layer) layer.style.display='none'; }
   window.SWHome2 = { show:showHome2, hide:hideHome2 };

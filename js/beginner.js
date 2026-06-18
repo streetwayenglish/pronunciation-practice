@@ -150,9 +150,11 @@
     if(!layer || !frame){ console.warn('[Beginner] #beginnerPlayer / #beginnerFrame missing in index.html'); return; }
     document.body.classList.remove('show-topics');
     hideAppLayers();
-    // Cache-bust query forces a fresh load each open so #u= re-navigates.
-    frame.src = PLAYER_URL + '?t=' + Date.now() + '#u=' + n;
+    // Reveal first, then set src — iOS won't load an iframe that was hidden
+    // when its src was assigned. Cache-bust forces a fresh load each open.
     layer.style.display = 'block';
+    var url = PLAYER_URL + '?t=' + Date.now() + '#u=' + n;
+    requestAnimationFrame(function(){ frame.src = url; });
   };
 
   SWBeginner.close = function(){
