@@ -139,7 +139,7 @@
     var h2 = document.getElementById('home2Layer'); if(h2) h2.style.display = 'none';
   }
 
-  SWBeginner.openUnit = function(n){
+  SWBeginner.openUnit = function(n, part){
     n = n || 1;
     SWBeginner._unit = n;
     window._lastTopic = 'Beginner';
@@ -153,7 +153,9 @@
     // Reveal first, then set src — iOS won't load an iframe that was hidden
     // when its src was assigned. Cache-bust forces a fresh load each open.
     layer.style.display = 'block';
-    var url = PLAYER_URL + '?t=' + Date.now() + '#u=' + n;
+    var p = parseInt(part, 10);
+    var frag = '#u=' + n + ((p >= 1 && p <= 3) ? '&p=' + p : '');
+    var url = PLAYER_URL + '?t=' + Date.now() + frag;
     requestAnimationFrame(function(){ frame.src = url; });
   };
 
