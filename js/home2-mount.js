@@ -116,10 +116,31 @@
     return building;
   }
 
+  function sizeRoot(){
+    var r = document.getElementById('h2root');
+    if(r){
+      r.style.position = 'relative';
+      r.style.width = '100%';
+      r.style.height = '100vh';
+      r.style.height = '100dvh';
+      r.style.overflow = 'hidden';
+    }
+  }
   function showHome2(){
     var host = layerEl(); if(!host) return;
-    host.style.display = 'block';
-    build().catch(function(e){ console.warn('[home2] build failed', e); });
+    // Lift to <body> so no transformed/contained ancestor interferes with the
+    // fixed layer, then give it a real height in viewport units (can't collapse).
+    if(host.parentNode !== document.body) document.body.appendChild(host);
+    host.style.display  = 'block';
+    host.style.position = 'fixed';
+    host.style.left = '0'; host.style.top = '0';
+    host.style.right = '0'; host.style.bottom = '0';
+    host.style.width  = '100vw';
+    host.style.height = '100vh';
+    host.style.height = '100dvh';
+    host.style.zIndex = '50';
+    host.style.background = '#F3F0E8';
+    build().then(sizeRoot).catch(function(e){ console.warn('[home2] build failed', e); });
   }
   function hideHome2(){ var host = layerEl(); if(host) host.style.display = 'none'; }
   window.SWHome2 = { show: showHome2, hide: hideHome2 };
