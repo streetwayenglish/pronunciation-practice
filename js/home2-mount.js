@@ -154,6 +154,7 @@
                  '<div class="level-name">Unit '+u.n+' · '+esc(u.t)+'</div>'+
                  '<div class="level-desc">'+esc(u.g)+'</div>'+
                '</div>'+
+               '<span class="u-acc-now"></span>'+
                '<svg class="u-acc-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>'+
              '</div>'+
              '<div class="lessons">'+lessons+'</div>'+
@@ -170,6 +171,26 @@
       '#h2root .u-acc-icon{width:30px;height:30px;flex-shrink:0;border-radius:50%;background:#f1ebde;color:#8a7d63;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;}'+
       '#h2root .u-acc-chev{flex-shrink:0;color:#c2b69c;transition:transform .2s;}'+
       '#h2root .level.u-acc.expanded .u-acc-chev{transform:rotate(90deg);}'+
+      // unit states
+      '#h2root .level.u-acc.done{background:rgba(255,255,255,.66);}'+
+      '#h2root .level.u-acc.done .u-acc-icon{background:#E8F5E4;color:#5BA84D;}'+
+      '#h2root .level.u-acc.done .level-name{color:#7a6f5d;}'+
+      '#h2root .level.u-acc.current .u-acc-icon{background:#EBAA1C;color:#2a2208;}'+
+      '#h2root .level.u-acc.current .level-name{color:#0a0a0a;font-weight:800;}'+
+      '#h2root .level.u-acc.locked{background:rgba(255,255,255,.5);box-shadow:none;}'+
+      '#h2root .level.u-acc.locked .u-acc-icon{background:#f1ebde;color:#c2b49a;}'+
+      '#h2root .level.u-acc.locked .level-name{color:#a89c80;}'+
+      '#h2root .level.u-acc.locked .level-desc{color:#bcae92;}'+
+      '#h2root .u-acc-icon svg{width:15px;height:15px;}'+
+      '#h2root .u-acc-now{font-size:9.5px;font-weight:800;letter-spacing:.07em;color:#C8901A;flex-shrink:0;}'+
+      // lesson states
+      '#h2root .u-lesson.done .lesson-num{background:#E8F5E4;color:#5BA84D;}'+
+      '#h2root .u-lesson.done .lesson-num svg{width:13px;height:13px;}'+
+      '#h2root .u-lesson.done .lesson-name{color:#8a7d63;}'+
+      '#h2root .u-lesson.current .lesson-num{background:#1f1b17;color:#fff;}'+
+      '#h2root .u-lesson.current .lesson-name{font-weight:700;}'+
+      // summary line
+      '#h2root .u-summary{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#a89c80;padding:0 4px 12px;}'+
       '#h2root .level.u-acc .lessons{display:none;padding:0 2px 8px;}'+
       '#h2root .level.u-acc.expanded .lessons{display:flex;}'+
       '#h2root .u-lesson{cursor:pointer;}';
@@ -187,6 +208,57 @@
     console.warn('[home2] no topic launcher available for', key);
   }
 
+  var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  var LOCK  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+
+  function currentUnit(){
+    try{ var p = window.getProgress && getProgress('Beginner'); if(p && p.unit) return Math.min(20, Math.max(1, p.unit|0)); }catch(e){}
+    return 1;
+  }
+  function partDone(u, p){
+    try{ return localStorage.getItem('swp_' + u + '_' + p) === '1'; }catch(e){ return false; }
+  }
+
+  var autoExpanded = false;
+  function refreshBeginnerStates(){
+    var R = document.getElementById('h2root'); if(!R) return;
+    var cur = currentUnit();
+    R.querySelectorAll('.level.u-acc').forEach(function(lv){
+      var n = parseInt(lv.getAttribute('data-unit'), 10);
+      lv.classList.remove('done','current','locked');
+      var icon = lv.querySelector('.u-acc-icon');
+      var now  = lv.querySelector('.u-acc-now');
+      if(n < cur){ lv.classList.add('done'); if(icon) icon.innerHTML = CHECK; if(now) now.textContent = ''; }
+      else if(n === cur){ lv.classList.add('current'); if(icon) icon.textContent = String(n); if(now) now.textContent = 'NOW'; }
+      else { lv.classList.add('locked'); if(icon) icon.innerHTML = LOCK; if(now) now.textContent = ''; }
+
+      // lessons within this unit
+      var pendingMarked = false;
+      lv.querySelectorAll('.u-lesson').forEach(function(ls){
+        var p = parseInt(ls.getAttribute('data-part'), 10);
+        var numEl = ls.querySelector('.lesson-num');
+        ls.classList.remove('done','current');
+        if(partDone(n, p)){
+          ls.classList.add('done'); if(numEl) numEl.innerHTML = CHECK;
+        } else {
+          if(numEl) numEl.textContent = String(p);
+          // first not-done lesson in the current unit = the active one
+          if(n === cur && !pendingMarked){ ls.classList.add('current'); pendingMarked = true; }
+        }
+      });
+    });
+
+    var sum = R.querySelector('#uSummary');
+    if(sum) sum.textContent = (cur - 1) + ' of 20 complete';
+
+    // auto-expand the current unit once
+    if(!autoExpanded){
+      var cl = R.querySelector('.level.u-acc[data-unit="' + cur + '"]');
+      if(cl) cl.classList.add('expanded');
+      autoExpanded = true;
+    }
+  }
+
   var wired = false;
   function wireContent(){
     if(wired) return;
@@ -198,7 +270,7 @@
     if(starter){
       var levels = starter.querySelector('.levels');
       if(levels){
-        levels.innerHTML = UNITS.map(unitHTML).join('');
+        levels.innerHTML = '<div class="u-summary" id="uSummary"></div>' + UNITS.map(unitHTML).join('');
         // expand/collapse a unit
         levels.querySelectorAll('.u-acc-head').forEach(function(head){
           head.addEventListener('click', function(){
@@ -245,7 +317,7 @@
     host.style.height = '100dvh';
     host.style.zIndex = '50';
     host.style.background = '#F3F0E8';
-    build().then(function(){ sizeRoot(); wireContent(); }).catch(function(e){ console.warn('[home2] build failed', e); });
+    build().then(function(){ sizeRoot(); wireContent(); refreshBeginnerStates(); }).catch(function(e){ console.warn('[home2] build failed', e); });
   }
   function hideHome2(){ var host = layerEl(); if(host) host.style.display = 'none'; }
   window.SWHome2 = { show: showHome2, hide: hideHome2 };
