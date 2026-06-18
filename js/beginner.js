@@ -164,14 +164,15 @@
     var frame = document.getElementById('beginnerFrame');
     if(layer) layer.style.display = 'none';
     if(frame) frame.src = 'about:blank';
-    // Return to the Beginner unit map.
     window._lastTopic = 'Beginner';
     window._emmaTopic = 'Beginner';
     if(typeof swState !== 'undefined' && swState) swState.topic = 'Beginner';
+    // Clean up the legacy overlay if it's lingering, then return to the home.
+    var cp = document.getElementById('cpOverlay'); if(cp) cp.remove();
+    // The new home IS the unit map now, and it keeps its place while hidden —
+    // so just reveal it again (showTopicPage -> showHome2 on mobile). No old
+    // "Choose your unit" overlay.
     if(typeof showTopicPage === 'function') showTopicPage();
-    // On mobile, showTopicPage lands on Today — reopen the unit overlay so the
-    // student is literally back on the unit map (desktop already shows it).
-    if(window.innerWidth < 1024){ openBeginnerMap(); }
   };
 
   // ── 4. Listen for the player's messages ──────────────────────────────────
