@@ -193,7 +193,9 @@
       '#h2root .u-summary{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#a89c80;padding:0 4px 12px;}'+
       '#h2root .level.u-acc .lessons{display:none;padding:0 2px 8px;}'+
       '#h2root .level.u-acc.expanded .lessons{display:flex;}'+
-      '#h2root .u-lesson{cursor:pointer;}';
+      '#h2root .u-lesson{cursor:pointer;}'+
+      '#h2root .u-flat-arr{flex-shrink:0;color:#c2b69c;}'+
+      '#h2root .level.u-acc.u-flat.locked .u-flat-arr{opacity:.45;}';
     var st = document.createElement('style');
     st.id = 'h2root-accordion';
     st.textContent = css;
@@ -234,8 +236,9 @@
   var autoExpanded = false;
   function refreshBeginnerStates(){
     var R = document.getElementById('h2root'); if(!R) return;
+    var starter = R.querySelector('.detail-screen[data-path="starter"]'); if(!starter) return;
     var cur = currentUnit();
-    R.querySelectorAll('.level.u-acc').forEach(function(lv){
+    starter.querySelectorAll('.level.u-acc').forEach(function(lv){
       var n = parseInt(lv.getAttribute('data-unit'), 10);
       lv.classList.remove('done','current','locked');
       var icon = lv.querySelector('.u-acc-icon');
@@ -260,15 +263,65 @@
       });
     });
 
-    var sum = R.querySelector('#uSummary');
+    var sum = starter.querySelector('#uSummary');
     if(sum) sum.textContent = (cur - 1) + ' of 20 complete';
 
     // auto-expand the current unit once
     if(!autoExpanded){
-      var cl = R.querySelector('.level.u-acc[data-unit="' + cur + '"]');
+      var cl = starter.querySelector('.level.u-acc[data-unit="' + cur + '"]');
       if(cl) cl.classList.add('expanded');
       autoExpanded = true;
     }
+  }
+
+  // ---- Topic paths: real units from CURRICULUM ------------------------------
+  function topicUnitHTML(topicKey, u){
+    var num = u.unit;
+    var title = u.title || ('Unit ' + num);
+    var desc = u.grammar || u.objective || '';
+    return '<div class="level u-acc u-flat" data-topic="' + esc(topicKey) + '" data-unit="' + num + '">'+
+             '<div class="level-header u-acc-head">'+
+               '<div class="u-acc-icon">' + num + '</div>'+
+               '<div class="level-content" style="min-width:0">'+
+                 '<div class="level-name">Unit ' + num + ' \u00B7 ' + esc(title) + '</div>'+
+                 '<div class="level-desc">' + esc(desc) + '</div>'+
+               '</div>'+
+               '<span class="u-acc-now"></span>'+
+               '<svg class="u-flat-arr" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="17" y2="12"/><polyline points="13 8 17 12 13 16"/></svg>'+
+             '</div>'+
+           '</div>';
+  }
+
+  function launchTopicUnit(topicKey, unitNum){
+    try{ if(typeof swState !== 'undefined' && swState){ swState.topic = topicKey; } }catch(e){}
+    window._lastTopic = topicKey;
+    window._emmaTopic = topicKey;
+    try{ window.emmaTopic = topicKey; }catch(e){}
+    var hl = document.getElementById('home2Layer'); if(hl) hl.style.display = 'none';
+    // swStart sets the unit, saves progress, and goes to warmup -> Emma.
+    if(typeof window.swStart === 'function'){ window.swStart(unitNum); return; }
+    launchTopic(topicKey); // fallback: continue current unit
+  }
+
+  function refreshTopicStates(){
+    var R = document.getElementById('h2root'); if(!R) return;
+    Object.keys(TOPIC_MAP).forEach(function(pk){
+      var ck = TOPIC_MAP[pk];
+      var ds = R.querySelector('.detail-screen[data-path="' + pk + '"]'); if(!ds) return;
+      var cur = 1, total = 0;
+      try{ var p = window.getProgress && getProgress(ck); cur = (p && p.unit) || 1; }catch(e){}
+      try{ total = (window.CURRICULUM && CURRICULUM[ck]) ? CURRICULUM[ck].length : 0; }catch(e){}
+      ds.querySelectorAll('.level.u-flat').forEach(function(lv){
+        var n = parseInt(lv.getAttribute('data-unit'), 10);
+        lv.classList.remove('done','current','locked');
+        var icon = lv.querySelector('.u-acc-icon'), now = lv.querySelector('.u-acc-now');
+        if(n < cur){ lv.classList.add('done'); if(icon) icon.innerHTML = CHECK; if(now) now.textContent = ''; }
+        else if(n === cur){ lv.classList.add('current'); if(icon) icon.textContent = String(n); if(now) now.textContent = 'NOW'; }
+        else { lv.classList.add('locked'); if(icon) icon.innerHTML = LOCK; if(now) now.textContent = ''; }
+      });
+      var sum = ds.querySelector('[data-topic-sum="' + pk + '"]');
+      if(sum) sum.textContent = (cur - 1) + (total ? ' of ' + total : '') + ' complete';
+    });
   }
 
   // home2 data-path -> CURRICULUM key, including starter -> Beginner
@@ -348,15 +401,29 @@
       }
     }
 
-    // --- 5 topic paths: any tap (except Back) launches that topic's Emma ---
+    // --- 5 topic paths: build unit list from the real CURRICULUM data ---
     Object.keys(TOPIC_MAP).forEach(function(pk){
-      var ds = R.querySelector('.detail-screen[data-path="'+pk+'"]');
+      var ds = R.querySelector('.detail-screen[data-path="' + pk + '"]');
       if(!ds) return;
-      ds.addEventListener('click', function(ev){
-        if(ev.target.closest('.d-back-btn, .d-back, .back, [data-back]')) return;
-        launchTopic(TOPIC_MAP[pk]);
-      });
-      ds.style.cursor = 'pointer';
+      var ck = TOPIC_MAP[pk];
+      var units = (window.CURRICULUM && CURRICULUM[ck]) ? CURRICULUM[ck] : null;
+      var levels = ds.querySelector('.levels');
+      if(levels && units && units.length){
+        levels.innerHTML = '<div class="u-summary" data-topic-sum="' + pk + '"></div>' +
+          units.map(function(u){ return topicUnitHTML(ck, u); }).join('');
+        levels.querySelectorAll('.level.u-flat').forEach(function(row){
+          row.addEventListener('click', function(){
+            launchTopicUnit(ck, parseInt(row.getAttribute('data-unit'), 10));
+          });
+        });
+      } else {
+        // CURRICULUM unavailable — fall back to launching the topic's current unit
+        ds.addEventListener('click', function(ev){
+          if(ev.target.closest('.d-back-btn, .d-back, .back, [data-back]')) return;
+          launchTopic(ck);
+        });
+        ds.style.cursor = 'pointer';
+      }
     });
 
     wired = true;
@@ -376,7 +443,7 @@
     host.style.height = '100dvh';
     host.style.zIndex = '50';
     host.style.background = '#F3F0E8';
-    build().then(function(){ sizeRoot(); wireContent(); refreshBeginnerStates(); refreshTodayAndPaths(); }).catch(function(e){ console.warn('[home2] build failed', e); });
+    build().then(function(){ sizeRoot(); wireContent(); refreshBeginnerStates(); refreshTopicStates(); refreshTodayAndPaths(); }).catch(function(e){ console.warn('[home2] build failed', e); });
   }
   function hideHome2(){ var host = layerEl(); if(host) host.style.display = 'none'; }
   window.SWHome2 = { show: showHome2, hide: hideHome2 };
