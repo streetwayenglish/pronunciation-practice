@@ -442,11 +442,36 @@
     }catch(e){}
     var slug = CURRIC_TO_PATH[key] || 'starter';
 
-    // hero image = the active path's card image (starter = icons, topics = their image)
+    // hero image: topics -> their warm-up Emma photo; Starter -> paper plane
+    var EMMA_VAR = {
+      'Conversation':'--emma-conversation','Business English':'--emma-business',
+      'Travel English':'--emma-travel','Job Interview':'--emma-interview',
+      'The Bible in English':'--emma-bible'
+    };
     var hero = R.querySelector('.t-hero');
-    var card = R.querySelector('.card[data-path="' + slug + '"]');
-    if(hero && card){
-      try{ var bg = getComputedStyle(card).backgroundImage; if(bg && bg !== 'none') hero.style.backgroundImage = bg; }catch(e){}
+    if(hero){
+      if(key === 'Beginner'){
+        // centered, ~half-size paper plane on the path's colour
+        var pp = R.querySelector('.detail-screen[data-path="starter"] .pc-photo');
+        var planeImg = pp ? getComputedStyle(pp).backgroundImage : 'none';
+        var sd = R.querySelector('.detail-screen[data-path="starter"]');
+        var col = sd ? getComputedStyle(sd).getPropertyValue('--path-color').trim() : '';
+        if(planeImg && planeImg !== 'none') hero.style.backgroundImage = planeImg;
+        hero.style.backgroundRepeat = 'no-repeat';
+        hero.style.backgroundSize = '50%';
+        hero.style.backgroundPosition = 'center 42%';
+        hero.style.backgroundColor = col || '#3164D4';
+      } else {
+        var vn = EMMA_VAR[key];
+        var raw = vn ? getComputedStyle(document.documentElement).getPropertyValue(vn).trim() : '';
+        if(raw){
+          hero.style.backgroundImage = raw;
+          hero.style.backgroundRepeat = 'no-repeat';
+          hero.style.backgroundSize = 'cover';
+          hero.style.backgroundPosition = 'center top';
+          hero.style.backgroundColor = '';
+        }
+      }
     }
 
     // hero text + continue, per active path
