@@ -227,6 +227,7 @@
 
   var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
   var LOCK  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+  var STACK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="12 3 3 7.5 12 12 21 7.5 12 3"/><polyline points="3 16.5 12 21 21 16.5"/><polyline points="3 12 12 16.5 21 12"/></svg>';
 
   function currentUnit(){
     try{ var p = window.getProgress && getProgress('Beginner'); if(p && p.unit) return Math.min(20, Math.max(1, p.unit|0)); }catch(e){}
@@ -340,7 +341,7 @@
         var now  = lv.querySelector('.u-acc-now');
         var st   = lv.querySelector('.t-lvl-status');
         if(last < cur){ lv.classList.add('done'); if(icon) icon.innerHTML = CHECK; if(now) now.textContent = ''; }
-        else if(first <= cur && cur <= last){ lv.classList.add('current'); if(icon) icon.textContent = String(L + 1); if(now) now.textContent = 'NOW'; }
+        else if(first <= cur && cur <= last){ lv.classList.add('current'); if(icon) icon.innerHTML = STACK; if(now) now.textContent = 'NOW'; }
         else { lv.classList.add('locked'); if(icon) icon.innerHTML = LOCK; if(now) now.textContent = ''; }
 
         var doneCount = 0, size = 0;
