@@ -313,6 +313,7 @@
   }
 
   function launchTopicUnit(topicKey, unitNum){
+    try{ recordActivity(); }catch(e){}
     try{ if(typeof swState !== 'undefined' && swState){ swState.topic = topicKey; } }catch(e){}
     try{ if(typeof window.mhSetCurrentPath === 'function') mhSetCurrentPath(topicKey); }catch(e){}
     window._lastTopic = topicKey;
@@ -387,6 +388,38 @@
       return Math.max(0, Math.min(100, Math.round((unit - 1) / total * 100)));
     }catch(e){ return null; }
   }
+  // ---- Streak + units-done (real metrics) -----------------------------------
+  function _dstr(d){ return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+  function _today(){ return _dstr(new Date()); }
+  function _yesterday(){ var d = new Date(); d.setDate(d.getDate() - 1); return _dstr(d); }
+  function recordActivity(){
+    try{
+      var today = _today();
+      var last = localStorage.getItem('streetway_streak_date');
+      var count = parseInt(localStorage.getItem('streetway_streak') || '0', 10) || 0;
+      if(last === today) return;             // already counted today
+      if(last === _yesterday()) count += 1;  // consecutive day
+      else count = 1;                        // first day / streak restarted
+      localStorage.setItem('streetway_streak', String(count));
+      localStorage.setItem('streetway_streak_date', today);
+    }catch(e){}
+  }
+  function displayStreak(){
+    try{
+      var last = localStorage.getItem('streetway_streak_date');
+      var count = parseInt(localStorage.getItem('streetway_streak') || '0', 10) || 0;
+      if(!last) return 0;
+      if(last === _today() || last === _yesterday()) return count;  // still alive
+      return 0;                                                     // broken
+    }catch(e){ return 0; }
+  }
+  function totalUnitsDone(){
+    try{ if(typeof mhGetTotalUnitsDone === 'function') return mhGetTotalUnitsDone(); }catch(e){}
+    var t = 0;
+    try{ for(var k in CURRICULUM){ t += Math.max(0, (getProgress(k).unit || 1) - 1); } }catch(e){}
+    return t;
+  }
+
   function refreshTodayAndPaths(){
     var R = document.getElementById('h2root'); if(!R) return;
 
@@ -423,6 +456,7 @@
       htitle = (UNITS[hcur - 1] || UNITS[0]).t; hname = 'BEGINNER';
       hlaunch = function(){
         var part = 1; for(var p = 1; p <= 3; p++){ if(!partDone(hcur, p)){ part = p; break; } }
+        try{ recordActivity(); }catch(e){}
         try{ if(window.mhSetCurrentPath) mhSetCurrentPath('Beginner'); }catch(e){}
         if(window.SWBeginner && SWBeginner.openUnit) SWBeginner.openUnit(hcur, part);
       };
@@ -442,6 +476,16 @@
     var fill = R.querySelector('.t-prog > i'); if(fill) fill.style.width = pct + '%';
     var lbl = R.querySelector('.t-prog-lbl'); if(lbl) lbl.innerHTML = '<b>' + pct + '%</b> \u00B7 Unit ' + hcur + ' of ' + htotal;
     var cont = R.querySelector('.t-continue'); if(cont) cont.onclick = hlaunch;
+
+    // Stats: streak (real) + units-done (real, replacing Words). Minutes left as-is.
+    try{
+      var stats = R.querySelectorAll('.page-today .t-stat');
+      if(stats[0]){ var sv = stats[0].querySelector('.t-stat-val'); if(sv) sv.textContent = String(displayStreak()); }
+      if(stats[2]){
+        var uv = stats[2].querySelector('.t-stat-val'); if(uv) uv.textContent = String(totalUnitsDone());
+        var ul = stats[2].querySelector('.t-stat-lbl'); if(ul) ul.textContent = 'Units done';
+      }
+    }catch(e){}
   }
 
   var wired = false;
@@ -468,6 +512,7 @@
             ev.stopPropagation();
             var u = parseInt(ls.getAttribute('data-unit'), 10);
             var p = parseInt(ls.getAttribute('data-part'), 10);
+            try{ recordActivity(); }catch(e){}
             try{ if(window.mhSetCurrentPath) mhSetCurrentPath('Beginner'); }catch(e){}
             if(window.SWBeginner && SWBeginner.openUnit) SWBeginner.openUnit(u, p);
           });
