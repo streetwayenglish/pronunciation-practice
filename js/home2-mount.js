@@ -194,8 +194,11 @@
       '#h2root .level.u-acc .lessons{display:none;padding:0 2px 8px;}'+
       '#h2root .level.u-acc.expanded .lessons{display:flex;}'+
       '#h2root .u-lesson{cursor:pointer;}'+
-      '#h2root .u-flat-arr{flex-shrink:0;color:#c2b69c;}'+
-      '#h2root .level.u-acc.u-flat.locked .u-flat-arr{opacity:.45;}';
+      '#h2root .t-lvl-status{font-size:11px;font-weight:800;color:#b0a388;flex-shrink:0;letter-spacing:.02em;}'+
+      '#h2root .level.u-acc.t-level.current .t-lvl-status{color:#C8901A;}'+
+      '#h2root .level.u-acc.t-level.done .t-lvl-status{color:#5BA84D;}'+
+      '#h2root .u-tlesson.locked .lesson-name{color:#a89c80;}'+
+      '#h2root .u-tlesson.locked .lesson-meta{color:#bcae92;}';
     var st = document.createElement('style');
     st.id = 'h2root-accordion';
     st.textContent = css;
@@ -274,22 +277,38 @@
     }
   }
 
-  // ---- Topic paths: real units from CURRICULUM ------------------------------
-  function topicUnitHTML(topicKey, u){
-    var num = u.unit;
-    var title = u.title || ('Unit ' + num);
-    var desc = u.grammar || u.objective || '';
-    return '<div class="level u-acc u-flat" data-topic="' + esc(topicKey) + '" data-unit="' + num + '">'+
-             '<div class="level-header u-acc-head">'+
-               '<div class="u-acc-icon">' + num + '</div>'+
-               '<div class="level-content" style="min-width:0">'+
-                 '<div class="level-name">Unit ' + num + ' \u00B7 ' + esc(title) + '</div>'+
-                 '<div class="level-desc">' + esc(desc) + '</div>'+
-               '</div>'+
-               '<span class="u-acc-now"></span>'+
-               '<svg class="u-flat-arr" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="17" y2="12"/><polyline points="13 8 17 12 13 16"/></svg>'+
-             '</div>'+
-           '</div>';
+  // ---- Topic paths: 4 Levels x 5 lessons, from real CURRICULUM -------------
+  function topicLevelsHTML(topicKey, units){
+    var per = Math.ceil(units.length / 4) || 1;
+    var html = '';
+    for(var L = 0; L < 4; L++){
+      var slice = units.slice(L * per, (L + 1) * per);
+      if(!slice.length) continue;
+      var first = slice[0].unit, last = slice[slice.length - 1].unit;
+      var lessons = slice.map(function(u){
+        var t = u.title || ('Unit ' + u.unit);
+        var g = u.grammar || u.objective || '';
+        return '<div class="lesson u-lesson u-tlesson" data-topic="' + esc(topicKey) + '" data-unit="' + u.unit + '">'+
+                 '<div class="lesson-num">' + u.unit + '</div>'+
+                 '<div class="lesson-info"><div class="lesson-name">' + esc(t) + '</div>' +
+                   (g ? '<div class="lesson-meta">' + esc(g) + '</div>' : '') + '</div>'+
+               '</div>';
+      }).join('');
+      html += '<div class="level u-acc t-level" data-topic="' + esc(topicKey) + '" data-level="' + L + '" data-first="' + first + '" data-last="' + last + '">'+
+                '<div class="level-header u-acc-head">'+
+                  '<div class="u-acc-icon">' + (L + 1) + '</div>'+
+                  '<div class="level-content" style="min-width:0">'+
+                    '<div class="level-name">Level ' + (L + 1) + '</div>'+
+                    '<div class="level-desc">Units ' + first + '\u2013' + last + '</div>'+
+                  '</div>'+
+                  '<span class="u-acc-now"></span>'+
+                  '<span class="t-lvl-status"></span>'+
+                  '<svg class="u-acc-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>'+
+                '</div>'+
+                '<div class="lessons">' + lessons + '</div>'+
+              '</div>';
+    }
+    return html;
   }
 
   function launchTopicUnit(topicKey, unitNum){
@@ -311,14 +330,37 @@
       var cur = 1, total = 0;
       try{ var p = window.getProgress && getProgress(ck); cur = (p && p.unit) || 1; }catch(e){}
       try{ total = (window.CURRICULUM && CURRICULUM[ck]) ? CURRICULUM[ck].length : 0; }catch(e){}
-      ds.querySelectorAll('.level.u-flat').forEach(function(lv){
-        var n = parseInt(lv.getAttribute('data-unit'), 10);
+
+      ds.querySelectorAll('.t-level').forEach(function(lv){
+        var L = parseInt(lv.getAttribute('data-level'), 10);
+        var first = parseInt(lv.getAttribute('data-first'), 10);
+        var last  = parseInt(lv.getAttribute('data-last'), 10);
         lv.classList.remove('done','current','locked');
-        var icon = lv.querySelector('.u-acc-icon'), now = lv.querySelector('.u-acc-now');
-        if(n < cur){ lv.classList.add('done'); if(icon) icon.innerHTML = CHECK; if(now) now.textContent = ''; }
-        else if(n === cur){ lv.classList.add('current'); if(icon) icon.textContent = String(n); if(now) now.textContent = 'NOW'; }
+        var icon = lv.querySelector('.u-acc-icon');
+        var now  = lv.querySelector('.u-acc-now');
+        var st   = lv.querySelector('.t-lvl-status');
+        if(last < cur){ lv.classList.add('done'); if(icon) icon.innerHTML = CHECK; if(now) now.textContent = ''; }
+        else if(first <= cur && cur <= last){ lv.classList.add('current'); if(icon) icon.textContent = String(L + 1); if(now) now.textContent = 'NOW'; }
         else { lv.classList.add('locked'); if(icon) icon.innerHTML = LOCK; if(now) now.textContent = ''; }
+
+        var doneCount = 0, size = 0;
+        lv.querySelectorAll('.u-tlesson').forEach(function(ls){
+          size++;
+          var n = parseInt(ls.getAttribute('data-unit'), 10);
+          var numEl = ls.querySelector('.lesson-num');
+          ls.classList.remove('done','current','locked');
+          if(n < cur){ ls.classList.add('done'); if(numEl) numEl.innerHTML = CHECK; doneCount++; }
+          else if(n === cur){ ls.classList.add('current'); if(numEl) numEl.textContent = String(n); }
+          else { ls.classList.add('locked'); if(numEl) numEl.textContent = String(n); }
+        });
+        if(st) st.textContent = doneCount + '/' + size;
+
+        // auto-expand the current level once
+        if(lv.classList.contains('current') && !lv.getAttribute('data-ax')){
+          lv.classList.add('expanded'); lv.setAttribute('data-ax', '1');
+        }
       });
+
       var sum = ds.querySelector('[data-topic-sum="' + pk + '"]');
       if(sum) sum.textContent = (cur - 1) + (total ? ' of ' + total : '') + ' complete';
     });
@@ -410,10 +452,16 @@
       var levels = ds.querySelector('.levels');
       if(levels && units && units.length){
         levels.innerHTML = '<div class="u-summary" data-topic-sum="' + pk + '"></div>' +
-          units.map(function(u){ return topicUnitHTML(ck, u); }).join('');
-        levels.querySelectorAll('.level.u-flat').forEach(function(row){
-          row.addEventListener('click', function(){
-            launchTopicUnit(ck, parseInt(row.getAttribute('data-unit'), 10));
+          topicLevelsHTML(ck, units);
+        // expand/collapse a Level
+        levels.querySelectorAll('.t-level .u-acc-head').forEach(function(head){
+          head.addEventListener('click', function(){ head.parentNode.classList.toggle('expanded'); });
+        });
+        // tap a lesson -> launch that unit
+        levels.querySelectorAll('.u-tlesson').forEach(function(ls){
+          ls.addEventListener('click', function(ev){
+            ev.stopPropagation();
+            launchTopicUnit(ck, parseInt(ls.getAttribute('data-unit'), 10));
           });
         });
       } else {
