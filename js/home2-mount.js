@@ -201,11 +201,23 @@
   }
 
   function launchTopic(key){
-    window._lastTopic = key; window._emmaTopic = key;
-    try{ if(typeof swState !== 'undefined' && swState) swState.topic = key; }catch(e){}
-    try{ if(typeof window.selectAndStart === 'function'){ window.selectAndStart(key); return; } }catch(e){}
-    try{ if(typeof window.mhBegin === 'function'){ window.mhBegin(); return; } }catch(e){}
-    console.warn('[home2] no topic launcher available for', key);
+    // Set the app's current path + topic globals (warmup reads window._emmaTopic).
+    try{ if(typeof window.mhSetCurrentPath === 'function') mhSetCurrentPath(key); }catch(e){}
+    window._lastTopic = key;
+    window._emmaTopic = key;
+    try{ window.emmaTopic = key; }catch(e){}
+    // Hide the new home so warmup/Emma (rendered in .main) isn't covered by it.
+    var hl = document.getElementById('home2Layer'); if(hl) hl.style.display = 'none';
+    document.body.classList.remove('show-topics');
+    ['topicPage','mobileHome','swDesktop'].forEach(function(id){
+      var e = document.getElementById(id); if(e) e.style.display = 'none';
+    });
+    var hdr  = document.querySelector('.hdr');  if(hdr)  hdr.style.display  = '';
+    var main = document.querySelector('.main'); if(main) main.style.display = '';
+    // Straight to warmup -> Emma (mirrors mhBegin; no curriculum picker).
+    try{ if(typeof window._wuGo === 'function') return window._wuGo(); }catch(e){}
+    try{ if(typeof window.switchMode === 'function') return switchMode('emma'); }catch(e){}
+    console.warn('[home2] no warmup/emma launcher for', key);
   }
 
   var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
