@@ -297,7 +297,7 @@
       }).join('');
       html += '<div class="level u-acc t-level" data-topic="' + esc(topicKey) + '" data-level="' + L + '" data-first="' + first + '" data-last="' + last + '">'+
                 '<div class="level-header u-acc-head">'+
-                  '<div class="u-acc-icon">' + (L + 1) + '</div>'+
+                  '<div class="u-acc-icon"></div>'+
                   '<div class="level-content" style="min-width:0">'+
                     '<div class="level-name">Level ' + (L + 1) + '</div>'+
                     '<div class="level-desc">Units ' + first + '\u2013' + last + '</div>'+
