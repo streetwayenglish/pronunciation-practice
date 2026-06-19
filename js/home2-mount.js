@@ -448,17 +448,22 @@
       'Travel English':'--emma-travel','Job Interview':'--emma-interview',
       'The Bible in English':'--emma-bible'
     };
+    var EMMA_POS = {
+      'Conversation':'center 25%','Business English':'center 5%',
+      'Travel English':'center top','Job Interview':'center 5%',
+      'The Bible in English':'center 18%'
+    };
     var hero = R.querySelector('.t-hero');
     if(hero){
       if(key === 'Beginner'){
-        // centered, ~half-size paper plane on the path's colour
+        // centered, smaller paper plane on the path's colour
         var pp = R.querySelector('.detail-screen[data-path="starter"] .pc-photo');
         var planeImg = pp ? getComputedStyle(pp).backgroundImage : 'none';
         var sd = R.querySelector('.detail-screen[data-path="starter"]');
         var col = sd ? getComputedStyle(sd).getPropertyValue('--path-color').trim() : '';
         if(planeImg && planeImg !== 'none') hero.style.backgroundImage = planeImg;
         hero.style.backgroundRepeat = 'no-repeat';
-        hero.style.backgroundSize = '50%';
+        hero.style.backgroundSize = '43%';
         hero.style.backgroundPosition = 'center 42%';
         hero.style.backgroundColor = col || '#3164D4';
       } else {
@@ -468,7 +473,7 @@
           hero.style.backgroundImage = raw;
           hero.style.backgroundRepeat = 'no-repeat';
           hero.style.backgroundSize = 'cover';
-          hero.style.backgroundPosition = 'center top';
+          hero.style.backgroundPosition = EMMA_POS[key] || 'center top';
           hero.style.backgroundColor = '';
         }
       }
