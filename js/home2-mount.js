@@ -314,6 +314,7 @@
 
   function launchTopicUnit(topicKey, unitNum){
     try{ if(typeof swState !== 'undefined' && swState){ swState.topic = topicKey; } }catch(e){}
+    try{ if(typeof window.mhSetCurrentPath === 'function') mhSetCurrentPath(topicKey); }catch(e){}
     window._lastTopic = topicKey;
     window._emmaTopic = topicKey;
     try{ window.emmaTopic = topicKey; }catch(e){}
@@ -396,22 +397,51 @@
       var fill = card.querySelector('.card-fill'); if(fill) fill.style.width = pct + '%';
     });
 
-    // Today "Continue" hero -> anchored to the Beginner course
-    var cur = currentUnit();
-    var u = UNITS[cur - 1] || UNITS[0];
-    var eg = R.querySelector('.t-eyebrow .g'), ew = R.querySelector('.t-eyebrow .w');
-    if(eg) eg.textContent = 'BEGINNER';
-    if(ew) ew.textContent = ' \u00B7 UNIT ' + cur;
-    var title = R.querySelector('.t-title'); if(title) title.textContent = u.t;
-    var pct = Math.round((cur - 1) / 20 * 100);
-    var fill = R.querySelector('.t-prog > i'); if(fill) fill.style.width = pct + '%';
-    var lbl = R.querySelector('.t-prog-lbl'); if(lbl) lbl.innerHTML = '<b>' + pct + '%</b> \u00B7 Unit ' + cur + ' of 20';
-    var cont = R.querySelector('.t-continue');
-    if(cont) cont.onclick = function(){
-      var part = 1;
-      for(var p = 1; p <= 3; p++){ if(!partDone(cur, p)){ part = p; break; } }
-      if(window.SWBeginner && SWBeginner.openUnit) SWBeginner.openUnit(cur, part);
+    // Today hero -> follows the path the student is currently on
+    var CURRIC_TO_PATH = {
+      'Beginner':'starter','Conversation':'conversation','Business English':'business-english',
+      'Travel English':'travel-english','Job Interview':'job-interview','The Bible in English':'bible'
     };
+    var key = 'Beginner';
+    try{
+      if(typeof mhGetCurrentPath === 'function'){ var mp = mhGetCurrentPath(); if(mp && CURRIC_TO_PATH[mp]) key = mp; }
+      else if(window._lastTopic && CURRIC_TO_PATH[window._lastTopic]) key = window._lastTopic;
+    }catch(e){}
+    var slug = CURRIC_TO_PATH[key] || 'starter';
+
+    // hero image = the active path's card image (starter = icons, topics = their image)
+    var hero = R.querySelector('.t-hero');
+    var card = R.querySelector('.card[data-path="' + slug + '"]');
+    if(hero && card){
+      try{ var bg = getComputedStyle(card).backgroundImage; if(bg && bg !== 'none') hero.style.backgroundImage = bg; }catch(e){}
+    }
+
+    // hero text + continue, per active path
+    var hcur, htotal, htitle, hname, hlaunch;
+    if(key === 'Beginner'){
+      hcur = currentUnit(); htotal = 20;
+      htitle = (UNITS[hcur - 1] || UNITS[0]).t; hname = 'BEGINNER';
+      hlaunch = function(){
+        var part = 1; for(var p = 1; p <= 3; p++){ if(!partDone(hcur, p)){ part = p; break; } }
+        try{ if(window.mhSetCurrentPath) mhSetCurrentPath('Beginner'); }catch(e){}
+        if(window.SWBeginner && SWBeginner.openUnit) SWBeginner.openUnit(hcur, part);
+      };
+    } else {
+      var units = (window.CURRICULUM && CURRICULUM[key]) ? CURRICULUM[key] : [];
+      htotal = units.length || 20;
+      try{ var pr = window.getProgress && getProgress(key); hcur = (pr && pr.unit) || 1; }catch(e){ hcur = 1; }
+      htitle = (units[hcur - 1] || units[0] || {}).title || ('Unit ' + hcur);
+      hname = key.toUpperCase();
+      hlaunch = function(){ launchTopicUnit(key, hcur); };
+    }
+    var eg = R.querySelector('.t-eyebrow .g'), ew = R.querySelector('.t-eyebrow .w');
+    if(eg) eg.textContent = hname;
+    if(ew) ew.textContent = ' \u00B7 UNIT ' + hcur;
+    var title = R.querySelector('.t-title'); if(title) title.textContent = htitle;
+    var pct = Math.round((hcur - 1) / htotal * 100);
+    var fill = R.querySelector('.t-prog > i'); if(fill) fill.style.width = pct + '%';
+    var lbl = R.querySelector('.t-prog-lbl'); if(lbl) lbl.innerHTML = '<b>' + pct + '%</b> \u00B7 Unit ' + hcur + ' of ' + htotal;
+    var cont = R.querySelector('.t-continue'); if(cont) cont.onclick = hlaunch;
   }
 
   var wired = false;
@@ -438,6 +468,7 @@
             ev.stopPropagation();
             var u = parseInt(ls.getAttribute('data-unit'), 10);
             var p = parseInt(ls.getAttribute('data-part'), 10);
+            try{ if(window.mhSetCurrentPath) mhSetCurrentPath('Beginner'); }catch(e){}
             if(window.SWBeginner && SWBeginner.openUnit) SWBeginner.openUnit(u, p);
           });
         });
