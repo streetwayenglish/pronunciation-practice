@@ -314,6 +314,7 @@
 
   function launchTopicUnit(topicKey, unitNum){
     try{ recordActivity(); }catch(e){}
+    try{ minLaunch(); }catch(e){}
     try{ if(typeof swState !== 'undefined' && swState){ swState.topic = topicKey; } }catch(e){}
     try{ if(typeof window.mhSetCurrentPath === 'function') mhSetCurrentPath(topicKey); }catch(e){}
     window._lastTopic = topicKey;
@@ -420,6 +421,31 @@
     return t;
   }
 
+  // ---- Active minutes today: counts only while a lesson is open AND visible --
+  var _minSession = false, _minStart = null;
+  function _minGet(){
+    try{ var raw = localStorage.getItem('streetway_mins'); if(raw){ var o = JSON.parse(raw); if(o.d === _today()) return o.s || 0; } }catch(e){}
+    return 0;
+  }
+  function _minAdd(secs){
+    try{ localStorage.setItem('streetway_mins', JSON.stringify({ d:_today(), s:(_minGet() + secs) })); }catch(e){}
+  }
+  function minBank(){
+    if(_minStart){
+      var el = (Date.now() - _minStart) / 1000;
+      if(el > 0 && el < 7200) _minAdd(el);  // ignore absurd intervals
+      _minStart = null;
+    }
+  }
+  function minLaunch(){ minBank(); _minSession = true; if(document.visibilityState === 'visible') _minStart = Date.now(); }
+  function minEnd(){ minBank(); _minSession = false; }
+  function minutesToday(){ return Math.floor(_minGet() / 60); }
+  document.addEventListener('visibilitychange', function(){
+    if(document.hidden) minBank();                                   // pause + bank
+    else if(_minSession && !_minStart) _minStart = Date.now();       // resume
+  });
+  window.addEventListener('pagehide', minBank);
+
   function refreshDetailHeaders(){
     var R = document.getElementById('h2root'); if(!R) return;
     Object.keys(PATH_TO_CURRIC).forEach(function(pk){
@@ -507,6 +533,7 @@
       hlaunch = function(){
         var part = 1; for(var p = 1; p <= 3; p++){ if(!partDone(hcur, p)){ part = p; break; } }
         try{ recordActivity(); }catch(e){}
+        try{ minLaunch(); }catch(e){}
         try{ if(window.mhSetCurrentPath) mhSetCurrentPath('Beginner'); }catch(e){}
         if(window.SWBeginner && SWBeginner.openUnit) SWBeginner.openUnit(hcur, part);
       };
@@ -531,6 +558,7 @@
     try{
       var stats = R.querySelectorAll('.page-today .t-stat');
       if(stats[0]){ var sv = stats[0].querySelector('.t-stat-val'); if(sv) sv.textContent = String(displayStreak()); }
+      if(stats[1]){ var mv = stats[1].querySelector('.t-stat-val'); if(mv) mv.innerHTML = minutesToday() + '<span>m</span>'; }
       if(stats[2]){
         var uv = stats[2].querySelector('.t-stat-val'); if(uv) uv.textContent = String(totalUnitsDone());
         var ul = stats[2].querySelector('.t-stat-lbl'); if(ul) ul.textContent = 'Units done';
@@ -563,6 +591,7 @@
             var u = parseInt(ls.getAttribute('data-unit'), 10);
             var p = parseInt(ls.getAttribute('data-part'), 10);
             try{ recordActivity(); }catch(e){}
+            try{ minLaunch(); }catch(e){}
             try{ if(window.mhSetCurrentPath) mhSetCurrentPath('Beginner'); }catch(e){}
             if(window.SWBeginner && SWBeginner.openUnit) SWBeginner.openUnit(u, p);
           });
@@ -606,6 +635,7 @@
 
   function showHome2(){
     var host = layerEl(); if(!host) return;
+    try{ minEnd(); }catch(e){}
     // Lift to <body> so no transformed/contained ancestor interferes with the
     // fixed layer, then give it a real height in viewport units (can't collapse).
     if(host.parentNode !== document.body) document.body.appendChild(host);
