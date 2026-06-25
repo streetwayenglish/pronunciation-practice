@@ -420,6 +420,26 @@
     return t;
   }
 
+  function refreshDetailHeaders(){
+    var R = document.getElementById('h2root'); if(!R) return;
+    Object.keys(PATH_TO_CURRIC).forEach(function(pk){
+      var ck = PATH_TO_CURRIC[pk];
+      var ds = R.querySelector('.detail-screen[data-path="' + pk + '"]'); if(!ds) return;
+      var cur = 1, total = 20;
+      if(ck === 'Beginner'){ cur = currentUnit(); total = 20; }
+      else {
+        try{ var p = window.getProgress && getProgress(ck); cur = (p && p.unit) || 1; }catch(e){}
+        try{ total = (window.CURRICULUM && CURRICULUM[ck] && CURRICULUM[ck].length) ? CURRICULUM[ck].length : 20; }catch(e){}
+      }
+      var done = Math.max(0, cur - 1);
+      var pct = Math.round(done / total * 100);
+      var meta = ds.querySelector('.pc-meta');
+      if(meta) meta.innerHTML = '<strong>' + done + ' of ' + total + ' lessons</strong> \u00B7 ' + pct + '% complete';
+      var fill = ds.querySelector('.pc-bar-fill');
+      if(fill) fill.style.width = pct + '%';
+    });
+  }
+
   function refreshTodayAndPaths(){
     var R = document.getElementById('h2root'); if(!R) return;
 
@@ -598,7 +618,7 @@
     host.style.height = '100dvh';
     host.style.zIndex = '50';
     host.style.background = '#F3F0E8';
-    build().then(function(){ sizeRoot(); wireContent(); refreshBeginnerStates(); refreshTopicStates(); refreshTodayAndPaths(); }).catch(function(e){ console.warn('[home2] build failed', e); });
+    build().then(function(){ sizeRoot(); wireContent(); refreshBeginnerStates(); refreshTopicStates(); refreshDetailHeaders(); refreshTodayAndPaths(); }).catch(function(e){ console.warn('[home2] build failed', e); });
   }
   function hideHome2(){ var host = layerEl(); if(host) host.style.display = 'none'; }
   window.SWHome2 = { show: showHome2, hide: hideHome2 };
