@@ -529,7 +529,7 @@ function _wuSetState(s){
   var skipBtn = document.getElementById('wuSkipBtn');
   if(!label||!mainBtn) return;
 
-  function playTriHtml(c){ return '<svg width="20" height="20" viewBox="0 0 24 24" fill="'+c+'" stroke="none"><polygon points="7 4 19 12 7 20 7 4"/></svg>'; }
+  function playTriHtml(c){ return '<svg width="20" height="20" viewBox="0 0 24 24" fill="'+c+'" stroke="none"><polygon points="6 4 18 12 6 20 6 4"/></svg>'; }
   function pauseHtml(){ return '<span class="wu-pause-bars"></span>'; }
   function micHtml(){ return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/><line x1="12" y1="20" x2="12" y2="22.5"/><line x1="8.5" y1="22.5" x2="15.5" y2="22.5"/></svg>'; }
   function checkHtml(c){ return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'; }
