@@ -558,7 +558,7 @@
     try{
       var stats = R.querySelectorAll('.page-today .t-stat');
       if(stats[0]){ var sv = stats[0].querySelector('.t-stat-val'); if(sv) sv.textContent = String(displayStreak()); }
-      if(stats[1]){ var mv = stats[1].querySelector('.t-stat-val'); if(mv) mv.innerHTML = minutesToday() + '<span>m</span>'; }
+      if(stats[1]){ var mv = stats[1].querySelector('.t-stat-val'); if(mv) mv.textContent = String(minutesToday()); var ml = stats[1].querySelector('.t-stat-lbl'); if(ml) ml.textContent = 'Min today'; }
       if(stats[2]){
         var uv = stats[2].querySelector('.t-stat-val'); if(uv) uv.textContent = String(totalUnitsDone());
         var ul = stats[2].querySelector('.t-stat-lbl'); if(ul) ul.textContent = 'Units done';
