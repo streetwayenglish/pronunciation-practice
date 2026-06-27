@@ -415,9 +415,13 @@
     }catch(e){ return 0; }
   }
   function totalUnitsDone(){
-    try{ if(typeof mhGetTotalUnitsDone === 'function') return mhGetTotalUnitsDone(); }catch(e){}
     var t = 0;
-    try{ for(var k in CURRICULUM){ t += Math.max(0, (getProgress(k).unit || 1) - 1); } }catch(e){}
+    try{
+      if(typeof mhGetTotalUnitsDone === 'function') t = mhGetTotalUnitsDone();
+      else { for(var k in CURRICULUM){ t += Math.max(0, (getProgress(k).unit || 1) - 1); } }
+    }catch(e){}
+    // CURRICULUM has no 'Beginner' key, so Starter units are added separately
+    try{ t += Math.max(0, ((window.getProgress && getProgress('Beginner').unit) || 1) - 1); }catch(e){}
     return t;
   }
 
@@ -460,6 +464,9 @@
     else if(_minSession && !_minStart) _minStart = Date.now();       // resume
   });
   window.addEventListener('pagehide', minBank);
+
+  // Expose tracking so other modules (warm-up, etc.) can count toward time + streak
+  window.SWTrack = { day: recordActivity, start: minLaunch, stop: minEnd };
 
   // ---- Activity screen: real data where it exists, honest empty states ------
   function _setRing(circle, r, pct){
