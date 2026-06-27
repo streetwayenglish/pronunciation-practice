@@ -474,7 +474,7 @@
 
     var GOAL = 105; // weekly minute goal (15 min/day) for the Time ring
     var wk = _weekMinutes(), days = _daysActive(), lessons = totalUnitsDone(), allMin = _allTimeMinutes();
-    var PKEYS = ['Conversation','Travel English','Business English','Job Interview','The Bible in English'];
+    var PKEYS = ['Beginner','Conversation','Travel English','Business English','Job Interview','The Bible in English'];
     var pcts = PKEYS.map(function(k){ var v = pathPct(k); return v == null ? 0 : v; });
     var timePct = Math.min(100, Math.round(wk / GOAL * 100));
     var daysPct = Math.round(days / 7 * 100);
@@ -511,7 +511,7 @@
         var oldtag = col.querySelector('.bar-tag'); if(oldtag) oldtag.remove();
         var future = (ds > today);
         col.classList.add(ds === today ? 'today' : (future ? 'future' : 'active'));
-        if(ds === today){ var area = col.querySelector('.bar-area'); if(area){ var tg = document.createElement('span'); tg.className = 'bar-tag'; tg.textContent = 'Today'; area.insertBefore(tg, area.firstChild); } }
+        if(ds === today && m > 0){ var area = col.querySelector('.bar-area'); if(area){ var tg = document.createElement('span'); tg.className = 'bar-tag'; tg.textContent = 'Today'; area.insertBefore(tg, area.firstChild); } }
         if(fill) fill.style.height = (m > 0 ? Math.max(8, Math.round(m/maxm*100)) : 0) + '%';
         if(m > peakM){ peakM = m; peakDay = NAMES[i]; }
       }
@@ -543,7 +543,7 @@
     // Path progress (real)
     try{
       var rows = A.querySelectorAll('.paths-card .p-row');
-      for(var r2=0; r2<rows.length && r2<5; r2++){
+      for(var r2=0; r2<rows.length && r2<6; r2++){
         var pc = pcts[r2], bar = rows[r2].querySelector('.p-bar i'), tag = rows[r2].querySelector('.p-pct, .p-done');
         if(bar) bar.style.width = pc + '%';
         if(tag){ if(pc >= 100){ tag.textContent = 'Complete'; tag.className = 'p-done'; } else { tag.textContent = pc + '%'; tag.className = 'p-pct'; } }
