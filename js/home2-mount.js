@@ -429,7 +429,22 @@
   }
   function _minAdd(secs){
     try{ localStorage.setItem('streetway_mins', JSON.stringify({ d:_today(), s:(_minGet() + secs) })); }catch(e){}
+    try{ var L = _logGet(); var t = _today(); L[t] = (L[t] || 0) + secs; localStorage.setItem('streetway_mins_log', JSON.stringify(L)); }catch(e){}
   }
+  // Per-day minute log (powers the weekly chart; starts empty, fills over time)
+  function _logGet(){ try{ var raw = localStorage.getItem('streetway_mins_log'); return raw ? JSON.parse(raw) : {}; }catch(e){ return {}; } }
+  function _weekDays(){ // current week, Mon..Sun, as date strings
+    var now = new Date(); var dow = (now.getDay() + 6) % 7; // Mon=0
+    var mon = new Date(now); mon.setDate(now.getDate() - dow);
+    var arr = []; for(var i=0;i<7;i++){ var d = new Date(mon); d.setDate(mon.getDate() + i); arr.push(_dstr(d)); } return arr;
+  }
+  function _prevWeekDays(){ var now = new Date(); now.setDate(now.getDate() - 7); var dow = (now.getDay()+6)%7; var mon = new Date(now); mon.setDate(now.getDate()-dow); var arr=[]; for(var i=0;i<7;i++){ var d=new Date(mon); d.setDate(mon.getDate()+i); arr.push(_dstr(d)); } return arr; }
+  function _dayMins(ds){ var L = _logGet(); return Math.floor((L[ds] || 0) / 60); }
+  function _weekMinutes(){ var L = _logGet(), s = 0; _weekDays().forEach(function(d){ s += (L[d] || 0); }); return Math.floor(s/60); }
+  function _prevWeekMinutes(){ var L = _logGet(), s = 0; _prevWeekDays().forEach(function(d){ s += (L[d] || 0); }); return Math.floor(s/60); }
+  function _daysActive(){ var L = _logGet(), n = 0; _weekDays().forEach(function(d){ if((L[d] || 0) >= 30) n++; }); return n; }
+  function _allTimeMinutes(){ var L = _logGet(), s = 0; for(var k in L){ if(L.hasOwnProperty(k)) s += L[k]; } return Math.floor(s/60); }
+  function _fmtHM(m){ m = Math.max(0, m|0); var h = Math.floor(m/60), mm = m%60; if(h && mm) return h+'h '+mm+'m'; if(h) return h+'h'; return mm+'m'; }
   function minBank(){
     if(_minStart){
       var el = (Date.now() - _minStart) / 1000;
@@ -445,6 +460,110 @@
     else if(_minSession && !_minStart) _minStart = Date.now();       // resume
   });
   window.addEventListener('pagehide', minBank);
+
+  // ---- Activity screen: real data where it exists, honest empty states ------
+  function _setRing(circle, r, pct){
+    if(!circle) return;
+    var C = 2 * Math.PI * r;
+    circle.setAttribute('stroke-dasharray', C.toFixed(2));
+    circle.setAttribute('stroke-dashoffset', (C * (1 - Math.max(0,Math.min(100,pct))/100)).toFixed(2));
+  }
+  function updateActivity(R){
+    R = R || document.getElementById('h2root'); if(!R) return;
+    var A = R.querySelector('.page-activity'); if(!A) return;
+
+    var GOAL = 105; // weekly minute goal (15 min/day) for the Time ring
+    var wk = _weekMinutes(), days = _daysActive(), lessons = totalUnitsDone(), allMin = _allTimeMinutes();
+    var PKEYS = ['Conversation','Travel English','Business English','Job Interview','The Bible in English'];
+    var pcts = PKEYS.map(function(k){ var v = pathPct(k); return v == null ? 0 : v; });
+    var timePct = Math.min(100, Math.round(wk / GOAL * 100));
+    var daysPct = Math.round(days / 7 * 100);
+    var hasProgress = (wk > 0 || lessons > 0 || pcts.some(function(p){ return p > 0; }));
+
+    // Weekly time + sub
+    try{ var wb = A.querySelector('.week-big'); if(wb) wb.textContent = _fmtHM(wk); }catch(e){}
+    try{
+      var tr = A.querySelector('.week-trend'), lw = _prevWeekMinutes();
+      if(tr){ if(lw > 0){ tr.style.display=''; var node=tr.childNodes[tr.childNodes.length-1]; if(node) node.textContent = Math.abs(Math.round((wk-lw)/lw*100)) + '%'; } else tr.style.display='none'; }
+    }catch(e){}
+    try{ var ws = A.querySelector('.week-sub'); if(ws) ws.innerHTML = '<b>' + days + (days===1?' day':' days') + ' active</b> &middot; this week'; }catch(e){}
+
+    // Rings: Time (real) / Accuracy (untracked -> 0) / Days (real)
+    try{
+      var fills = A.querySelectorAll('.rings-svg circle[stroke-linecap="round"]');
+      _setRing(fills[0], 80, timePct); _setRing(fills[1], 60, 0); _setRing(fills[2], 40, daysPct);
+    }catch(e){}
+    try{
+      var rv = A.querySelectorAll('.ring-legend .rl-val');
+      if(rv[0]) rv[0].innerHTML = timePct + '<small>%</small>';
+      if(rv[1]){ rv[1].innerHTML = '0<small>%</small>'; rv[1].style.opacity = '.35'; }
+      if(rv[2]) rv[2].innerHTML = days + '<small>/7</small>';
+    }catch(e){}
+
+    // Daily bars (Mon..Sun aligned to the labels), real from the log
+    try{
+      var cols = A.querySelectorAll('.chart .bar-col'), wd = _weekDays(), today = _today();
+      var maxm = 1; wd.forEach(function(d){ maxm = Math.max(maxm, _dayMins(d)); });
+      var peakM = 0, peakDay = '', NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      for(var i=0; i<cols.length && i<7; i++){
+        var ds = wd[i], m = _dayMins(ds), col = cols[i], fill = col.querySelector('.bar-fill');
+        col.classList.remove('active','today','future');
+        var oldtag = col.querySelector('.bar-tag'); if(oldtag) oldtag.remove();
+        var future = (ds > today);
+        col.classList.add(ds === today ? 'today' : (future ? 'future' : 'active'));
+        if(ds === today){ var area = col.querySelector('.bar-area'); if(area){ var tg = document.createElement('span'); tg.className = 'bar-tag'; tg.textContent = 'Today'; area.insertBefore(tg, area.firstChild); } }
+        if(fill) fill.style.height = (m > 0 ? Math.max(8, Math.round(m/maxm*100)) : 0) + '%';
+        if(m > peakM){ peakM = m; peakDay = NAMES[i]; }
+      }
+      var pk = A.querySelector('.week-bars-label span'); if(pk) pk.innerHTML = peakM > 0 ? ('Peak: <b>' + peakDay + ', ' + peakM + 'm</b>') : 'Daily minutes';
+    }catch(e){}
+
+    // Skill radar: hold behind an unlock panel until there's real data
+    try{
+      var skills = A.querySelector('.skills-card');
+      if(skills && !skills.querySelector('.act-lock')){
+        var radar = skills.querySelector('.radar-svg'); if(radar) radar.style.display = 'none';
+        var cap = skills.querySelector('.skills-caption'); if(cap) cap.style.display = 'none';
+        var lock = document.createElement('div'); lock.className = 'act-lock';
+        lock.style.cssText = 'text-align:center;padding:30px 18px 22px;color:#b8b0a0;';
+        lock.innerHTML = '<div style="font-weight:600;color:#8a8073;font-size:15px;">Your skill snapshot unlocks soon</div>'
+          + '<div style="font-size:13px;margin-top:5px;line-height:1.45;">As you practice, your pronunciation, fluency and more will appear here.</div>';
+        (radar ? radar.parentNode.insertBefore(lock, radar) : skills.appendChild(lock));
+      }
+    }catch(e){}
+
+    // All-time: hours (accumulating) / words (untracked -> 0) / lessons (real)
+    try{
+      var at = A.querySelectorAll('.alltime .at-cell .at-val');
+      if(at[0]) at[0].innerHTML = Math.floor(allMin/60) + '<span>h</span>';
+      if(at[1]) at[1].textContent = '0';
+      if(at[2]) at[2].textContent = String(lessons);
+    }catch(e){}
+
+    // Path progress (real)
+    try{
+      var rows = A.querySelectorAll('.paths-card .p-row');
+      for(var r2=0; r2<rows.length && r2<5; r2++){
+        var pc = pcts[r2], bar = rows[r2].querySelector('.p-bar i'), tag = rows[r2].querySelector('.p-pct, .p-done');
+        if(bar) bar.style.width = pc + '%';
+        if(tag){ if(pc >= 100){ tag.textContent = 'Complete'; tag.className = 'p-done'; } else { tag.textContent = pc + '%'; tag.className = 'p-pct'; } }
+      }
+    }catch(e){}
+
+    // First-week welcome line when the screen is empty
+    try{
+      var existing = A.querySelector('.act-firstweek');
+      if(!hasProgress){
+        if(!existing){
+          var hd = A.querySelector('.headline');
+          var fw = document.createElement('div'); fw.className = 'act-firstweek';
+          fw.style.cssText = 'font-size:14px;color:#a89f8e;margin:-6px 0 14px;font-weight:500;';
+          fw.textContent = 'Your first week starts now \u2014 this fills in as you practice.';
+          if(hd && hd.parentNode) hd.parentNode.insertBefore(fw, hd.nextSibling);
+        }
+      } else if(existing){ existing.remove(); }
+    }catch(e){}
+  }
 
   function refreshDetailHeaders(){
     var R = document.getElementById('h2root'); if(!R) return;
@@ -554,16 +673,20 @@
     var lbl = R.querySelector('.t-prog-lbl'); if(lbl) lbl.innerHTML = '<b>' + pct + '%</b> \u00B7 Unit ' + hcur + ' of ' + htotal;
     var cont = R.querySelector('.t-continue'); if(cont) cont.onclick = hlaunch;
 
-    // Stats: streak (real) + units-done (real, replacing Words). Minutes left as-is.
+    // Stats: streak (real) + units-done (real). Minutes -> "Min today".
     try{
       var stats = R.querySelectorAll('.page-today .t-stat');
       if(stats[0]){ var sv = stats[0].querySelector('.t-stat-val'); if(sv) sv.textContent = String(displayStreak()); }
-      if(stats[1]){ var mv = stats[1].querySelector('.t-stat-val'); if(mv) mv.textContent = String(minutesToday()); var ml = stats[1].querySelector('.t-stat-lbl'); if(ml) ml.textContent = 'Min today'; }
+      if(stats[1]){
+        var mv = stats[1].querySelector('.t-stat-val'); if(mv) mv.textContent = String(minutesToday());
+        var ml = stats[1].querySelector('.t-stat-lbl'); if(ml) ml.textContent = 'Min today';
+      }
       if(stats[2]){
         var uv = stats[2].querySelector('.t-stat-val'); if(uv) uv.textContent = String(totalUnitsDone());
         var ul = stats[2].querySelector('.t-stat-lbl'); if(ul) ul.textContent = 'Units done';
       }
     }catch(e){}
+    try{ updateActivity(R); }catch(e){}
   }
 
   var wired = false;
