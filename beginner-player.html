@@ -386,4 +386,23 @@ function rRecog(){let done=false;const correct=st.se.text,others=[];['a','b'].fo
  shuffle([correct,...shuffle(others).slice(0,2)]).forEach(o=>{const b=document.createElement('div');b.className='opt';b.textContent='"'+o+'"';b.onclick=()=>{if(done)return;if(o===correct){b.classList.add('correct');done=true;chime();setTimeout(adv,750);}else{b.classList.add('wrong');b.style.pointerEvents='none';buzz();}};$('opts').appendChild(b);});setTimeout(()=>playSeg(st.sc,st.se,()=>{}),250);}
 function rDone(){saveClear();showCover(false);showSheet(true);tag('');sheet.innerHTML='<div class="slabel grn"></div><div class="card"><div class="blockcard"><h3>'+T.lessonDone+'</h3><p>'+T.emmaNext+'</p></div></div><div class="controls"><button class="ctl" style="visibility:hidden"></button><button class="center c-green" id="bc">'+I.rot+'</button><button class="ctl" style="visibility:hidden"></button></div>';$('bc').onclick=adv;$('fill').style.width='100%';}
 $('xb').onclick=()=>openPart(part); start();
-</script><script>(function(){function post(t,u){try{parent.postMessage({source:'swb-beginner',type:t,unit:u},'*');}catch(e){}}window.swbPost=post;function bindClose(){var x=document.getElementById('xb');if(x)x.onclick=function(){post('close');};}try{if(typeof onPartEnd==='function'){var _o=onPartEnd;onPartEnd=function(){_o();try{var h=document.getElementById('hero');if(h&&h.className.indexOf('green')>=0){var g=document.getElementById('hgo');if(g)g.onclick=function(){post('unit-complete',parseInt(L,10));};}}catch(e){}};}}catch(e){}bindClose();post('ready');})();</script></body></html>
+</script><script>(function(){function post(t,u){try{parent.postMessage({source:'swb-beginner',type:t,unit:u},'*');}catch(e){}}window.swbPost=post;function bindClose(){var x=document.getElementById('xb');if(x)x.onclick=function(){post('close');};}try{if(typeof onPartEnd==='function'){var _o=onPartEnd;onPartEnd=function(){_o();try{var h=document.getElementById('hero');if(h&&h.className.indexOf('green')>=0){var g=document.getElementById('hgo');if(g)g.onclick=function(){post('unit-complete',parseInt(L,10));};}}catch(e){}};}}catch(e){}bindClose();post('ready');})();</script><script>
+/* Starter accuracy -> weekly Accuracy pool.
+   ADDITIVE ONLY: wraps global functions, never edits card/recorder logic.
+   Originals are always called; every hook is guarded so it cannot break a lesson. */
+(function(){
+  var _sum=0,_n=0;
+  function add(s){ if(typeof s==='number' && isFinite(s) && s>0){ _sum+=s; _n++; } }
+  function push(){
+    if(_n>0){ try{ if(parent && parent.SWTrack && parent.SWTrack.acc){ parent.SWTrack.acc(Math.round(_sum/_n)); } }catch(e){} }
+    _sum=0; _n=0;
+  }
+  // Capture every spoken score at the single recorder choke point (its onDone callback)
+  try{ if(typeof recBegin==='function'){ var _rb=recBegin; recBegin=window.recBegin=function(t,onDone){ return _rb(t,function(s){ try{ add(s); }catch(e){} onDone(s); }); }; } }catch(e){}
+  // Reset the unit tally whenever a unit (re)starts
+  try{ if(typeof start==='function'){ var _st=start; start=window.start=function(){ _sum=0; _n=0; return _st.apply(this,arguments); }; } }catch(e){}
+  // Push the unit's average when the unit completes (hero turns green = "Unit complete")
+  try{ if(typeof onPartEnd==='function'){ var _pe=onPartEnd; onPartEnd=window.onPartEnd=function(){ var r=_pe.apply(this,arguments); try{ var h=document.getElementById('hero'); if(h && h.className.indexOf('green')>=0) push(); }catch(e){} return r; }; } }catch(e){}
+})();
+</script>
+</body></html>
