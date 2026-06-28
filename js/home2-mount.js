@@ -504,7 +504,7 @@
     R = R || document.getElementById('h2root'); if(!R) return;
     var A = R.querySelector('.page-activity'); if(!A) return;
 
-    var GOAL = 105; // weekly minute goal (15 min/day) for the Time ring
+    var GOAL = _dailyGoal() * 7; // weekly minute goal = the student's daily goal x7
     var wk = _weekMinutes(), days = _daysActive(), lessons = totalLessonsDone(), allMin = _allTimeMinutes();
     var PKEYS = ['Beginner','Conversation','Travel English','Business English','Job Interview','The Bible in English'];
     var pcts = PKEYS.map(function(k){ var v = pathPct(k); return v == null ? 0 : v; });
@@ -587,6 +587,197 @@
         }
       } else if(existing){ existing.remove(); }
     }catch(e){}
+  }
+
+  // ===== "You" tab: profile, photo, daily goal, support, reset =====
+  var YOU_SUPPORT_EMAIL = 'contato@emmaspeak.com.br'; // TODO: set your real support email
+  var YOU_PRIVACY_URL = '';  // TODO: set your privacy-policy URL
+  var YOU_TERMS_URL   = '';  // TODO: set your terms URL
+
+  function _esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function _userName(){ try{ return localStorage.getItem('streetway_user_name') || ''; }catch(e){ return ''; } }
+  function _userPhoto(){ try{ return localStorage.getItem('streetway_user_photo') || ''; }catch(e){ return ''; } }
+  function _dailyGoal(){ try{ var v = parseInt(localStorage.getItem('streetway_daily_goal'),10); return v > 0 ? v : 15; }catch(e){ return 15; } }
+  function _initials(name){ name = (name||'').trim(); if(!name) return '\uD83D\uDE42'; var p = name.split(/\s+/); return ((p[0].charAt(0)||'') + (p.length>1 ? p[p.length-1].charAt(0) : '')).toUpperCase(); }
+  function _joined(){
+    try{
+      var j = localStorage.getItem('streetway_joined');
+      if(!j){ j = new Date().toISOString(); localStorage.setItem('streetway_joined', j); }
+      return new Date(j).toLocaleDateString('en-US', { month:'long', year:'numeric' });
+    }catch(e){ return ''; }
+  }
+
+  function setupYou(R){
+    R = R || document.getElementById('h2root'); if(!R) return;
+    var Y = R.querySelector('.page-you'); if(!Y) return;
+    var name = _userName();
+    try{ var h = Y.querySelector('#you-hello'); if(h) h.textContent = name ? ('Hello, ' + name.split(/\s+/)[0]) : 'Hello,'; }catch(e){}
+    try{ var nm = Y.querySelector('#you-name'); if(nm) nm.textContent = name || 'Add your name'; }catch(e){}
+    try{
+      var av = Y.querySelector('#you-avatar'), photo = _userPhoto();
+      if(av){
+        if(photo){ av.textContent=''; av.style.backgroundImage='url('+photo+')'; av.style.backgroundSize='cover'; av.style.backgroundPosition='center'; }
+        else { av.style.backgroundImage=''; av.textContent=_initials(name); }
+      }
+    }catch(e){}
+    try{ var sub = Y.querySelector('#you-sub'); if(sub){ var jd=_joined(); sub.innerHTML = 'Portuguese' + (jd ? (' &middot; Joined ' + jd) : ''); } }catch(e){}
+    try{ var gv = Y.querySelector('#you-goal-val'); if(gv) gv.textContent = _dailyGoal() + ' minutes'; }catch(e){}
+    try{
+      var st = Y.querySelector('#you-streak');
+      if(st){
+        var cur = 0; try{ cur = (typeof displayStreak === 'function' ? displayStreak() : 0) || 0; }catch(e){}
+        var best = _bestStreak(cur);
+        if(cur > 0){ st.style.cssText = 'font-size:12.5px;font-weight:700;color:#C79527;margin-bottom:12px;letter-spacing:-.01em;'; st.textContent = '\uD83D\uDD25 ' + cur + '-day streak' + (best > cur ? ('  \u00b7  best ' + best) : ''); }
+        else { st.style.display = 'none'; }
+      }
+    }catch(e){}
+    try{ var rmv = Y.querySelector('#you-reminder-val'); if(rmv){ var rg = _reminderGet(); rmv.textContent = (rg.on && rg.time) ? _fmtTime(rg.time) : 'Off'; } }catch(e){}
+
+    if(Y._youWired) return; Y._youWired = true;
+    try{ var ed = Y.querySelector('#you-edit'); if(ed) ed.addEventListener('click', _youEditSheet); }catch(e){}
+    try{ var pa = Y.querySelector('#you-avatar'); if(pa) pa.addEventListener('click', _youEditSheet); }catch(e){}
+    try{ var gr = Y.querySelector('#you-goal-row'); if(gr) gr.addEventListener('click', _youGoalSheet); }catch(e){}
+    try{ var hp = Y.querySelector('#you-help'); if(hp) hp.addEventListener('click', function(){ try{ window.location.href = 'mailto:' + YOU_SUPPORT_EMAIL; }catch(e){} }); }catch(e){}
+    try{ var pv = Y.querySelector('#you-privacy'); if(pv) pv.addEventListener('click', function(){ if(YOU_PRIVACY_URL){ try{ window.open(YOU_PRIVACY_URL,'_blank'); }catch(e){} } }); }catch(e){}
+    try{ var tm = Y.querySelector('#you-terms'); if(tm) tm.addEventListener('click', function(){ if(YOU_TERMS_URL){ try{ window.open(YOU_TERMS_URL,'_blank'); }catch(e){} } }); }catch(e){}
+    try{ var rmr = Y.querySelector('#you-reminder-row'); if(rmr) rmr.addEventListener('click', _youReminderSheet); }catch(e){}
+    try{ var rs = Y.querySelector('#you-reset'); if(rs) rs.addEventListener('click', _youSignOut); }catch(e){}
+  }
+
+  function _youSheet(innerHTML){
+    var root = document.getElementById('h2root') || document.body;
+    var ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:200;background:rgba(20,16,10,.42);display:flex;align-items:flex-end;justify-content:center;font-family:Inter,system-ui,sans-serif;';
+    var sheet = document.createElement('div');
+    sheet.style.cssText = 'width:100%;max-width:520px;background:#FBF9F3;border-radius:22px 22px 0 0;padding:22px 22px calc(22px + env(safe-area-inset-bottom));box-shadow:0 -12px 44px rgba(0,0,0,.22);';
+    sheet.innerHTML = innerHTML;
+    ov.appendChild(sheet);
+    ov.addEventListener('click', function(e){ if(e.target === ov) ov.remove(); });
+    root.appendChild(ov);
+    return { ov: ov, sheet: sheet, close: function(){ ov.remove(); } };
+  }
+
+  function _youResizePhoto(file, cb){
+    try{
+      var reader = new FileReader();
+      reader.onload = function(){
+        var img = new Image();
+        img.onload = function(){
+          try{
+            var size = 256, c = document.createElement('canvas'); c.width = size; c.height = size;
+            var ctx = c.getContext('2d');
+            var sd = Math.min(img.width, img.height), sx = (img.width - sd)/2, sy = (img.height - sd)/2;
+            ctx.drawImage(img, sx, sy, sd, sd, 0, 0, size, size);
+            cb(c.toDataURL('image/jpeg', 0.82));
+          }catch(e){}
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }catch(e){}
+  }
+
+  function _youEditSheet(){
+    var name = _userName(), photo = _userPhoto();
+    var avInner = photo ? '' : _initials(name);
+    var avStyle = photo ? ('background-image:url('+photo+');background-size:cover;background-position:center;') : 'background:#0a0a0a;color:#fff;';
+    var s = _youSheet(
+      '<div style="font-size:19px;font-weight:800;color:#0a0a0a;letter-spacing:-.02em;margin-bottom:18px;">Edit profile</div>'
+      + '<div style="display:flex;flex-direction:column;align-items:center;gap:9px;margin-bottom:18px;">'
+      +   '<div id="ysAvatar" style="width:84px;height:84px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;overflow:hidden;cursor:pointer;'+avStyle+'">'+avInner+'</div>'
+      +   '<button id="ysPhotoBtn" style="background:none;border:none;color:#C79527;font-weight:700;font-size:13px;cursor:pointer;padding:4px;">Change photo</button>'
+      +   '<input type="file" id="ysPhoto" accept="image/*" style="display:none;">'
+      + '</div>'
+      + '<div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#a89f8e;margin-bottom:7px;">Your name</div>'
+      + '<input type="text" id="ysName" value="'+_esc(name)+'" placeholder="Your name" autocomplete="off" autocapitalize="words" style="width:100%;box-sizing:border-box;padding:13px 15px;border:1.5px solid #e7e0d2;border-radius:13px;font-size:16px;font-family:inherit;color:#0a0a0a;background:#fff;outline:none;margin-bottom:20px;">'
+      + '<div style="display:flex;gap:10px;">'
+      +   '<button id="ysCancel" style="flex:1;padding:14px;border:none;border-radius:13px;background:#efe9dc;color:#6a6052;font-weight:700;font-size:15px;cursor:pointer;">Cancel</button>'
+      +   '<button id="ysSave" style="flex:1.4;padding:14px;border:none;border-radius:13px;background:#E0A21C;color:#1a1206;font-weight:800;font-size:15px;cursor:pointer;">Save</button>'
+      + '</div>'
+    );
+    var pending = null, fileInp = s.sheet.querySelector('#ysPhoto');
+    function pick(){ try{ fileInp.click(); }catch(e){} }
+    s.sheet.querySelector('#ysPhotoBtn').addEventListener('click', pick);
+    s.sheet.querySelector('#ysAvatar').addEventListener('click', pick);
+    fileInp.addEventListener('change', function(){
+      var f = fileInp.files && fileInp.files[0]; if(!f) return;
+      _youResizePhoto(f, function(dataUrl){
+        pending = dataUrl;
+        var a = s.sheet.querySelector('#ysAvatar');
+        a.textContent=''; a.style.backgroundImage='url('+dataUrl+')'; a.style.backgroundSize='cover'; a.style.backgroundPosition='center';
+      });
+    });
+    s.sheet.querySelector('#ysCancel').addEventListener('click', s.close);
+    s.sheet.querySelector('#ysSave').addEventListener('click', function(){
+      try{
+        var v = (s.sheet.querySelector('#ysName').value || '').trim();
+        if(v) localStorage.setItem('streetway_user_name', v);
+        if(pending) localStorage.setItem('streetway_user_photo', pending);
+      }catch(e){}
+      s.close();
+      try{ setupYou(); }catch(e){}
+    });
+  }
+
+  function _youGoalSheet(){
+    var cur = _dailyGoal(), opts = [5,10,15,20,30,45];
+    var rows = opts.map(function(m){
+      var on = (m === cur);
+      return '<button class="ysg" data-m="'+m+'" style="display:flex;justify-content:space-between;align-items:center;width:100%;box-sizing:border-box;padding:15px 16px;border-radius:13px;margin-bottom:8px;background:'+(on?'#FBF3DE':'#fff')+';border:1.5px solid '+(on?'#E0A21C':'#ece5d6')+';font-family:inherit;font-size:15px;font-weight:'+(on?'800':'600')+';color:#0a0a0a;cursor:pointer;">'
+        + '<span>'+m+' minutes a day</span>'
+        + (on ? '<span style="color:#E0A21C;font-size:17px;line-height:1;">&#10003;</span>' : '')
+        + '</button>';
+    }).join('');
+    var s = _youSheet(
+      '<div style="font-size:19px;font-weight:800;color:#0a0a0a;letter-spacing:-.02em;margin-bottom:6px;">Daily goal</div>'
+      + '<div style="font-size:13px;color:#8a8073;margin-bottom:18px;line-height:1.45;">How many minutes a day are you aiming for? This sets your weekly Time ring on Activity.</div>'
+      + rows
+    );
+    Array.prototype.forEach.call(s.sheet.querySelectorAll('.ysg'), function(b){
+      b.addEventListener('click', function(){
+        try{ localStorage.setItem('streetway_daily_goal', b.getAttribute('data-m')); }catch(e){}
+        s.close();
+        try{ setupYou(); }catch(e){}
+        try{ updateActivity(); }catch(e){}
+      });
+    });
+  }
+
+  function _bestStreak(cur){ try{ var b = parseInt(localStorage.getItem('streetway_best_streak'),10) || 0; if((cur||0) > b){ b = cur; localStorage.setItem('streetway_best_streak', String(b)); } return b; }catch(e){ return cur || 0; } }
+  function _reminderGet(){ try{ var raw = localStorage.getItem('streetway_reminder'); return raw ? JSON.parse(raw) : { on:false, time:'19:00' }; }catch(e){ return { on:false, time:'19:00' }; } }
+  function _fmtTime(t){ try{ var p = String(t).split(':'), h = parseInt(p[0],10), m = p[1]; var ap = h >= 12 ? 'PM' : 'AM'; var h12 = h % 12; if(h12 === 0) h12 = 12; return h12 + ':' + m + ' ' + ap; }catch(e){ return t; } }
+
+  function _youReminderSheet(){
+    var r = _reminderGet();
+    var s = _youSheet(
+      '<div style="font-size:19px;font-weight:800;color:#0a0a0a;letter-spacing:-.02em;margin-bottom:6px;">Daily reminder</div>'
+      + '<div style="font-size:13px;color:#8a8073;margin-bottom:14px;line-height:1.45;">Pick a time to be nudged to practice. Reminders notify you in the installed Emma Speak app.</div>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;">'
+      +   '<span style="font-size:15px;font-weight:600;color:#0a0a0a;">Remind me daily</span>'
+      +   '<span id="yrTrack" style="position:relative;display:inline-block;width:50px;height:30px;border-radius:30px;background:'+(r.on?'#E0A21C':'#d9d2c4')+';transition:.2s;cursor:pointer;"><span id="yrKnob" style="position:absolute;top:3px;left:'+(r.on?'23px':'3px')+';width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span></span>'
+      + '</div>'
+      + '<div id="yrTimeWrap" style="display:'+(r.on?'flex':'none')+';align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid #eee7d8;">'
+      +   '<span style="font-size:15px;font-weight:600;color:#0a0a0a;">Time</span>'
+      +   '<input type="time" id="yrTime" value="'+(r.time||'19:00')+'" style="font-size:16px;font-family:inherit;padding:8px 12px;border:1.5px solid #e7e0d2;border-radius:11px;background:#fff;color:#0a0a0a;">'
+      + '</div>'
+      + '<button id="yrSave" style="width:100%;margin-top:18px;padding:14px;border:none;border-radius:13px;background:#E0A21C;color:#1a1206;font-weight:800;font-size:15px;cursor:pointer;">Save</button>'
+    );
+    var on = !!r.on;
+    function sync(){ s.sheet.querySelector('#yrTrack').style.background = on ? '#E0A21C' : '#d9d2c4'; s.sheet.querySelector('#yrKnob').style.left = on ? '23px' : '3px'; s.sheet.querySelector('#yrTimeWrap').style.display = on ? 'flex' : 'none'; }
+    s.sheet.querySelector('#yrTrack').addEventListener('click', function(){ on = !on; sync(); });
+    s.sheet.querySelector('#yrSave').addEventListener('click', function(){
+      try{ localStorage.setItem('streetway_reminder', JSON.stringify({ on: on, time: (s.sheet.querySelector('#yrTime').value || '19:00') })); }catch(e){}
+      s.close(); try{ setupYou(); }catch(e){}
+    });
+  }
+
+  function _youSignOut(){
+    var s = _youSheet(
+      '<div style="font-size:19px;font-weight:800;color:#0a0a0a;letter-spacing:-.02em;margin-bottom:10px;">Sign out</div>'
+      + '<div style="font-size:14px;color:#6a6052;line-height:1.5;margin-bottom:20px;">Accounts and sign-in are coming soon. For now your name and progress are saved on this device \u2014 no sign-in needed, nothing to sign out of yet.</div>'
+      + '<button id="ysoOk" style="width:100%;padding:14px;border:none;border-radius:13px;background:#efe9dc;color:#3a352c;font-weight:700;font-size:15px;cursor:pointer;">Got it</button>'
+    );
+    s.sheet.querySelector('#ysoOk').addEventListener('click', s.close);
   }
 
   function refreshDetailHeaders(){
@@ -711,6 +902,7 @@
       }
     }catch(e){}
     try{ updateActivity(R); }catch(e){}
+    try{ setupYou(R); }catch(e){}
   }
 
   var wired = false;
