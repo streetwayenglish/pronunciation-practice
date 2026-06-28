@@ -545,19 +545,8 @@
       var pk = A.querySelector('.week-bars-label span'); if(pk) pk.innerHTML = peakM > 0 ? ('Peak: <b>' + peakDay + ', ' + peakM + 'm</b>') : 'Daily minutes';
     }catch(e){}
 
-    // Skill radar: hold behind an unlock panel until there's real data
-    try{
-      var skills = A.querySelector('.skills-card');
-      if(skills && !skills.querySelector('.act-lock')){
-        var radar = skills.querySelector('.radar-svg'); if(radar) radar.style.display = 'none';
-        var cap = skills.querySelector('.skills-caption'); if(cap) cap.style.display = 'none';
-        var lock = document.createElement('div'); lock.className = 'act-lock';
-        lock.style.cssText = 'text-align:center;padding:30px 18px 22px;color:#b8b0a0;';
-        lock.innerHTML = '<div style="font-weight:600;color:#8a8073;font-size:15px;">Your skill snapshot unlocks soon</div>'
-          + '<div style="font-size:13px;margin-top:5px;line-height:1.45;">As you practice, your pronunciation, fluency and more will appear here.</div>';
-        (radar ? radar.parentNode.insertBefore(lock, radar) : skills.appendChild(lock));
-      }
-    }catch(e){}
+    // Skill snapshot: removed from the product — hide the whole card
+    try{ var skills = A.querySelector('.skills-card'); if(skills) skills.style.display = 'none'; }catch(e){}
 
     // All-time: hours (accumulating) / words (untracked -> 0) / lessons (real)
     try{
