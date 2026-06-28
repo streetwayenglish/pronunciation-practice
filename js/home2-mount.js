@@ -449,6 +449,22 @@
   function _daysActive(){ var L = _logGet(), n = 0; _weekDays().forEach(function(d){ if((L[d] || 0) >= 30) n++; }); return n; }
   function _allTimeMinutes(){ var L = _logGet(), s = 0; for(var k in L){ if(L.hasOwnProperty(k)) s += L[k]; } return Math.floor(s/60); }
   function _fmtHM(m){ m = Math.max(0, m|0); var h = Math.floor(m/60), mm = m%60; if(h && mm) return h+'h '+mm+'m'; if(h) return h+'h'; return mm+'m'; }
+  // Weekly accuracy: one score (0-100) per finished session (chat or lesson), averaged over the week
+  function _accGet(){ try{ var raw = localStorage.getItem('streetway_acc_log'); return raw ? JSON.parse(raw) : {}; }catch(e){ return {}; } }
+  function _accAdd(score){
+    try{
+      score = Math.max(0, Math.min(100, Number(score) || 0));
+      var L = _accGet(), t = _today();
+      if(!L[t]) L[t] = { sum:0, n:0 };
+      L[t].sum += score; L[t].n += 1;
+      localStorage.setItem('streetway_acc_log', JSON.stringify(L));
+    }catch(e){}
+  }
+  function _weekAccuracy(){ // avg session score this week, or null if no sessions yet
+    var L = _accGet(), sum = 0, n = 0;
+    _weekDays().forEach(function(d){ if(L[d]){ sum += L[d].sum; n += L[d].n; } });
+    return n > 0 ? Math.round(sum / n) : null;
+  }
   function minBank(){
     if(_minStart){
       var el = (Date.now() - _minStart) / 1000;
@@ -466,7 +482,7 @@
   window.addEventListener('pagehide', minBank);
 
   // Expose tracking so other modules (warm-up, etc.) can count toward time + streak
-  window.SWTrack = { day: recordActivity, start: minLaunch, stop: minEnd };
+  window.SWTrack = { day: recordActivity, start: minLaunch, stop: minEnd, acc: _accAdd };
 
   // ---- Activity screen: real data where it exists, honest empty states ------
   function _setRing(circle, r, pct){
@@ -485,6 +501,7 @@
     var pcts = PKEYS.map(function(k){ var v = pathPct(k); return v == null ? 0 : v; });
     var timePct = Math.min(100, Math.round(wk / GOAL * 100));
     var daysPct = Math.round(days / 7 * 100);
+    var wacc = _weekAccuracy(); // null until the first session this week
     var hasProgress = (wk > 0 || lessons > 0 || pcts.some(function(p){ return p > 0; }));
 
     // Weekly time + sub
@@ -495,15 +512,18 @@
     }catch(e){}
     try{ var ws = A.querySelector('.week-sub'); if(ws) ws.innerHTML = '<b>' + days + (days===1?' day':' days') + ' active</b> &middot; this week'; }catch(e){}
 
-    // Rings: Time (real) / Accuracy (untracked -> 0) / Days (real)
+    // Rings: Time (real) / Accuracy (real, or faded empty) / Days (real)
     try{
       var fills = A.querySelectorAll('.rings-svg circle[stroke-linecap="round"]');
-      _setRing(fills[0], 80, timePct); _setRing(fills[1], 60, 0); _setRing(fills[2], 40, daysPct);
+      _setRing(fills[0], 80, timePct); _setRing(fills[1], 60, wacc == null ? 0 : wacc); _setRing(fills[2], 40, daysPct);
     }catch(e){}
     try{
       var rv = A.querySelectorAll('.ring-legend .rl-val');
       if(rv[0]) rv[0].innerHTML = timePct + '<small>%</small>';
-      if(rv[1]){ rv[1].innerHTML = '0<small>%</small>'; rv[1].style.opacity = '.35'; }
+      if(rv[1]){
+        if(wacc == null){ rv[1].innerHTML = '0<small>%</small>'; rv[1].style.opacity = '.35'; }
+        else { rv[1].innerHTML = wacc + '<small>%</small>'; rv[1].style.opacity = ''; }
+      }
       if(rv[2]) rv[2].innerHTML = days + '<small>/7</small>';
     }catch(e){}
 
