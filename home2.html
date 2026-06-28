@@ -1140,119 +1140,64 @@ body::before{display:none !important;}
       </div>
 
     </div>
-<div class="screen page-you">
+    <div class="screen page-you">
       <div class="topbar">
         <button class="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
         <div class="logo"><span class="logo-emma">Emma</span><span class="logo-speak">Speak</span></div>
         <div style="width:40px;"></div>
       </div>
 
-      <div class="hello">Hello Emma,</div>
+      <div class="hello" id="you-hello">Hello,</div>
       <h1 class="headline">You</h1>
 
       <!-- PROFILE -->
       <div class="profile-card">
-        <div class="profile-avatar">EA</div>
-        <div class="profile-name">Emma Albuquerque</div>
-        <div class="profile-sub"><b>Intermediate</b> &middot; Brazil &middot; Joined April 2026</div>
-        <div class="profile-edit">Edit profile
+        <div class="profile-avatar" id="you-avatar">EA</div>
+        <div class="profile-name" id="you-name">&mdash;</div>
+        <div class="profile-sub" id="you-sub">Portuguese</div>
+        <div class="you-streak" id="you-streak"></div>
+        <div class="profile-edit" id="you-edit">Edit profile
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
-        </div>
-      </div>
-
-      <!-- GOAL COUNTDOWN -->
-      <div class="goal-card">
-        <div class="g-eye">Working toward</div>
-        <div class="g-head">
-          <div class="g-name">Trip to Italy</div>
-          <div class="g-pill"><b>47</b> days away</div>
-        </div>
-        <div class="g-prog"><i></i></div>
-        <div class="g-detail">
-          <span><b>July 16</b> &middot; about 25% of your prep done</span>
-          <span class="g-edit">Edit
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
-          </span>
-        </div>
-      </div>
-
-      <!-- LEARNING -->
-      <div class="s-label">Learning</div>
-      <div class="s-card">
-        <div class="s-row simple">
-          <div class="s-row-label">Native language</div>
-          <div class="s-row-value">Portuguese</div>
-          <div class="s-row-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></div>
-        </div>
-        <div class="s-row simple">
-          <div class="s-row-label">Learning for</div>
-          <div class="s-row-value">Travel</div>
-          <div class="s-row-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></div>
-        </div>
-        <div class="s-row simple">
-          <div class="s-row-label">Topics</div>
-          <div class="s-row-value">Travel, Food, Tech</div>
-          <div class="s-row-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></div>
-        </div>
-        <div class="s-row simple">
-          <div class="s-row-label">Preferred name</div>
-          <div class="s-row-value">Emma</div>
-          <div class="s-row-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></div>
         </div>
       </div>
 
       <!-- PRACTICE -->
       <div class="s-label">Practice</div>
       <div class="s-card">
-        <div class="s-row simple">
+        <div class="s-row simple" id="you-goal-row">
           <div class="s-row-label">Daily goal</div>
-          <div class="s-row-value">25 minutes</div>
+          <div class="s-row-value" id="you-goal-val">15 minutes</div>
           <div class="s-row-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></div>
         </div>
-        <div class="s-row simple">
-          <div class="s-row-label">Reminders</div>
-          <div class="s-row-value">8:00 AM &middot; 7:00 PM</div>
-          <div class="s-row-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></div>
-        </div>
-        <div class="s-row simple">
-          <div class="s-row-label">Focus path</div>
-          <div class="s-row-value">Travel English</div>
-          <div class="s-row-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></div>
-        </div>
-        <div class="s-row simple">
-          <div class="s-row-label">Difficulty</div>
-          <div class="s-row-value">Adaptive</div>
+        <div class="s-row simple" id="you-reminder-row">
+          <div class="s-row-label">Daily reminder</div>
+          <div class="s-row-value" id="you-reminder-val">Off</div>
           <div class="s-row-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></div>
         </div>
       </div>
 
-      <!-- APP -->
-      <div class="s-label">App</div>
+      <!-- SUPPORT -->
+      <div class="s-label">Support</div>
       <div class="s-card">
-        <div class="s-row simple">
-          <div class="s-row-label">App language</div>
-          <div class="s-row-value">English</div>
+        <div class="s-row simple" id="you-help">
+          <div class="s-row-label">Help &amp; contact</div>
+          <div class="s-row-value"></div>
           <div class="s-row-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></div>
         </div>
-        <div class="s-row simple">
-          <div class="s-row-label">Subscription</div>
-          <div class="s-row-value"><span class="pro">EmmaSpeak Pro</span></div>
+        <div class="s-row simple" id="you-privacy">
+          <div class="s-row-label">Privacy policy</div>
+          <div class="s-row-value"></div>
           <div class="s-row-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></div>
         </div>
-        <div class="s-row simple">
-          <div class="s-row-label">Notifications</div>
-          <div class="s-row-value">On</div>
-          <div class="s-row-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></div>
-        </div>
-        <div class="s-row simple">
-          <div class="s-row-label">Help &amp; support</div>
+        <div class="s-row simple" id="you-terms">
+          <div class="s-row-label">Terms of use</div>
           <div class="s-row-value"></div>
           <div class="s-row-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></div>
         </div>
       </div>
 
-      <!-- SIGN OUT -->
-      <div class="signout">Sign out</div>
+      <!-- RESET -->
+      <div class="signout" id="you-reset">Sign out</div>
 
     </div>
 
