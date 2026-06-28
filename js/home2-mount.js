@@ -414,14 +414,23 @@
       return 0;                                                     // broken
     }catch(e){ return 0; }
   }
-  function totalUnitsDone(){
+  function totalUnitsDone(){  // completed UNITS (Today screen "Units done"): topic units + Starter units
+    var t = 0, hasBeg = false;
+    try{ for(var k in CURRICULUM){ if(k === 'Beginner') hasBeg = true; t += Math.max(0, (getProgress(k).unit || 1) - 1); } }catch(e){}
+    try{ if(!hasBeg) t += Math.max(0, (getProgress('Beginner').unit || 1) - 1); }catch(e){}  // only if not already in CURRICULUM
+    return t;
+  }
+  function _starterLessonsDone(){  // Starter inner lessons: 3 parts/unit, persisted by the player as swp_<unit>_<part>
+    var n = 0;
+    for(var u = 1; u <= 20; u++){ for(var p = 1; p <= 3; p++){
+      try{ if(localStorage.getItem('swp_' + u + '_' + p) === '1') n++; }catch(e){}
+    } }
+    return n;
+  }
+  function totalLessonsDone(){  // Activity "Lessons": one per topic unit + each completed Starter inner lesson
     var t = 0;
-    try{
-      if(typeof mhGetTotalUnitsDone === 'function') t = mhGetTotalUnitsDone();
-      else { for(var k in CURRICULUM){ t += Math.max(0, (getProgress(k).unit || 1) - 1); } }
-    }catch(e){}
-    // CURRICULUM has no 'Beginner' key, so Starter units are added separately
-    try{ t += Math.max(0, ((window.getProgress && getProgress('Beginner').unit) || 1) - 1); }catch(e){}
+    try{ for(var k in CURRICULUM){ if(k === 'Beginner') continue; t += Math.max(0, (getProgress(k).unit || 1) - 1); } }catch(e){}
+    try{ t += _starterLessonsDone(); }catch(e){}
     return t;
   }
 
@@ -465,9 +474,6 @@
     _weekDays().forEach(function(d){ if(L[d]){ sum += L[d].sum; n += L[d].n; } });
     return n > 0 ? Math.round(sum / n) : null;
   }
-  function _allTimeSessions(){ // total finished sessions ever (chat + Starter units)
-    var L = _accGet(), n = 0; for(var k in L){ if(L.hasOwnProperty(k)) n += (L[k].n || 0); } return n;
-  }
   function minBank(){
     if(_minStart){
       var el = (Date.now() - _minStart) / 1000;
@@ -499,7 +505,7 @@
     var A = R.querySelector('.page-activity'); if(!A) return;
 
     var GOAL = 105; // weekly minute goal (15 min/day) for the Time ring
-    var wk = _weekMinutes(), days = _daysActive(), lessons = totalUnitsDone(), allMin = _allTimeMinutes();
+    var wk = _weekMinutes(), days = _daysActive(), lessons = totalLessonsDone(), allMin = _allTimeMinutes();
     var PKEYS = ['Beginner','Conversation','Travel English','Business English','Job Interview','The Bible in English'];
     var pcts = PKEYS.map(function(k){ var v = pathPct(k); return v == null ? 0 : v; });
     var timePct = Math.min(100, Math.round(wk / GOAL * 100));
@@ -551,12 +557,11 @@
     // Skill snapshot: removed from the product — hide the whole card
     try{ var skills = A.querySelector('.skills-card'); if(skills) skills.style.display = 'none'; }catch(e){}
 
-    // All-time: hours (accumulating) / sessions (real) / lessons (real)
+    // All-time: hours (accumulating) / lessons (real — one per completed unit, Starter or topic)
     try{
       var at = A.querySelectorAll('.alltime .at-cell .at-val');
       if(at[0]) at[0].innerHTML = Math.floor(allMin/60) + '<span>h</span>';
-      if(at[1]) at[1].textContent = String(_allTimeSessions());
-      if(at[2]) at[2].textContent = String(lessons);
+      if(at[1]) at[1].textContent = String(lessons);
     }catch(e){}
 
     // Path progress (real)
