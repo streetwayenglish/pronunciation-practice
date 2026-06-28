@@ -465,6 +465,9 @@
     _weekDays().forEach(function(d){ if(L[d]){ sum += L[d].sum; n += L[d].n; } });
     return n > 0 ? Math.round(sum / n) : null;
   }
+  function _allTimeSessions(){ // total finished sessions ever (chat + Starter units)
+    var L = _accGet(), n = 0; for(var k in L){ if(L.hasOwnProperty(k)) n += (L[k].n || 0); } return n;
+  }
   function minBank(){
     if(_minStart){
       var el = (Date.now() - _minStart) / 1000;
@@ -548,11 +551,11 @@
     // Skill snapshot: removed from the product — hide the whole card
     try{ var skills = A.querySelector('.skills-card'); if(skills) skills.style.display = 'none'; }catch(e){}
 
-    // All-time: hours (accumulating) / words (untracked -> 0) / lessons (real)
+    // All-time: hours (accumulating) / sessions (real) / lessons (real)
     try{
       var at = A.querySelectorAll('.alltime .at-cell .at-val');
       if(at[0]) at[0].innerHTML = Math.floor(allMin/60) + '<span>h</span>';
-      if(at[1]) at[1].textContent = '0';
+      if(at[1]) at[1].textContent = String(_allTimeSessions());
       if(at[2]) at[2].textContent = String(lessons);
     }catch(e){}
 
