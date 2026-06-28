@@ -509,8 +509,8 @@
   .p-done{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7a8f4e;min-width:50px;text-align:right;}
 
   /* ===== ALL-TIME ===== */
-  .alltime{margin:18px 24px 0;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:14px 4px;border-top:1px solid rgba(120,110,90,.18);}
-  .at-cell{text-align:center;padding:0 4px;border-right:1px solid rgba(120,110,90,.15);}.at-cell:last-child{border-right:none;}
+  .alltime{margin:18px 24px 0;display:flex;justify-content:center;padding:14px 4px;border-top:1px solid rgba(120,110,90,.18);}
+  .at-cell{text-align:center;padding:0 30px;border-right:1px solid rgba(120,110,90,.15);}.at-cell:last-child{border-right:none;}
   .at-val{font-size:18px;font-weight:800;color:#0a0a0a;letter-spacing:-.03em;line-height:1;}.at-val span{font-size:11px;color:#a89f90;font-weight:700;margin-left:3px;}
   .at-lbl{font-size:8.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#a89f90;margin-top:6px;}
 
@@ -1136,7 +1136,6 @@ body::before{display:none !important;}
       <!-- ALL-TIME FOOTER -->
       <div class="alltime">
         <div class="at-cell"><div class="at-val">14<span>h</span></div><div class="at-lbl">All-time</div></div>
-        <div class="at-cell"><div class="at-val">0</div><div class="at-lbl">Sessions</div></div>
         <div class="at-cell"><div class="at-val">47</div><div class="at-lbl">Lessons</div></div>
       </div>
 
