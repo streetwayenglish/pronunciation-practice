@@ -427,6 +427,8 @@ function emmaEnd(){
       var area2=document.getElementById('area');
       if(area2)area2.innerHTML=_endBuildReportHTML(r,pronWords);
       window._lastReport=r;
+      // Log this chat session's grade into the weekly accuracy pool (one sample per session)
+      try{ if(window.SWTrack && SWTrack.acc){ var _av=_endScoreToVisual(r.score); SWTrack.acc((_av.filled||0)*10); } }catch(e){}
     });
   })
   .catch(function(){
