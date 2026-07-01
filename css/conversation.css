@@ -179,6 +179,58 @@
     font-size: 20px !important;
   }
 
+  /* "Sugestão de resposta" onboarding tooltip — soft gold fill + dot, with a
+     downward pointer sitting right above the ? button. Appearance owned here so
+     a cached emma.js can't restyle it; emma.js only sets fixed bottom/left. */
+  body.tab-conversation .pron-onboard-label {
+    position: fixed !important;
+    z-index: 200 !important;
+    margin: 0 !important;
+    padding: 9px 15px 9px 30px !important;
+    background: rgba(224,162,28,.14) !important;
+    color: #EBC06A !important;
+    font-family: Inter, -apple-system, sans-serif !important;
+    font-size: 14.5px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0 !important;
+    line-height: 1 !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    white-space: nowrap !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    backdrop-filter: blur(8px) !important;
+  }
+  body.tab-conversation .pron-onboard-label::before {
+    content: "" !important;
+    position: absolute !important;
+    left: 14px !important;
+    top: 50% !important;
+    width: 6px !important;
+    height: 6px !important;
+    margin-top: -3px !important;
+    border-radius: 50% !important;
+    background: #E0A21C !important;
+  }
+  body.tab-conversation .pron-onboard-label::after {
+    content: "" !important;
+    position: absolute !important;
+    left: 15px !important;
+    bottom: -8px !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+    border-left: 7px solid transparent !important;
+    border-right: 7px solid transparent !important;
+    border-top: 8px solid rgba(224,162,28,.14) !important;
+  }
+  @keyframes sugFadeIn {
+    0%   { opacity: 0; transform: translateY(4px); }
+    12%  { opacity: 1; transform: translateY(0); }
+    85%  { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(0); }
+  }
+
   /* Name — bottom left of video */
   body.tab-conversation .emma-name {
     position: absolute;
