@@ -32,7 +32,7 @@ showTopicPage();
 
 function showSuggestionOnboarding(){
   var hb=document.getElementById('emmaHintBtn');if(!hb)return;
-  hb.classList.remove('glow-white');void hb.offsetWidth;hb.classList.add('glow-white');
+  hb.classList.remove('sug-glow');void hb.offsetWidth;hb.classList.add('sug-glow');
   var existing=document.getElementById('_sugLabel');if(existing)existing.remove();
   // Briefly hide the "tap to speak" caption so the tooltip doesn't overlap it.
   var st=document.getElementById('emmaStatus');
@@ -44,10 +44,10 @@ function showSuggestionOnboarding(){
   var lbl=document.createElement('div');
   lbl.id='_sugLabel';lbl.className='pron-onboard-label';
   lbl.textContent='Sugestão de resposta';
-  lbl.style.cssText='bottom:'+(window.innerHeight-refTop+6)+'px;left:'+rect.left+'px;animation:sugFadeIn 5s ease forwards;';
+  lbl.style.cssText='bottom:'+(window.innerHeight-refTop+2)+'px;left:'+rect.left+'px;animation:sugFadeIn 6s ease forwards;';
   document.body.appendChild(lbl);
-  setTimeout(function(){if(lbl.parentNode)lbl.remove();if(st)st.style.opacity='';},5200);
-  setTimeout(function(){hb.classList.remove('glow-white');},3500);
+  setTimeout(function(){if(lbl.parentNode)lbl.remove();if(st)st.style.opacity='';},6200);
+  setTimeout(function(){hb.classList.remove('sug-glow');},6000);
 }
 // Re-evaluate which path-selection layout to show when the viewport
 // crosses the 1024px desktop threshold.
