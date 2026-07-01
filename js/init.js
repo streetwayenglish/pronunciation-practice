@@ -34,13 +34,15 @@ function showSuggestionOnboarding(){
   var hb=document.getElementById('emmaHintBtn');if(!hb)return;
   hb.classList.remove('glow-white');void hb.offsetWidth;hb.classList.add('glow-white');
   var existing=document.getElementById('_sugLabel');if(existing)existing.remove();
-  var lbl=document.createElement('div');lbl.id='_sugLabel';
+  // Styling lives in conversation.css (body.tab-conversation .pron-onboard-label) — Option B.
+  var rect=hb.getBoundingClientRect();
+  var lbl=document.createElement('div');
+  lbl.id='_sugLabel';lbl.className='pron-onboard-label';
   lbl.textContent='Sugestão de resposta';
-  lbl.style.cssText='font-size:11px;font-weight:700;letter-spacing:.03em;color:#f5c842;background:rgba(20,20,20,.95);padding:5px 11px;border-radius:8px;border:1.5px solid rgba(201,162,39,.6);white-space:nowrap;box-shadow:0 2px 16px rgba(0,0,0,.4);animation:labelFadeIn 8s ease forwards;display:inline-block;margin-bottom:6px;margin-left:4px;';
-  var controlsRow=hb.parentNode;var footer=controlsRow.parentNode;
-  footer.insertBefore(lbl,controlsRow);
-  setTimeout(function(){if(lbl.parentNode)lbl.remove();},8300);
-  setTimeout(function(){hb.classList.remove('glow-white');},8000);
+  lbl.style.cssText='bottom:'+(window.innerHeight-rect.top+12)+'px;left:'+rect.left+'px;animation:sugFadeIn 5s ease forwards;';
+  document.body.appendChild(lbl);
+  setTimeout(function(){if(lbl.parentNode)lbl.remove();},5200);
+  setTimeout(function(){hb.classList.remove('glow-white');},3500);
 }
 // Re-evaluate which path-selection layout to show when the viewport
 // crosses the 1024px desktop threshold.
