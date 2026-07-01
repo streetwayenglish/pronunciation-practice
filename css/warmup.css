@@ -58,7 +58,7 @@
 .wu-btn.wu-b-gold{background:#e8b84b;width:64px;height:64px;animation:wuGlow 2.2s ease-out infinite;}
 .wu-btn.wu-b-green{background:#16a34a;}
 .wu-btn.wu-b-rec{background:#ef4444;width:64px;height:64px;animation:wuRecPulse 1.2s ease-in-out infinite;}
-.wu-btn svg{width:20px;height:20px;display:block;}
+.wu-btn svg{display:block;}
 @keyframes wuGlow{0%,100%{box-shadow:0 0 0 0 rgba(232,184,75,.5)}60%{box-shadow:0 0 0 14px rgba(232,184,75,0)}}
 @keyframes wuRecPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.6);transform:scale(1)}50%{box-shadow:0 0 0 16px rgba(239,68,68,0);transform:scale(1.06)}}
 .wu-card{position:relative;}
