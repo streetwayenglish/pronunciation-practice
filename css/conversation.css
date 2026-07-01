@@ -169,7 +169,9 @@
     height: 44px !important;
     padding: 0 !important;
     background: transparent !important;
-    border: 1px solid rgba(255,255,255,.22) !important;
+    border-width: 1px !important;
+    border-style: solid !important;
+    border-color: rgba(255,255,255,.22);
     border-radius: 50% !important;
     flex: 0 0 auto !important;
   }
@@ -229,6 +231,16 @@
     12%  { opacity: 1; transform: translateY(0); }
     85%  { opacity: 1; transform: translateY(0); }
     100% { opacity: 0; transform: translateY(0); }
+  }
+
+  /* Onboarding attention cue for the ? button — its ring gently warms to gold
+     and back (no shadow). init.js adds/removes .sug-glow. */
+  @keyframes hintEdgeGlow {
+    0%, 100% { border-color: rgba(255,255,255,.22); }
+    50%      { border-color: rgba(224,162,28,.95); }
+  }
+  body.tab-conversation .emma-hint-btn.sug-glow {
+    animation: hintEdgeGlow 2s ease-in-out infinite;
   }
 
   /* Name — bottom left of video */
