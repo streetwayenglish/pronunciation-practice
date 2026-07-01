@@ -159,6 +159,26 @@
     display: none !important;
   }
 
+  /* Hint (?) button — 44×44 ring identical to the End circle above, so the two
+     line up in the controls row (align-items:center). Inner circle sits ~4px
+     inside the ring. Locked with !important so a cached/old emma.js can't shrink it. */
+  body.tab-conversation .emma-hint-btn {
+    display: grid !important;
+    place-items: center !important;
+    width: 44px !important;
+    height: 44px !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: 1px solid rgba(255,255,255,.22) !important;
+    border-radius: 50% !important;
+    flex: 0 0 auto !important;
+  }
+  body.tab-conversation .emma-hint-btn > div {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 20px !important;
+  }
+
   /* Name — bottom left of video */
   body.tab-conversation .emma-name {
     position: absolute;
