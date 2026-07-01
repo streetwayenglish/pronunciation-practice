@@ -39,10 +39,12 @@ function showSuggestionOnboarding(){
   if(st){st.style.transition='opacity .25s ease';st.style.opacity='0';}
   // Styling lives in conversation.css (body.tab-conversation .pron-onboard-label) — Option B.
   var rect=hb.getBoundingClientRect();
+  var micBtn=document.getElementById('emmaMicBtn');
+  var refTop=micBtn?micBtn.getBoundingClientRect().top:rect.top;
   var lbl=document.createElement('div');
   lbl.id='_sugLabel';lbl.className='pron-onboard-label';
   lbl.textContent='Sugestão de resposta';
-  lbl.style.cssText='bottom:'+(window.innerHeight-rect.top+28)+'px;left:'+rect.left+'px;animation:sugFadeIn 5s ease forwards;';
+  lbl.style.cssText='bottom:'+(window.innerHeight-refTop+6)+'px;left:'+rect.left+'px;animation:sugFadeIn 5s ease forwards;';
   document.body.appendChild(lbl);
   setTimeout(function(){if(lbl.parentNode)lbl.remove();if(st)st.style.opacity='';},5200);
   setTimeout(function(){hb.classList.remove('glow-white');},3500);
