@@ -101,6 +101,46 @@
     z-index: 5;
   }
 
+  /* Floating close (X) over the video — replaces the old Topics/category nav bar.
+     Sits below the notch via safe-area; scrim keeps it legible on any frame. */
+  body.tab-conversation .emma-vid-scrim {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: calc(env(safe-area-inset-top, 0px) + 84px);
+    background: linear-gradient(rgba(0,0,0,.6) 0%, rgba(0,0,0,.22) 55%, rgba(0,0,0,0) 100%);
+    pointer-events: none;
+    z-index: 6;
+  }
+  body.tab-conversation .emma-close-btn {
+    position: absolute;
+    top: calc(env(safe-area-inset-top, 0px) + 10px);
+    left: max(12px, env(safe-area-inset-left, 0px));
+    z-index: 12;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0,0,0,.42);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    color: rgba(255,255,255,.9);
+    font-size: 16px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  /* Zoom the Emma video in ~10% (the wrap clips the overflow) */
+  body.tab-conversation #emmaVideoWrap video {
+    transform: scale(1.1);
+  }
+
+  /* Green LIVE dot removed */
+  body.tab-conversation .emma-live { display: none !important; }
+
   /* LIVE badge — top left over video */
   body.tab-conversation .emma-live {
     position: absolute;
