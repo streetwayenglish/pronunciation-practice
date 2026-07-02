@@ -106,16 +106,16 @@
   body.tab-conversation .emma-vid-scrim {
     position: absolute;
     top: 0; left: 0; right: 0;
-    height: calc(env(safe-area-inset-top, 0px) + 84px);
+    height: max(120px, calc(env(safe-area-inset-top, 0px) + 96px));
     background: linear-gradient(rgba(0,0,0,.6) 0%, rgba(0,0,0,.22) 55%, rgba(0,0,0,0) 100%);
     pointer-events: none;
     z-index: 6;
   }
   body.tab-conversation .emma-close-btn {
     position: absolute;
-    top: calc(env(safe-area-inset-top, 0px) + 10px);
+    top: max(52px, calc(env(safe-area-inset-top, 0px) + 10px));
     left: max(12px, env(safe-area-inset-left, 0px));
-    z-index: 12;
+    z-index: 25;
     width: 34px;
     height: 34px;
     padding: 0;
