@@ -112,10 +112,10 @@
     z-index: 6;
   }
   body.tab-conversation .emma-close-btn {
-    position: absolute;
+    position: fixed;
     top: max(52px, calc(env(safe-area-inset-top, 0px) + 10px));
     left: max(12px, env(safe-area-inset-left, 0px));
-    z-index: 25;
+    z-index: 9999;
     width: 34px;
     height: 34px;
     padding: 0;
