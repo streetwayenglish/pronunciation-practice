@@ -32,10 +32,7 @@ function prog(){
 
 function renderModeTabs(){
   if(appMode==='emma'){
-    return '<div class="emma-nav-bar">'+
-      '<button class="emma-back-menu" onclick="emmaEndAndBack()">← Topics</button>'+
-      '<div class="emma-nav-topic">'+emmaTopic+'</div>'+
-    '</div>';
+    return '';
   }
   return '';
 }

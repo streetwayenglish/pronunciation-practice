@@ -15,6 +15,8 @@ function renderEmma(){
             '<video id="vidIdle" playsinline muted loop style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 15%;opacity:1;transition:opacity 0.6s cubic-bezier(0.4,0,0.2,1)"></video>'+
             '<video id="vidTransition" playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 15%;opacity:0;transition:opacity 0.6s cubic-bezier(0.4,0,0.2,1)"></video>'+
             '<video id="vidSpeaking" playsinline muted loop style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 15%;opacity:0;transition:opacity 0.6s cubic-bezier(0.4,0,0.2,1)"></video>'+
+            '<div class="emma-vid-scrim"></div>'+
+            '<button class="emma-close-btn" id="emmaCloseBtn" onclick="emmaEndAndBack()" aria-label="Fechar">&#10005;</button>'+
           '</div>'+
           '<div class="emma-identity">'+
             '<div class="emma-name-row">'+
