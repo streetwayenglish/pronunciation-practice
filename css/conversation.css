@@ -421,18 +421,26 @@
     align-items: center;
   }
 
+  /* User (student) bubble — Option A refined solid gold, dark text */
+  body.tab-conversation .emma-bubble.student {
+    background: #C79A2B !important;
+    border: 1px solid #C79A2B !important;
+    color: #1a1405 !important;
+  }
+
   /* CSS overrides for play/info button sizes (forces correct sizing even if cached emma.js still has old inline styles) */
   body.tab-conversation .pron-info-icon {
     width: 34px !important;
     height: 34px !important;
     border-width: 2px !important;
-    border-color: rgba(245, 200, 66, 0.4) !important;
+    border-color: #C79A2B !important;
   }
   body.tab-conversation .pron-info-icon > div {
     width: 23px !important;
     height: 23px !important;
     font-size: 13px !important;
-    background: rgba(245, 200, 66, 0.45) !important;
+    background: #C79A2B !important;
+    color: #1a1405 !important;
   }
   /* Play button (sibling of .pron-info-icon, lives in same icons container) */
   body.tab-conversation div:has(> .pron-info-icon) > div:first-child {
