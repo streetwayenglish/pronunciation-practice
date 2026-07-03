@@ -53,12 +53,12 @@ function renderEmma(){
       try{ if(window._emmaAudio){window._emmaAudio.pause();} }catch(e){}
       try{ if(typeof _emmaSpeakId!=='undefined'){_emmaSpeakId++;} }catch(e){}
       try{ if(typeof emmaStateIdle==='function'){emmaStateIdle();} }catch(e){}
-      try{ document.body.classList.remove('tab-conversation'); }catch(e){}
       var self=document.getElementById('emmaCloseBtn'); if(self){self.remove();}
-      if(typeof mhOpenUnits==='function'){ mhOpenUnits(); }
+      if(typeof showTopicPage==='function'){ showTopicPage(); }
       else if(typeof emmaEndAndBack==='function'){ emmaEndAndBack(); }
     };
-    document.body.appendChild(b);
+    var _card=area.querySelector('.emma-card');
+    if(_card){ _card.appendChild(b); } else { document.body.appendChild(b); }
   })();
   // Init videos
   var R2='https://pub-ee13894ad4e146cdb3eb6dd4f653dfc4.r2.dev';
