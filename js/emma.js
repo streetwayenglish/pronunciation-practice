@@ -16,7 +16,6 @@ function renderEmma(){
             '<video id="vidTransition" playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 15%;opacity:0;transition:opacity 0.6s cubic-bezier(0.4,0,0.2,1)"></video>'+
             '<video id="vidSpeaking" playsinline muted loop style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 15%;opacity:0;transition:opacity 0.6s cubic-bezier(0.4,0,0.2,1)"></video>'+
             '<div class="emma-vid-scrim"></div>'+
-            '<button class="emma-close-btn" id="emmaCloseBtn" onclick="emmaEndAndBack()" aria-label="Fechar">&#10005;</button>'+
           '</div>'+
           '<div class="emma-identity">'+
             '<div class="emma-name-row">'+
@@ -40,6 +39,27 @@ function renderEmma(){
         '</div>'+
       '</div>'+
     '</div>';
+  // Floating close (X) — attached to <body> so nothing clips or covers it.
+  // Click returns to the unit-selection screen (mhOpenUnits) for the current topic.
+  (function(){
+    var ex=document.getElementById('emmaCloseBtn'); if(ex){ex.remove();}
+    var b=document.createElement('button');
+    b.id='emmaCloseBtn';
+    b.className='emma-close-btn';
+    b.type='button';
+    b.setAttribute('aria-label','Fechar');
+    b.innerHTML='&#10005;';
+    b.onclick=function(){
+      try{ if(window._emmaAudio){window._emmaAudio.pause();} }catch(e){}
+      try{ if(typeof _emmaSpeakId!=='undefined'){_emmaSpeakId++;} }catch(e){}
+      try{ if(typeof emmaStateIdle==='function'){emmaStateIdle();} }catch(e){}
+      try{ document.body.classList.remove('tab-conversation'); }catch(e){}
+      var self=document.getElementById('emmaCloseBtn'); if(self){self.remove();}
+      if(typeof mhOpenUnits==='function'){ mhOpenUnits(); }
+      else if(typeof emmaEndAndBack==='function'){ emmaEndAndBack(); }
+    };
+    document.body.appendChild(b);
+  })();
   // Init videos
   var R2='https://pub-ee13894ad4e146cdb3eb6dd4f653dfc4.r2.dev';
   window._vidIdle=document.getElementById('vidIdle');
