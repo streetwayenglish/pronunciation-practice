@@ -1,4 +1,7 @@
 
+/* Floating close (X) is attached to <body>; hide it unless in the conversation view */
+.emma-close-btn{ display: none; }
+
 /* ── MOBILE: Conversation tab — V3 Immersive ─────────────────────────────── */
 @media (max-width: 600px) {
 
@@ -422,11 +425,11 @@
     align-items: center;
   }
 
-  /* User (student) bubble — Option A refined solid gold, dark text */
+  /* User (student) bubble — Option E: charcoal fill, gold edge + gold text */
   body.tab-conversation .emma-bubble.student {
-    background: #C79A2B !important;
-    border: 1px solid #C79A2B !important;
-    color: #1a1405 !important;
+    background: #242017 !important;
+    border: 1px solid rgba(224,162,28,.7) !important;
+    color: #EBC06A !important;
   }
 
   /* CSS overrides for play/info button sizes (forces correct sizing even if cached emma.js still has old inline styles) */
@@ -434,14 +437,14 @@
     width: 34px !important;
     height: 34px !important;
     border-width: 2px !important;
-    border-color: #C79A2B !important;
+    border-color: rgba(224,162,28,.7) !important;
   }
   body.tab-conversation .pron-info-icon > div {
     width: 23px !important;
     height: 23px !important;
     font-size: 13px !important;
-    background: #C79A2B !important;
-    color: #1a1405 !important;
+    background: transparent !important;
+    color: #EBC06A !important;
   }
   /* Play button (sibling of .pron-info-icon, lives in same icons container) */
   body.tab-conversation div:has(> .pron-info-icon) > div:first-child {
