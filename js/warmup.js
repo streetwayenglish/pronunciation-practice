@@ -165,6 +165,76 @@ var _wuAudio=null, _wuMr=null, _wuChunks=[], _wuRec=false, _wuSR=null, _wuMatche
 var _wuMime='', _wuScore=0, _wuTimeout=null;
 var _wuOnDone=null;
 
+// ─── Idle video layer ───────────────────────────────────────────────────────
+// A third <video> injected on top of wuVidA/wuVidB. Muted looping idle clip
+// shown whenever Emma is NOT talking. Fades in only after canplay fires;
+// if the file 404s or is slow, nothing changes (photo/last-frame fallback).
+var _wuIdleReady=false, _wuIdleWanted=false;
+
+function _wuIdleSrc(){
+  var topic=window._emmaTopic||'Conversation';
+  var prefix=WU_PREFIX[topic]||'conv';
+  return WU_R2+'/warmups/idle-'+prefix+'.mp4';
+}
+
+function _wuEnsureIdle(){
+  var idle=document.getElementById('wuVidIdle');
+  if(idle) return idle;
+  var vidA=document.getElementById('wuVidA');
+  var vidB=document.getElementById('wuVidB');
+  if(!vidA||!vidB||!vidB.parentNode) return null;
+  idle=document.createElement('video');
+  idle.id='wuVidIdle';
+  idle.className=vidA.className;           // inherit sizing/position from A
+  idle.muted=true; idle.loop=true;
+  idle.setAttribute('muted','');            // attribute needed for iOS autoplay
+  idle.setAttribute('playsinline','');
+  idle.playsInline=true;
+  idle.preload='auto';
+  idle.style.opacity='0';
+  idle.style.transition='opacity .35s ease';
+  idle.style.pointerEvents='none';
+  // Paint above A/B regardless of their z-index
+  var z=parseInt(getComputedStyle(vidA).zIndex,10);
+  idle.style.zIndex=isNaN(z)?'2':String(z+1);
+  vidB.parentNode.insertBefore(idle, vidB.nextSibling);
+  idle.addEventListener('canplay',function(){
+    _wuIdleReady=true;
+    if(_wuIdleWanted) _wuIdleShow();
+  });
+  idle.addEventListener('error',function(){
+    _wuIdleReady=false;
+    idle.style.opacity='0';
+  });
+  return idle;
+}
+
+function _wuIdleShow(){
+  _wuIdleWanted=true;
+  var idle=_wuEnsureIdle();
+  if(!idle||!_wuIdleReady) return;         // fades in later via canplay
+  var pr=idle.play(); if(pr&&pr.catch) pr.catch(function(){});
+  idle.style.opacity='1';
+}
+
+function _wuIdleHide(){
+  _wuIdleWanted=false;
+  var idle=document.getElementById('wuVidIdle');
+  if(!idle) return;
+  idle.style.opacity='0';
+  // Pause after the fade completes (battery), unless re-shown meanwhile
+  setTimeout(function(){
+    if(!_wuIdleWanted){ try{ idle.pause(); }catch(e){} }
+  },400);
+}
+
+// Resume idle loop when returning from background
+document.addEventListener('visibilitychange',function(){
+  if(document.hidden || !_wuIdleWanted) return;
+  var idle=document.getElementById('wuVidIdle');
+  if(idle&&_wuIdleReady){ var pr=idle.play(); if(pr&&pr.catch) pr.catch(function(){}); }
+});
+
 // ─── Public API ─────────────────────────────────────────────────────────────
 
 // One-time coach-mark bottom sheet — shown the first time a student opens the
@@ -207,6 +277,17 @@ window.showWarmup = function(onDone){
   var _va=document.getElementById('wuVidA'), _vb=document.getElementById('wuVidB');
   if(_va) _va.style.opacity='1';
   if(_vb) _vb.style.opacity='0';
+  // Idle layer: (re)load for current topic, show as soon as it's ready
+  var _vi=_wuEnsureIdle();
+  if(_vi){
+    var _isrc=_wuIdleSrc();
+    if(_vi.dataset.wuIdleSrc!==_isrc){
+      _wuIdleReady=false;
+      _vi.src=_isrc;
+      _vi.dataset.wuIdleSrc=_isrc;
+      _vi.load();
+    }
+  }
   var _m=document.getElementById('warmupModal');
   _m.classList.add('wu-open');
   _m.style.display='flex';
@@ -221,6 +302,7 @@ window._wuGo = function(){
 };
 
 window.wuClose = function(){
+  _wuIdleHide();
   _wuCleanup();
   var _m=document.getElementById('warmupModal');
   _m.classList.remove('wu-open');
@@ -233,7 +315,9 @@ window.wuHearAgain = function(){
   if(!vid) return;
   // In phase 2 echo, just replay without touching the state machine
   if(_wuIdx>=5 && _wuPhase2[_wuIdx-5] && _wuPhase2[_wuIdx-5].type==='echo'){
-    vid.currentTime=0; vid.onended=null;
+    _wuIdleHide();
+    vid.currentTime=0;
+    vid.onended=function(){ _wuIdleShow(); };
     var pr=vid.play(); if(pr&&pr.catch) pr.catch(function(){});
     return;
   }
@@ -424,7 +508,8 @@ function _wuLoadEcho(pi){
     var vid=window._wuFront||document.getElementById('wuVidA');
     if(vid){
       vid.currentTime=0;
-      vid.onended=null; // don't trigger _wuGoListen when video ends
+      // Don't trigger _wuGoListen when video ends — just bring the idle loop back
+      vid.onended=function(){ _wuIdleShow(); };
       var pr=vid.play(); if(pr&&pr.catch) pr.catch(function(){});
     }
   },400);
@@ -549,6 +634,8 @@ function _wuNext(){
 
 function _wuSetState(s){
   _wuState = s;
+  // Idle layer: hidden while Emma is talking, visible otherwise
+  if(s==='playing'||s==='echo'){ _wuIdleHide(); } else { _wuIdleShow(); }
   var label   = document.getElementById('wuLabel');
   var backBtn = document.getElementById('wuBackBtn');
   var hearBtn = document.getElementById('wuHearBtn');
