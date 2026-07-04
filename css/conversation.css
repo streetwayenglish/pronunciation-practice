@@ -117,7 +117,7 @@
   }
   body.tab-conversation .emma-close-btn {
     position: absolute;
-    top: max(52px, calc(env(safe-area-inset-top, 0px) + 10px));
+    top: max(20px, calc(env(safe-area-inset-top, 0px) - 20px));
     left: max(12px, env(safe-area-inset-left, 0px));
     z-index: 9999;
     width: 34px;
