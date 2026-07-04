@@ -280,6 +280,7 @@ function showReport(){
       '<div style="font-size:12px;color:#888;line-height:1.5">'+imp.detail+'</div></div></div>';
   }).join('');
   area.innerHTML=renderModeTabs()+
+    '<div style="padding:10px 2px 14px;"><button onclick="showTopicPage()" style="background:rgba(0,0,0,.42);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#fff;border:none;border-radius:22px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;">\u2190 In\u00edcio</button></div>'+
     '<div style="background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 2px 24px rgba(0,0,0,.08);border:1px solid #ede9e2;margin-bottom:1rem;">'+
       '<div style="background:#0a0a0a;padding:28px 24px;display:flex;align-items:center;gap:18px;">'+ringSvg+
         '<div style="flex:1"><div style="font-size:15px;font-weight:700;color:#fff;line-height:1.3;margin-bottom:5px;">'+r.headline+'</div>'+
@@ -397,8 +398,8 @@ function downloadExercises(){
     var progressHtml=
       '<div style="margin-bottom:20px;">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'+
-          '<div style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:'+(isGrammar?'rgba(0,0,0,.4)':'#e8b84b')+';">'+(isGrammar?'Gramática · '+(exIdx+1)+'/'+grammarTotal:'Pronúncia · '+(exIdx-grammarTotal+1)+'/'+pronTotal)+'</div>'+
-          '<div style="font-size:12px;font-weight:600;color:rgba(0,0,0,.3);">'+(exIdx+1)+'/'+totalQs+'</div>'+
+          '<div style="font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:'+(isGrammar?'rgba(0,0,0,.4)':'#e8b84b')+';">'+(isGrammar?'Gramática · '+(exIdx+1)+'/'+grammarTotal:'Pronúncia · '+(exIdx-grammarTotal+1)+'/'+pronTotal)+'</div>'+
+          '<div style="font-size:14px;font-weight:600;color:rgba(0,0,0,.3);">'+(exIdx+1)+'/'+totalQs+'</div>'+
         '</div>'+
         '<div style="height:4px;background:#e8e4de;border-radius:2px;overflow:hidden;">'+
           '<div style="height:100%;display:flex;border-radius:2px;overflow:hidden;">'+
@@ -417,13 +418,13 @@ function downloadExercises(){
 
     // Nav arrows
     var navHtml=
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;">'+
-        '<button onclick="exNav(-1)" style="width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.06);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;"'+
-          (exIdx===0?' disabled style="width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.03);border:none;cursor:default;display:flex;align-items:center;justify-content:center;opacity:.3;"':'')+'>'+
-          '<svg width="15" height="15" viewBox="0 0 24 24" fill="rgba(0,0,0,.35)"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:26px;">'+
+        '<button onclick="exNav(-1)" style="width:46px;height:46px;border-radius:50%;background:rgba(0,0,0,.06);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;"'+
+          (exIdx===0?' disabled style="width:46px;height:46px;border-radius:50%;background:rgba(0,0,0,.03);border:none;cursor:default;display:flex;align-items:center;justify-content:center;opacity:.3;"':'')+'>'+
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="rgba(0,0,0,.35)"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>'+
         '</button>'+
-        '<button id="exNextBtn" onclick="exNav(1)" style="width:38px;height:38px;border-radius:50%;background:#0a0a0a;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;">'+
-          '<svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>'+
+        '<button id="exNextBtn" onclick="exNav(1)" style="width:46px;height:46px;border-radius:50%;background:#0a0a0a;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;">'+
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>'+
         '</button>'+
       '</div>';
 
@@ -439,19 +440,19 @@ function downloadExercises(){
           if(i===q.answer){bg='rgba(45,122,58,.07)';border='1.5px solid #2d7a3a';color='#2d7a3a';}
           else if(i===sel){bg='rgba(192,57,43,.06)';border='1.5px solid #c0392b';color='#c0392b';}
         } else if(i===sel){bg='#fafafa';border='1.5px solid #0a0a0a';}
-        return '<button onclick="exSelect('+i+')" style="width:100%;padding:13px 16px;border-radius:12px;border:'+border+';background:'+bg+';font-size:16px;color:'+color+';cursor:pointer;font-family:inherit;text-align:left;margin-bottom:8px;transition:all .15s;">'+
-          '<span style="font-weight:700;color:#ccc;margin-right:10px;">'+String.fromCharCode(65+i)+'</span>'+opt+'</button>';
+        return '<button onclick="exSelect('+i+')" style="width:100%;padding:17px 18px;border-radius:14px;border:'+border+';background:'+bg+';font-size:18px;color:'+color+';cursor:pointer;font-family:inherit;text-align:left;margin-bottom:11px;transition:all .15s;">'+
+          '<span style="font-weight:700;color:#ccc;margin-right:12px;font-size:16px;">'+String.fromCharCode(65+i)+'</span>'+opt+'</button>';
       }).join('');
       var tipHtml=answered&&q.tip?
         '<div style="margin-top:14px;font-size:14px;color:#888;line-height:1.5;padding:10px 14px;background:#f8f6f2;border-radius:10px;">'+q.tip+'</div>':'';
       cardHtml=
-        '<div style="font-size:17px;font-weight:600;color:#0a0a0a;line-height:1.5;margin-bottom:20px;">'+q.question+'</div>'+
+        '<div style="font-size:20px;font-weight:600;color:#0a0a0a;line-height:1.5;margin-bottom:24px;">'+q.question+'</div>'+
         optsHtml+tipHtml+
         '<div style="margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:8px;">'+
-          '<button id="exMicBtn" onclick="mcToggleRec('+exIdx+')" style="width:52px;height:52px;border-radius:50%;background:rgba(0,0,0,.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;">'+
-            '<svg id="exMicIcon" width="18" height="18" viewBox="0 0 24 24" fill="rgba(0,0,0,.45)"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.3 6-6.72h-1.7z"/></svg>'+
+          '<button id="exMicBtn" onclick="mcToggleRec('+exIdx+')" style="width:60px;height:60px;border-radius:50%;background:rgba(0,0,0,.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;">'+
+            '<svg id="exMicIcon" width="22" height="22" viewBox="0 0 24 24" fill="rgba(0,0,0,.45)"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.3 6-6.72h-1.7z"/></svg>'+
           '</button>'+
-          '<div id="exMicLbl" style="font-size:13px;color:#bbb;">Ou fale sua resposta</div>'+
+          '<div id="exMicLbl" style="font-size:15px;color:#bbb;">Ou fale sua resposta</div>'+
           '<div id="exTranscript" style="font-size:14px;color:#888;min-height:16px;text-align:center;"></div>'+
         '</div>';
     }
@@ -533,13 +534,13 @@ function downloadExercises(){
     }
 
     var backBtn='<div style="display:flex;align-items:center;margin-bottom:16px;">'+
-      '<button onclick="if(window._exReleaseMicStream)window._exReleaseMicStream();showReport()" style="background:none;border:none;cursor:pointer;font-size:11px;font-weight:600;color:rgba(0,0,0,.35);font-family:inherit;display:flex;align-items:center;gap:4px;padding:0;letter-spacing:.02em;">'+
-        '<svg width="13" height="13" viewBox="0 0 24 24" fill="rgba(0,0,0,.35)"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>'+
+      '<button onclick="if(window._exReleaseMicStream)window._exReleaseMicStream();showReport()" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:rgba(0,0,0,.35);font-family:inherit;display:flex;align-items:center;gap:5px;padding:0;letter-spacing:.02em;">'+
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="rgba(0,0,0,.35)"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>'+
         'Relatório'+
       '</button>'+
     '</div>';
     area.innerHTML=renderModeTabs()+
-      '<div style="background:#fff;border-radius:20px;padding:24px 22px;border:1px solid #ede9e2;box-shadow:0 2px 16px rgba(0,0,0,.07);margin-bottom:1rem;">'+
+      '<div style="position:fixed;top:max(20px, env(safe-area-inset-top,0px));left:0;right:0;bottom:0;z-index:50;background:#fff;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:18px 22px calc(env(safe-area-inset-bottom,0px) + 22px);">'+
         backBtn+progressHtml+cardHtml+navHtml+
       '</div>';
 
