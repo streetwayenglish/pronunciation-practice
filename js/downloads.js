@@ -309,6 +309,7 @@ function downloadExercises(){
   if(!r||!r.exercises)return;
   var area=document.getElementById('area');
   if(!area)return;
+  window._exReturnHTML=area.innerHTML;  // remember the exact report to return to
 
   // ─── Inject keyframe styles + correct-answer chime (idempotent) ─────────────
   if(!document.getElementById('_exFxStyles')){
@@ -534,14 +535,16 @@ function downloadExercises(){
     }
 
     var backBtn='<div style="display:flex;align-items:center;margin-bottom:16px;">'+
-      '<button onclick="if(window._exReleaseMicStream)window._exReleaseMicStream();showReport()" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:rgba(0,0,0,.35);font-family:inherit;display:flex;align-items:center;gap:5px;padding:0;letter-spacing:.02em;">'+
+      '<button onclick="if(window._exReleaseMicStream)window._exReleaseMicStream();if(window._exReturnHTML){document.getElementById(\'area\').innerHTML=window._exReturnHTML;window.scrollTo(0,0);}else{showReport();}" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:rgba(0,0,0,.35);font-family:inherit;display:flex;align-items:center;gap:5px;padding:0;letter-spacing:.02em;">'+
         '<svg width="15" height="15" viewBox="0 0 24 24" fill="rgba(0,0,0,.35)"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>'+
         'Relatório'+
       '</button>'+
     '</div>';
     area.innerHTML=renderModeTabs()+
-      '<div style="position:fixed;top:max(20px, env(safe-area-inset-top,0px));left:0;right:0;bottom:0;z-index:50;background:#fff;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:18px 22px calc(env(safe-area-inset-bottom,0px) + 22px);">'+
-        backBtn+progressHtml+cardHtml+navHtml+
+      '<div style="position:fixed;top:max(20px, env(safe-area-inset-top,0px));left:0;right:0;bottom:0;z-index:50;background:#fff;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;display:flex;flex-direction:column;padding:18px 22px calc(env(safe-area-inset-bottom,0px) + 22px);">'+
+        backBtn+progressHtml+
+        '<div style="flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0;">'+cardHtml+'</div>'+
+        navHtml+
       '</div>';
 
     // Re-init pron rec state
