@@ -167,6 +167,33 @@ var _wuOnDone=null;
 
 // ─── Public API ─────────────────────────────────────────────────────────────
 
+// One-time coach-mark bottom sheet — shown the first time a student opens the
+// warm-up for a given path. Gated per path via localStorage 'wu_coach_<topic>'.
+function _wuMaybeCoach(topic){
+  try{ if(localStorage.getItem('wu_coach_'+topic)) return; }catch(e){ return; }
+  var old=document.getElementById('wuCoach'); if(old) old.parentNode.removeChild(old);
+  var c=document.createElement('div');
+  c.className='wu-coach'; c.id='wuCoach';
+  c.innerHTML=
+    '<div class="wu-coach-scrim"></div>'+
+    '<div class="wu-coach-sheet">'+
+      '<div class="wu-coach-handle"></div>'+
+      '<div class="wu-coach-eyebrow">AQUECIMENTO</div>'+
+      '<div class="wu-coach-title">5 frases para praticar</div>'+
+      '<div class="wu-coach-body">Antes de conversar com a Emma, vamos praticar 5 frases úteis para você entrar na conversa com mais confiança.</div>'+
+      '<button class="wu-coach-cta" id="wuCoachCta" type="button">Começar aquecimento</button>'+
+    '</div>';
+  document.body.appendChild(c);
+  function dismiss(){
+    try{ localStorage.setItem('wu_coach_'+topic,'1'); }catch(e){}
+    c.classList.remove('wu-coach-in');
+    setTimeout(function(){ if(c.parentNode) c.parentNode.removeChild(c); }, 360);
+  }
+  var cta=c.querySelector('#wuCoachCta'); if(cta) cta.onclick=dismiss;
+  var scr=c.querySelector('.wu-coach-scrim'); if(scr) scr.onclick=dismiss;
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ c.classList.add('wu-coach-in'); }); });
+}
+
 window.showWarmup = function(onDone){
   _wuOnDone = onDone || function(){};
   var topic = window._emmaTopic || 'Conversation';
@@ -185,6 +212,7 @@ window.showWarmup = function(onDone){
   _m.style.display='flex';
   _m.style.flexDirection='column';
   _wuLoad(0);
+  _wuMaybeCoach(topic);
 };
 
 // Called from every entry point (replaces bare switchMode('emma'))
