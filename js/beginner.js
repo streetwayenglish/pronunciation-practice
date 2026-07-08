@@ -118,9 +118,30 @@
 
   // Show the Beginner unit picker (reuses the app's existing overlay) and open
   // the chosen unit in the player.
+  // Warm the browser cache with the unit's first lesson video so the player's
+  // "Começar" screen paints its frame instantly instead of waiting on R2.
+  var VID_BASE = 'https://pub-1112a80e0e81459f8c4ea5c4c62428c2.r2.dev';
+  function _preloadUnitVideo(n){
+    try{
+      n = parseInt(n,10) || 1;
+      var nn = (n<10?'0':'')+n;
+      var url = VID_BASE + '/lesson-' + nn + '-a.mp4';
+      if(window._bpPreloadUrl === url) return; // already warming
+      window._bpPreloadUrl = url;
+      var pv = document.createElement('video');
+      pv.preload = 'auto'; pv.muted = true; pv.src = url; pv.load();
+      window._bpPreload = pv; // keep a reference so it isn't GC'd mid-load
+    }catch(e){}
+  }
+
   function openBeginnerMap(){
     window._lastTopic = 'Beginner';
     window._emmaTopic = 'Beginner';
+    try{
+      var u = 1;
+      if(typeof getProgress === 'function'){ var pr = getProgress('Beginner'); if(pr && pr.unit) u = pr.unit; }
+      _preloadUnitVideo(u);
+    }catch(e){}
     if(typeof showCurriculumProgress === 'function'){
       showCurriculumProgress('Beginner', function(){
         SWBeginner.openUnit(window._cpSelectedUnit || 1);
@@ -141,6 +162,7 @@
 
   SWBeginner.openUnit = function(n, part){
     n = n || 1;
+    _preloadUnitVideo(n);
     SWBeginner._unit = n;
     window._lastTopic = 'Beginner';
     window._emmaTopic = 'Beginner';
