@@ -121,16 +121,34 @@
   // Warm the browser cache with the unit's first lesson video so the player's
   // "Começar" screen paints its frame instantly instead of waiting on R2.
   var VID_BASE = 'https://pub-1112a80e0e81459f8c4ea5c4c62428c2.r2.dev';
+  // Custom hero-frame times from the player config. Warming these exact byte
+  // ranges (via a hidden seek) makes the "Começar" frame appear instantly.
+  var THUMB_TIMES = {'1-b':'last','3-b':7.8958,'4-b':2.0625,'5-b':0.2708,'6-a':1.8958,'17-a':'last','20-b':1.8958};
+  function _warmVideo(url, thumbKey){
+    var pv = document.createElement('video');
+    pv.preload = 'auto'; pv.muted = true; pv.src = url;
+    var t = THUMB_TIMES[thumbKey];
+    if(t !== undefined){
+      pv.addEventListener('loadedmetadata', function(){
+        try{
+          var tg = (t === 'last') ? Math.max(0, pv.duration - 0.05) : t;
+          pv.currentTime = tg; // forces the browser to fetch these bytes into cache
+        }catch(e){}
+      });
+    }
+    pv.load();
+    return pv;
+  }
   function _preloadUnitVideo(n){
     try{
       n = parseInt(n,10) || 1;
+      if(window._bpPreloadUnit === n) return; // already warming this unit
+      window._bpPreloadUnit = n;
       var nn = (n<10?'0':'')+n;
-      var url = VID_BASE + '/lesson-' + nn + '-a.mp4';
-      if(window._bpPreloadUrl === url) return; // already warming
-      window._bpPreloadUrl = url;
-      var pv = document.createElement('video');
-      pv.preload = 'auto'; pv.muted = true; pv.src = url; pv.load();
-      window._bpPreload = pv; // keep a reference so it isn't GC'd mid-load
+      window._bpPreload = [
+        _warmVideo(VID_BASE + '/lesson-' + nn + '-a.mp4', n + '-a'),
+        _warmVideo(VID_BASE + '/lesson-' + nn + '-b.mp4', n + '-b')
+      ]; // keep references so they aren't GC'd mid-load
     }catch(e){}
   }
 
