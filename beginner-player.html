@@ -230,7 +230,7 @@ function populateParts(){const ps=$('psel');if(!ps)return;ps.innerHTML='';parts.
 function part3Title(){return (CC.lessons[L]&&CC.lessons[L].frame)?'Grammar Review':'Review';}
 function unitTitle(){return String(TS.lessons[L].title||'').replace(/&/g,'&amp;');}
 function seekThumb(sc){var t=TS.lessons[L][sc].thumb;try{if(t==='last'){var d=vid.duration;if(d&&isFinite(d))vid.currentTime=Math.max(0,d-0.05);else vid.currentTime=0;}else if(typeof t==='number'){vid.currentTime=t;}else{vid.currentTime=0;}vid.pause();}catch(e){}}
-function showThumb(sc){vid.style.opacity='1';ensure(sc,()=>{seekThumb(sc);});}
+function showThumb(sc){vid.style.opacity='0';ensure(sc,()=>{var done=function(){vid.removeEventListener('seeked',done);vid.style.opacity='1';};vid.addEventListener('seeked',done);seekThumb(sc);setTimeout(done,500);});}
 function partStart(p){vid.pause();showSheet(false);showCover(false);tag('');
  if(p===1||p===2){const sc=p===1?'a':'b';showThumb(sc);hero.className='hero-ov show atbottom';hero.innerHTML='<div class="hscrim"></div><div class="hbody"><div><div class="hero-eye">Unit '+L+' \u00b7 Lesson '+p+'</div><div class="hero-title" style="margin-top:6px">'+unitTitle()+'</div></div><button class="hero-btn" id="hgo">Come\u00e7ar '+heroArrow+'</button></div>';}
  else{hero.className='hero-ov show atcenter cream';hero.innerHTML='<div class="hbody"><div class="hero-eye">Unit '+L+' \u00b7 Lesson 3</div><div class="hero-title">'+part3Title()+'</div><div class="hero-sub">Hora de praticar o que voc\u00ea aprendeu.</div><button class="hero-btn" id="hgo" style="margin-top:8px">Come\u00e7ar '+heroArrow+'</button></div>';}
