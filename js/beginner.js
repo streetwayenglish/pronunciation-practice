@@ -145,7 +145,10 @@
       if(window._bpPreloadUnit === n) return; // already warming this unit
       window._bpPreloadUnit = n;
       var nn = (n<10?'0':'')+n;
+      var ia = new Image(); ia.src = VID_BASE + '/lesson-' + nn + '-a.jpg';
+      var ib = new Image(); ib.src = VID_BASE + '/lesson-' + nn + '-b.jpg';
       window._bpPreload = [
+        ia, ib, // hero posters — tiny, paint the Começar screen instantly
         _warmVideo(VID_BASE + '/lesson-' + nn + '-a.mp4', n + '-a'),
         _warmVideo(VID_BASE + '/lesson-' + nn + '-b.mp4', n + '-b')
       ]; // keep references so they aren't GC'd mid-load
