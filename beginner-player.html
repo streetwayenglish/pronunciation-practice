@@ -255,8 +255,10 @@ function recSubmit(){if(rt){clearTimeout(rt);rt=null;}if(!sr){if(_fin)_fin(80);r
 
 function setProg(){const p=parts[part-1];const span=(p.end-1)-p.start;$('fill').style.width=(span>0?Math.max(0,(si-p.start)/span*100):0)+'%';}
 function tag(t){$('stagetag').textContent=t||'';}
-function showSheet(on){sheet.style.display=on?'flex':'none';}
-function showCover(on){cover.style.display=on?'flex':'none';}
+// Ambient stage: on steps with no video context, show the scene's poster dimmed
+function _ambient(){try{var po=document.getElementById('poster');if(!po)return;var sc=(part===1?'a':'b');var u=url(sc).replace('.mp4','.jpg');po.onload=null;po.onerror=function(){po.style.opacity='0';};if(po.getAttribute('src')!==u){po.src=u;}po.style.opacity='.3';}catch(e){}}
+function showSheet(on){sheet.style.display=on?'flex':'none';if(on&&window._covOn===false){_ambient();}}
+function showCover(on){cover.style.display=on?'flex':'none';window._covOn=on;}
 function backCtl(){return si>0?'<button class="backsheet" id="bks" aria-label="Voltar">'+I.backIcon+'</button>':'';}
 function bindBack(){const b=$('bks');if(b)b.onclick=goBack;}
 const SK='<div class="skiprow"><button class="skipbtn">Pular</button></div>';function bindSkip(){const b=sheet.querySelector('.skipbtn');if(b)b.onclick=adv;}
