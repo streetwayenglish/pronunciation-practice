@@ -311,6 +311,20 @@ function downloadExercises(){
   if(!area)return;
   window._exReturnHTML=area.innerHTML;  // remember the exact report to return to
 
+  // Shuffle each question's options once — LLMs put the correct answer first,
+  // so without this, option A is almost always right. Correctness is judged
+  // by value (q.answer), so reordering is safe.
+  if(!r._exShuffled){
+    r._exShuffled=true;
+    (r.exercises||[]).forEach(function(q){
+      if(!q||!q.options||q.options.length<2)return;
+      for(var i=q.options.length-1;i>0;i--){
+        var j=Math.floor(Math.random()*(i+1));
+        var t=q.options[i];q.options[i]=q.options[j];q.options[j]=t;
+      }
+    });
+  }
+
   // ─── Inject keyframe styles + correct-answer chime (idempotent) ─────────────
   if(!document.getElementById('_exFxStyles')){
     var _exS=document.createElement('style');
