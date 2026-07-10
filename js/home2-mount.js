@@ -1202,12 +1202,48 @@
         if(t){ show(q,t); } else { chip.innerHTML='<span style="opacity:.6;">Sem tradu\u00e7\u00e3o agora \u2014 tente de novo.</span>'; }
       });
     }
-    // single word tap
+    function lookupCtx(q, sent){
+      if(!q) return;
+      chip.innerHTML='<span style="opacity:.6;">Traduzindo\u2026</span>'; chip.style.display='block';
+      translate(q, function(t){
+        if(!t){ chip.innerHTML='<span style="opacity:.6;">Sem tradu\u00e7\u00e3o agora \u2014 tente de novo.</span>'; return; }
+        show(q,t);
+        // add the sentence translated underneath, so the contextual meaning is visible
+        if(sent && sent.split(/\s+/).length>2 && sent.length<420){
+          var ctxEl=el('div','margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.14);font-size:12.5px;opacity:.85;line-height:1.5;','<span style="opacity:.55;">Traduzindo a frase\u2026</span>');
+          chip.appendChild(ctxEl);
+          translate(sent, function(ts){
+            if(ts){ ctxEl.innerHTML='<span style="opacity:.55;">No contexto: </span>'+esc(ts); }
+            else { ctxEl.remove(); }
+          });
+        }
+      });
+    }
+    // single word tap -> translate word + its sentence (context)
     body.addEventListener('click', function(ev){
       var w=ev.target.closest&&ev.target.closest('.bw'); if(!w) return;
       var sel=window.getSelection&&window.getSelection();
       if(sel&&String(sel).trim().split(/\s+/).length>1) return; // a phrase is selected; button handles it
-      lookup(w.textContent);
+      var para=w.closest('p');
+      var sent='';
+      if(para){
+        var full=para.textContent, word=w.textContent;
+        // locate the tapped word's sentence
+        var idx=0, node=para.firstChild, acc='';
+        var sents=full.match(/[^.!?]+[.!?]+["']?|[^.!?]+$/g)||[full];
+        // find which sentence contains this exact span occurrence
+        var upto=0, target=-1;
+        var spans=para.querySelectorAll('.bw');
+        for(var i2=0;i2<spans.length;i2++){ if(spans[i2]===w){ target=i2; break; } }
+        var count=0, pos=0;
+        for(var si=0; si<sents.length; si++){
+          var wordsIn=(sents[si].match(/\S+/g)||[]).length;
+          if(target<count+wordsIn){ sent=sents[si].trim(); break; }
+          count+=wordsIn;
+        }
+        if(!sent) sent=sents[0].trim();
+      }
+      lookupCtx(w.textContent, sent);
     });
     // phrase selection -> floating button
     var selBtn=el('button','position:absolute;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);background:#81953C;color:#fff;border:none;border-radius:22px;padding:11px 18px;font-size:13.5px;font-weight:700;font-family:inherit;display:none;z-index:5;box-shadow:0 6px 20px rgba(0,0,0,.2);cursor:pointer;','Traduzir sele\u00e7\u00e3o');
