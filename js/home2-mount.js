@@ -1127,11 +1127,15 @@
     var note=el('div','display:none;font-size:12px;color:#a89c80;margin:0 2px 4px;','\u00c1udio em breve para este livro.');
     body.appendChild(note);
 
-    // text
+    // text — each word tappable for translation
     b.paras.forEach(function(p){
-      body.appendChild(el('p','font-size:17px;line-height:1.75;color:#2a2620;margin:18px 0;', esc(p)));
+      var html=esc(p).split(/(\s+)/).map(function(tk){
+        return /\S/.test(tk) ? '<span class="bw" style="cursor:pointer;">'+tk+'</span>' : tk;
+      }).join('');
+      body.appendChild(el('p','font-size:17px;line-height:1.75;color:#2a2620;margin:18px 0;', html));
     });
     sc.appendChild(body);
+    wireTranslate(sc, body);
 
     // wire audio
     stopAudio();
@@ -1156,6 +1160,67 @@
       AUDIO.currentTime=Math.max(0,Math.min(1,(ev.clientX-r.left)/r.width))*AUDIO.duration;
       fill.style.width=(AUDIO.currentTime/AUDIO.duration*100)+'%'; t0.textContent=fmt(AUDIO.currentTime);
     });
+  }
+
+  // ── Tap-to-translate (MyMemory, free; cached per device) ──
+  var _trCache=null;
+  function trCache(){
+    if(_trCache) return _trCache;
+    try{ _trCache=JSON.parse(localStorage.getItem('bible_tr_cache')||'{}'); }catch(e){ _trCache={}; }
+    return _trCache;
+  }
+  function trSave(){ try{ localStorage.setItem('bible_tr_cache', JSON.stringify(_trCache)); }catch(e){} }
+  function translate(q, cb){
+    q=q.trim().replace(/^[^A-Za-z']+|[^A-Za-z']+$/g,'');
+    if(!q){ cb(null); return; }
+    var key=q.toLowerCase();
+    var c=trCache();
+    if(c[key]){ cb(c[key]); return; }
+    fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(q)+'&langpair=en|pt-BR')
+      .then(function(r){return r.json();})
+      .then(function(j){
+        var t=j&&j.responseData&&j.responseData.translatedText||null;
+        if(t){ c[key]=t; trSave(); }
+        cb(t);
+      }).catch(function(){ cb(null); });
+  }
+  function wireTranslate(sc, body){
+    // chip pinned above the safe area
+    var chip=el('div','position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);background:#0a0a0a;color:#fff;border-radius:14px;padding:12px 16px;font-size:14px;line-height:1.45;display:none;z-index:5;box-shadow:0 8px 30px rgba(0,0,0,.25);');
+    chip.addEventListener('click',function(){ chip.style.display='none'; });
+    sc.appendChild(chip);
+    function show(q, t){
+      chip.innerHTML='<span style="color:#EBC06A;font-weight:700;">'+esc(q)+'</span>'+
+        '<span style="opacity:.55;margin:0 8px;">\u2192</span>'+esc(t)+
+        '<span style="display:block;font-size:11px;opacity:.45;margin-top:4px;">toque para fechar</span>';
+      chip.style.display='block';
+    }
+    function lookup(q){
+      if(!q) return;
+      chip.innerHTML='<span style="opacity:.6;">Traduzindo\u2026</span>'; chip.style.display='block';
+      translate(q, function(t){
+        if(t){ show(q,t); } else { chip.innerHTML='<span style="opacity:.6;">Sem tradu\u00e7\u00e3o agora \u2014 tente de novo.</span>'; }
+      });
+    }
+    // single word tap
+    body.addEventListener('click', function(ev){
+      var w=ev.target.closest&&ev.target.closest('.bw'); if(!w) return;
+      var sel=window.getSelection&&window.getSelection();
+      if(sel&&String(sel).trim().split(/\s+/).length>1) return; // a phrase is selected; button handles it
+      lookup(w.textContent);
+    });
+    // phrase selection -> floating button
+    var selBtn=el('button','position:absolute;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);background:#81953C;color:#fff;border:none;border-radius:22px;padding:11px 18px;font-size:13.5px;font-weight:700;font-family:inherit;display:none;z-index:5;box-shadow:0 6px 20px rgba(0,0,0,.2);cursor:pointer;','Traduzir sele\u00e7\u00e3o');
+    sc.appendChild(selBtn);
+    document.addEventListener('selectionchange', function(){
+      if(!document.body.contains(sc)) return;
+      var sel=window.getSelection&&window.getSelection();
+      var txt=sel?String(sel).trim():'';
+      var inside=txt && sel.anchorNode && body.contains(sel.anchorNode);
+      selBtn.style.display=(inside && txt.split(/\s+/).length>1 && txt.length<200)?'block':'none';
+      if(inside) selBtn._q=txt;
+    });
+    selBtn.addEventListener('click', function(){ lookup(selBtn._q||''); selBtn.style.display='none'; });
   }
 
   // ── Mount: wait for the bible detail screen to exist, inject once ──
