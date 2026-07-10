@@ -1125,7 +1125,8 @@
     body.appendChild(el('div','font-size:13px;color:#8a8073;margin:14px 2px 0;', esc(b.pt)+' \u00b7 '+(b.t==='AT'?'Antigo':'Novo')+' Testamento'));
 
     // player card
-    var pc=el('div','background:#fff;border:1px solid #ece8e0;border-radius:16px;padding:14px 16px;margin:12px 0 6px;display:flex;align-items:center;gap:14px;');
+    var stick=el('div','position:sticky;top:0;z-index:4;background:#faf9f7;padding:10px 0 8px;margin:2px 0 0;');
+    var pc=el('div','background:#fff;border:1px solid #ece8e0;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;box-shadow:0 4px 14px -8px rgba(0,0,0,.18);');
     var play=el('button','width:52px;height:52px;border-radius:50%;background:#81953C;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;',
       '<svg id="bPlayIco" width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M8 5.5 L19 12 L8 18.5 Z"/></svg>');
     var right=el('div','flex:1;min-width:0;');
@@ -1137,18 +1138,45 @@
     var times=el('div','display:flex;justify-content:space-between;font-size:11px;color:#a89c80;margin-top:7px;font-variant-numeric:tabular-nums;','<span id="bT0">0:00</span><span id="bT1">\u2013:\u2013\u2013</span>');
     right.appendChild(barWrap); right.appendChild(times);
     pc.appendChild(play); pc.appendChild(right);
-    body.appendChild(pc);
+    stick.appendChild(pc);
+    body.appendChild(stick);
 
     var note=el('div','display:none;font-size:12px;color:#a89c80;margin:0 2px 4px;','\u00c1udio em breve para este livro.');
     body.appendChild(note);
 
-    // text — each word tappable for translation
-    b.paras.forEach(function(p){
+    // text — per-paragraph play + tappable words
+    var totalW=0, cumW=[];
+    b.paras.forEach(function(p){ cumW.push(totalW); totalW+=(p.match(/\S+/g)||[]).length; });
+    var paraEls=[];
+    b.paras.forEach(function(p, pi){
+      var row=el('div','display:flex;gap:10px;margin:18px 0;align-items:flex-start;');
+      var pb=el('button','flex-shrink:0;width:24px;height:24px;margin-top:4px;border-radius:50%;border:1.5px solid #d8d2c4;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;',
+        '<svg width="9" height="9" viewBox="0 0 24 24" fill="#a89c80"><path d="M7 4.5 L20 12 L7 19.5 Z"/></svg>');
+      pb.setAttribute('aria-label','Ouvir deste par\u00e1grafo');
+      pb.addEventListener('click', function(){ seekPara(pi); });
       var html=esc(p).split(/(\s+)/).map(function(tk){
         return /\S/.test(tk) ? '<span class="bw" style="cursor:pointer;">'+tk+'</span>' : tk;
       }).join('');
-      body.appendChild(el('p','font-size:17px;line-height:1.75;color:#2a2620;margin:18px 0;', html));
+      var para=el('p','flex:1;font-size:17px;line-height:1.75;color:#2a2620;margin:0;padding:2px 8px;border-radius:10px;transition:background .3s;', html);
+      row.appendChild(pb); row.appendChild(para);
+      body.appendChild(row);
+      paraEls.push(para);
     });
+    function paraTime(i){ return AUDIO.duration ? (cumW[i]/totalW)*AUDIO.duration : 0; }
+    function activePara(){
+      if(!AUDIO.duration) return -1;
+      var t=AUDIO.currentTime;
+      for(var i=paraEls.length-1;i>=0;i--){ if(t>=paraTime(i)-0.5) return i; }
+      return 0;
+    }
+    var _hl=-1;
+    function highlight(){
+      var a=AUDIO.paused?-1:activePara();
+      if(a===_hl) return;
+      if(_hl>=0&&paraEls[_hl]) paraEls[_hl].style.background='transparent';
+      if(a>=0&&paraEls[a]) paraEls[a].style.background='rgba(129,149,60,.09)';
+      _hl=a;
+    }
     sc.appendChild(body);
     wireTranslate(sc, body);
     // restore reading position
@@ -1186,8 +1214,24 @@
     var scrubbing=false;
     function tick(){
       if(AUDIO.duration && !scrubbing){ fill.style.width=(AUDIO.currentTime/AUDIO.duration*100)+'%'; t0.textContent=fmt(AUDIO.currentTime); savePos(); }
+      try{ highlight(); }catch(e){}
       if(!AUDIO.paused) raf=requestAnimationFrame(tick);
     }
+    function seekPara(pi){
+      function go(){
+        try{ AUDIO.currentTime=paraTime(pi); }catch(e){}
+        resume=0; savePos(true);
+        if(AUDIO.paused){ AUDIO.play(); ico.innerHTML='<rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/>'; tick(); }
+      }
+      if(AUDIO.duration){ go(); }
+      else {
+        var h=function(){ AUDIO.removeEventListener('loadedmetadata',h); go(); };
+        AUDIO.addEventListener('loadedmetadata',h);
+        try{ AUDIO.load(); }catch(e){}
+      }
+    }
+    window._bibleSeekPara=seekPara; // referenced by paragraph buttons defined above
+    
     play.onclick=function(){
       if(AUDIO.paused){
         if(resume>5 && AUDIO.currentTime<1 && (!AUDIO.duration || resume<AUDIO.duration-8)){ try{ AUDIO.currentTime=resume; }catch(e){} }
