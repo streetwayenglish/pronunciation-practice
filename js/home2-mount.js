@@ -1013,3 +1013,156 @@
     var d=e.data; if(!d || d.source!=='home2') return;
   });
 })();
+
+/* ═══════════ Bíblia em resumo — 66 book summaries (read + listen) ═══════════ */
+(function(){
+  var DATA=null, AUDIO=null, curBtn=null, raf=0;
+
+  function el(tag, css, html){ var d=document.createElement(tag); if(css)d.style.cssText=css; if(html!=null)d.innerHTML=html; return d; }
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+  // ── Entry card on the Bible path detail (locked design from the Cowork chat) ──
+  function injectCard(){
+    var ds=document.querySelector('#h2root .detail-screen[data-path="bible"]'); if(!ds) return;
+    if(ds.querySelector('.bible-sum-card')) return;
+    var pc=ds.querySelector('.path-card'); if(!pc) return;
+    var card=el('div','margin:14px 16px 2px;');
+    card.className='bible-sum-card';
+    card.innerHTML=
+      '<div style="background:#F7F3E8;border:2px solid #E8963C;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;">'+
+        '<div style="width:40px;height:40px;border-radius:10px;background:#FAEEDA;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+
+          '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#854F0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>'+
+        '</div>'+
+        '<div style="flex:1;min-width:0;">'+
+          '<p style="margin:0;font-size:14px;font-weight:600;color:#2C2C2A;">B\u00edblia em resumo</p>'+
+          '<p style="margin:2px 0 0;font-size:12px;color:#5F5E5A;line-height:1.4;">Pratique ingl\u00eas lendo e ouvindo os 66 livros da B\u00edblia</p>'+
+        '</div>'+
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888780" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>'+
+      '</div>';
+    card.firstChild.addEventListener('click', openList);
+    pc.insertAdjacentElement('afterend', card);
+  }
+
+  function load(cb){
+    if(DATA){ cb(); return; }
+    fetch('bible-summaries.json').then(function(r){return r.json();}).then(function(j){ DATA=j; cb(); })
+      .catch(function(){ alert('N\u00e3o foi poss\u00edvel carregar os resumos. Verifique sua conex\u00e3o.'); });
+  }
+
+  // ── Screen scaffolding (full-screen overlays) ──
+  function screen(id){
+    var old=document.getElementById(id); if(old) old.remove();
+    var sc=el('div','position:fixed;inset:0;z-index:99990;background:#faf9f7;display:flex;flex-direction:column;overflow:hidden;font-family:Inter,-apple-system,sans-serif;');
+    sc.id=id;
+    document.body.appendChild(sc);
+    return sc;
+  }
+  function header(title, onBack){
+    var h=el('div','display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 12px) 12px 10px;flex-shrink:0;background:#faf9f7;border-bottom:1px solid rgba(0,0,0,.06);');
+    var b=el('button','width:38px;height:38px;border-radius:50%;background:transparent;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;',
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>');
+    b.onclick=onBack;
+    h.appendChild(b);
+    h.appendChild(el('div','font-size:16px;font-weight:700;color:#0a0a0a;letter-spacing:-.01em;',esc(title)));
+    return h;
+  }
+
+  // ── Book list ──
+  function openList(){
+    load(function(){
+      var sc=screen('bibleListScreen');
+      sc.appendChild(header('B\u00edblia em resumo', function(){ sc.remove(); }));
+      var body=el('div','flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 16px calc(env(safe-area-inset-bottom,0px) + 28px);');
+      function section(label, from, to){
+        body.appendChild(el('div','font-size:11px;font-weight:700;letter-spacing:.16em;color:#8a8073;margin:20px 2px 8px;', label));
+        var wrap=el('div','background:#fff;border:1px solid #ece8e0;border-radius:16px;overflow:hidden;');
+        DATA.books.filter(function(b){return b.n>=from&&b.n<=to;}).forEach(function(b,i,arr){
+          var row=el('div','display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;'+(i<arr.length-1?'border-bottom:1px solid #f2efe9;':''));
+          row.innerHTML=
+            '<div style="width:26px;font-size:12px;font-weight:700;color:#c2b49a;font-variant-numeric:tabular-nums;flex-shrink:0;">'+b.n+'</div>'+
+            '<div style="flex:1;min-width:0;">'+
+              '<div style="font-size:15px;font-weight:600;color:#0a0a0a;">'+esc(b.en)+'</div>'+
+              '<div style="font-size:12px;color:#8a8073;margin-top:1px;">'+esc(b.pt)+'</div>'+
+            '</div>'+
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c9c3b5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>';
+          row.addEventListener('click', function(){ openBook(b); });
+          wrap.appendChild(row);
+        });
+        body.appendChild(wrap);
+      }
+      section('ANTIGO TESTAMENTO', 1, 39);
+      section('NOVO TESTAMENTO', 40, 66);
+      sc.appendChild(body);
+    });
+  }
+
+  // ── Book detail: audio player + text ──
+  function stopAudio(){
+    if(AUDIO){ try{AUDIO.pause();}catch(e){} }
+    if(raf) cancelAnimationFrame(raf);
+    curBtn=null;
+  }
+  function fmt(t){ t=Math.max(0,Math.floor(t||0)); return Math.floor(t/60)+':'+('0'+t%60).slice(-2); }
+
+  function openBook(b){
+    var sc=screen('bibleBookScreen');
+    sc.appendChild(header(b.en, function(){ stopAudio(); sc.remove(); }));
+    var body=el('div','flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 20px calc(env(safe-area-inset-bottom,0px) + 40px);');
+
+    body.appendChild(el('div','font-size:13px;color:#8a8073;margin:14px 2px 0;', esc(b.pt)+' \u00b7 '+(b.t==='AT'?'Antigo':'Novo')+' Testamento'));
+
+    // player card
+    var pc=el('div','background:#fff;border:1px solid #ece8e0;border-radius:16px;padding:14px 16px;margin:12px 0 6px;display:flex;align-items:center;gap:14px;');
+    var play=el('button','width:52px;height:52px;border-radius:50%;background:#81953C;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;',
+      '<svg id="bPlayIco" width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M8 5.5 L19 12 L8 18.5 Z"/></svg>');
+    var right=el('div','flex:1;min-width:0;');
+    var bar=el('div','height:5px;border-radius:3px;background:#efece4;position:relative;cursor:pointer;');
+    var fill=el('div','position:absolute;left:0;top:0;bottom:0;width:0;border-radius:3px;background:#81953C;');
+    bar.appendChild(fill);
+    var times=el('div','display:flex;justify-content:space-between;font-size:11px;color:#a89c80;margin-top:7px;font-variant-numeric:tabular-nums;','<span id="bT0">0:00</span><span id="bT1">\u2013:\u2013\u2013</span>');
+    right.appendChild(bar); right.appendChild(times);
+    pc.appendChild(play); pc.appendChild(right);
+    body.appendChild(pc);
+
+    var note=el('div','display:none;font-size:12px;color:#a89c80;margin:0 2px 4px;','\u00c1udio em breve para este livro.');
+    body.appendChild(note);
+
+    // text
+    b.paras.forEach(function(p){
+      body.appendChild(el('p','font-size:17px;line-height:1.75;color:#2a2620;margin:18px 0;', esc(p)));
+    });
+    sc.appendChild(body);
+
+    // wire audio
+    stopAudio();
+    if(!AUDIO){ AUDIO=new Audio(); AUDIO.preload='metadata'; }
+    AUDIO.src=DATA.audio_base + b.file + '.mp3';
+    var ico=play.querySelector('#bPlayIco');
+    var t0=times.querySelector('#bT0'), t1=times.querySelector('#bT1');
+    AUDIO.onloadedmetadata=function(){ t1.textContent=fmt(AUDIO.duration); };
+    AUDIO.onerror=function(){ pc.style.display='none'; note.style.display='block'; };
+    AUDIO.onended=function(){ ico.innerHTML='<path d="M8 5.5 L19 12 L8 18.5 Z"/>'; };
+    function tick(){
+      if(AUDIO.duration){ fill.style.width=(AUDIO.currentTime/AUDIO.duration*100)+'%'; t0.textContent=fmt(AUDIO.currentTime); }
+      if(!AUDIO.paused) raf=requestAnimationFrame(tick);
+    }
+    play.onclick=function(){
+      if(AUDIO.paused){ AUDIO.play(); ico.innerHTML='<rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/>'; tick(); }
+      else { AUDIO.pause(); ico.innerHTML='<path d="M8 5.5 L19 12 L8 18.5 Z"/>'; }
+    };
+    bar.addEventListener('click', function(ev){
+      if(!AUDIO.duration) return;
+      var r=bar.getBoundingClientRect();
+      AUDIO.currentTime=Math.max(0,Math.min(1,(ev.clientX-r.left)/r.width))*AUDIO.duration;
+      fill.style.width=(AUDIO.currentTime/AUDIO.duration*100)+'%'; t0.textContent=fmt(AUDIO.currentTime);
+    });
+  }
+
+  // ── Mount: wait for the bible detail screen to exist, inject once ──
+  var tries=0;
+  var iv=setInterval(function(){
+    tries++;
+    injectCard();
+    if(document.querySelector('#h2root .bible-sum-card') || tries>120){ clearInterval(iv); }
+  }, 500);
+})();
