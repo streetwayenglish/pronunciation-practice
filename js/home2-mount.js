@@ -1162,7 +1162,10 @@
       body.appendChild(row);
       paraEls.push(para);
     });
-    function paraTime(i){ return AUDIO.duration ? (cumW[i]/totalW)*AUDIO.duration : 0; }
+    function paraTime(i){
+      if(b.times && b.times[i]!=null) return b.times[i];
+      return AUDIO.duration ? (cumW[i]/totalW)*AUDIO.duration : 0;
+    }
     function activePara(){
       if(!AUDIO.duration) return -1;
       var t=AUDIO.currentTime;
@@ -1272,6 +1275,10 @@
   function trCache(){
     if(_trCache) return _trCache;
     try{ _trCache=JSON.parse(localStorage.getItem('bible_tr_cache')||'{}'); }catch(e){ _trCache={}; }
+    // purge any poisoned entries from past quota warnings
+    var dirty=false;
+    for(var k in _trCache){ if(/MYMEMORY|USAGELIMITS/i.test(_trCache[k])){ delete _trCache[k]; dirty=true; } }
+    if(dirty) trSave();
     return _trCache;
   }
   function trSave(){ try{ localStorage.setItem('bible_tr_cache', JSON.stringify(_trCache)); }catch(e){} }
@@ -1281,10 +1288,11 @@
     var key=q.toLowerCase();
     var c=trCache();
     if(c[key]){ cb(c[key]); return; }
-    fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(q)+'&langpair=en|pt-BR')
+    fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(q)+'&langpair=en|pt-BR&de=contato@streetwayenglish.com')
       .then(function(r){return r.json();})
       .then(function(j){
         var t=j&&j.responseData&&j.responseData.translatedText||null;
+        if(t && /MYMEMORY|USAGELIMITS/i.test(t)){ cb('__QUOTA__'); return; }
         if(t){ c[key]=t; trSave(); }
         cb(t);
       }).catch(function(){ cb(null); });
@@ -1304,6 +1312,7 @@
       if(!q) return;
       chip.innerHTML='<span style="opacity:.6;">Traduzindo\u2026</span>'; chip.style.display='block';
       translate(q, function(t){
+        if(t==='__QUOTA__'){ chip.innerHTML='<span style="opacity:.7;">Limite di\u00e1rio de tradu\u00e7\u00e3o atingido neste aparelho \u2014 volta amanh\u00e3. 😉</span>'; return; }
         if(t){ show(q,t); } else { chip.innerHTML='<span style="opacity:.6;">Sem tradu\u00e7\u00e3o agora \u2014 tente de novo.</span>'; }
       });
     }
@@ -1311,16 +1320,23 @@
       if(!q) return;
       chip.innerHTML='<span style="opacity:.6;">Traduzindo\u2026</span>'; chip.style.display='block';
       translate(q, function(t){
+        if(t==='__QUOTA__'){ chip.innerHTML='<span style="opacity:.7;">Limite di\u00e1rio de tradu\u00e7\u00e3o atingido neste aparelho \u2014 volta amanh\u00e3. 😉</span>'; return; }
         if(!t){ chip.innerHTML='<span style="opacity:.6;">Sem tradu\u00e7\u00e3o agora \u2014 tente de novo.</span>'; return; }
         show(q,t);
-        // add the sentence translated underneath, so the contextual meaning is visible
+        // sentence context only on demand (saves ~30x translation quota)
         if(sent && sent.split(/\s+/).length>2 && sent.length<420){
-          var ctxEl=el('div','margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.14);font-size:12.5px;opacity:.85;line-height:1.5;','<span style="opacity:.55;">Traduzindo a frase\u2026</span>');
-          chip.appendChild(ctxEl);
-          translate(sent, function(ts){
-            if(ts){ ctxEl.innerHTML='<span style="opacity:.55;">No contexto: </span>'+esc(ts); }
-            else { ctxEl.remove(); }
+          var ctxEl=el('div','margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.14);font-size:12.5px;line-height:1.5;',
+            '<span style="color:#EBC06A;font-weight:700;cursor:pointer;">Ver no contexto \u2192</span>');
+          ctxEl.addEventListener('click', function(ev){
+            ev.stopPropagation();
+            ctxEl.innerHTML='<span style="opacity:.55;">Traduzindo a frase\u2026</span>';
+            translate(sent, function(ts){
+              if(ts && ts!=='__QUOTA__'){ ctxEl.innerHTML='<span style="opacity:.55;">No contexto: </span><span style="opacity:.9;">'+esc(ts)+'</span>'; }
+              else if(ts==='__QUOTA__'){ ctxEl.innerHTML='<span style="opacity:.55;">Limite di\u00e1rio atingido.</span>'; }
+              else { ctxEl.innerHTML='<span style="opacity:.55;">Sem tradu\u00e7\u00e3o agora.</span>'; }
+            });
           });
+          chip.appendChild(ctxEl);
         }
       });
     }
