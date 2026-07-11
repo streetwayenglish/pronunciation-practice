@@ -5,6 +5,13 @@
 // ─── Verify exercise answer keys + pron sentences against the LLM ─
 // Catches wrong "answer" indices on grammar Qs and grammar errors in pron sentences.
 function _endVerifyExercises(exercises, pronSentences, done){
+  // Deterministic phonetics filter — pure code, no LLM, cannot fail. Runs first
+  // so phoneme questions are gone even if the audit call below errors out.
+  var _phonRe=/phoneme|phonetic|pronunc|pronounce|syllable|word stress|stressed|silent letter|rhym|vowel|consonant|\bIPA\b|\/[a-z\u00e6\u0251\u0254\u0259\u025b\u026a\u028a\u028c\u03b8\u00f0\u0283\u0292\u014b\u02d0:]{1,7}\//i;
+  exercises=(exercises||[]).filter(function(q){
+    if(!q||!q.question||!q.options||q.options.length<2)return false;
+    return !_phonRe.test(q.question+' '+q.options.join(' '));
+  });
   if((!exercises||!exercises.length)&&(!pronSentences||!pronSentences.length)){
     done({exercises:exercises||[],pronSentences:pronSentences||[]});return;
   }
@@ -18,6 +25,7 @@ function _endVerifyExercises(exercises, pronSentences, done){
   var prompt='You are auditing English learning material before it is shown to a Brazilian student. There are two sections to audit: grammar EXERCISES and pronunciation SENTENCES.\n\n'+
     '== EXERCISES ==\n'+
     'CRITICAL RULES:\n'+
+    '• If an exercise is about phonetics, phonemes, pronunciation, sounds, syllables, word stress, silent letters, or rhymes — anything about how words SOUND rather than written grammar/vocabulary — the verdict is "discard", REGARDLESS of whether its marked answer is right.\n'+
     '• When an option is written like "X / Y" for a question with multiple blanks (_____), interpret X as filling the FIRST blank and Y as filling the SECOND in order. The "/" does NOT mean "X or Y".\n'+
     '• Each exercise has a HINT — the explanation shown to the student. The hint MUST be consistent with the marked correct answer. If the hint clearly teaches a rule pointing to a different option than what is marked, FIX the answer to match the hint. The hint is ground truth.\n'+
     '• For each option, construct the full resolved sentence and judge it in natural, standard English.\n\n'+
@@ -51,7 +59,7 @@ function _endVerifyExercises(exercises, pronSentences, done){
   .then(function(r){return r.json();})
   .then(function(d){
     if(d.error)throw new Error(d.error);
-    var text=(d.text||'').replace(/```json|```/g,'').trim();
+    var text=(typeof d.text==='string'&&d.text?d.text:(d.content&&d.content[0]&&d.content[0].text)||'').replace(/```json|```/g,'').trim();
     var res;
     try { res=JSON.parse(text); }
     catch(e){
@@ -410,6 +418,8 @@ function emmaEnd(){
     '"exercises":[{"question":"complete the sentence / choose the correct form","options":["opt A","opt B","opt C","opt D"],"answer":0,"tip":"brief grammar explanation"}],'+
     '"pronSentences":["correct English sentence relevant to this conversation","...","...","..."]}'+
     ' Rules: max 3 mistakes, max 3 improvements. Each "detail" field MUST be 20-40 words (concise and actionable, no fluff). The "summary" and "positive" fields MUST each be a single sentence. Generate 8 exercises based on grammar mistakes and vocabulary from this conversation — mix multiple choice, sentence completion and error correction. answer is 0-based index of correct option.'+
+    ' FORBIDDEN exercise topics: NEVER create exercises about phonetics, phonemes, pronunciation, sounds, syllables, word stress, silent letters, rhymes, or how words are spoken. Exercises test grammar and vocabulary in WRITING only. Any exercise mentioning sounds or pronunciation is invalid.'+
+    ' SELF-CHECK before responding: solve each exercise yourself; confirm "answer" is the 0-based index of the ONLY correct option and that "tip" explains that exact option. If they disagree, rewrite the exercise until they agree.'+
     ' CRITICAL exercise rule: each question MUST have EXACTLY ONE correct answer; the other three options must be unambiguously wrong (clear grammatical errors, factually incorrect, or obviously inappropriate for the context). Do NOT create questions where multiple options could be considered correct in standard English. For example, do NOT ask "choose the correct form" if both an uncontracted and contracted version are grammatically valid — only one option should be correct.'+
     ' Generate exactly 4 pronSentences: correct natural English sentences (8-15 words) relevant to the conversation.'+(pronWords.length>0?' Each sentence must include at least one of these poorly-pronounced words (lowest score first): '+pronWords.map(function(w){return w.word;}).join(', ')+'.':'')+
     ' Match the vocabulary complexity of the student\'s own sentences — keep it simple if they spoke simply. Be kind and practical.';
