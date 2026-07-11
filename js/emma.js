@@ -71,6 +71,9 @@ function renderEmma(){
   window._vidSpeaking.src=R2+'/emma-speaking.mp4';
   window._vidIdle.load();window._vidTransition.load();window._vidSpeaking.load();
   window._emmaTransitioning=false;
+  // Cold-start prefetch: begin the Claude intro + TTS downloads NOW, during the
+  // seconds before the user's first tap. Playback still waits for the tap.
+  if(emmaHistory.length===0){try{emmaPrefetchIntro();}catch(e){}}
   // Unlock on first click (iOS) and start convo
   document.body.addEventListener('click',function _init(){
     document.body.removeEventListener('click',_init);
@@ -189,11 +192,7 @@ function emmaStateListening(){
 }
 
 
-function emmaStartConvo(){
-  var status=document.getElementById('emmaStatus');
-  if(status)status.textContent='Emma is preparing...';
-  emmaStateIdle();
-
+function _emmaBuildStartPrompt(){
   // Get current unit and expressions for this topic
   var unit = getCurrentUnit(emmaTopic);
   var sessionExprs = getExpressionsForSession(emmaTopic);
@@ -274,25 +273,87 @@ function emmaStartConvo(){
   // Without this, emmaSubmit was sending a stripped-down prompt and Emma
   // would forget the unit, expressions, and redirect rules after turn 1.
   window._emmaBasePrompt = sysPrompt;
-
-  emmaHistory=[{role:'user',content:'[Start the conversation - introduce yourself and begin the scenario]'}];
-  emmaCallClaude(sysPrompt,function(text){
-    emmaHistory.push({role:'assistant',content:text});
-    var highlighted = renderHighlightedBubble(text);
-    emmaAddBubble('emma', highlighted);
-    emmaStateSpeaking();
-    emmaSpeak(text.replace(/\*\*([^*]+)\*\*/g,'$1'));
-  });
+  return sysPrompt;
 }
 
-function emmaCallClaude(sysPrompt,cb){
-  fetch(W+'/emma-chat',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({system:sysPrompt,messages:emmaHistory,topic:emmaTopic,max_tokens:300})
+// ── Cold-start prefetch ──────────────────────────────────────────────────────
+// Called the moment the chat renders — BEFORE the user's first tap. The Claude
+// intro and its TTS chunks download during the seconds the user takes to tap,
+// so by tap time the audio is usually already in memory. Keyed by topic so a
+// stale prefetch from another topic is never consumed.
+function emmaPrefetchIntro(){
+  if(window._introPrefetch&&window._introPrefetchTopic===emmaTopic)return;
+  window._introPrefetchTopic=emmaTopic;
+  var sysPrompt=_emmaBuildStartPrompt();
+  var _t0=Date.now();
+  window._introPrefetch=fetch(W+'/emma-chat',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({system:sysPrompt,messages:[{role:'user',content:'[Start the conversation - introduce yourself and begin the scenario]'}],topic:emmaTopic,max_tokens:300})
   })
   .then(function(r){return r.json();})
   .then(function(d){
+    if(d.error)throw new Error(d.error);
+    console.log('[perf] intro prefetched: '+(Date.now()-_t0)+'ms');
+    var spoken=String(d.text).replace(/\*\*([^*]+)\*\*/g,'$1');
+    // Start TTS downloads immediately too — array of blob promises
+    var blobPromises=_emmaSplitSentences(spoken).map(function(t){return _emmaFetchTTS(t);});
+    return {text:d.text,blobPromises:blobPromises};
+  })
+  .catch(function(){return null;});
+}
+
+function emmaStartConvo(){
+  var status=document.getElementById('emmaStatus');
+  if(status)status.textContent='Emma is preparing...';
+  emmaStateIdle();
+  emmaHistory=[{role:'user',content:'[Start the conversation - introduce yourself and begin the scenario]'}];
+  function begin(text,blobPromises){
+    emmaHistory.push({role:'assistant',content:text});
+    emmaAddBubble('emma', renderHighlightedBubble(text));
+    emmaStateSpeaking();
+    if(blobPromises&&blobPromises.length){
+      var s2=document.getElementById('emmaStatus');
+      if(s2)s2.textContent='Emma is speaking...';
+      _emmaPlayChunks(blobPromises,++_emmaSpeakId);
+    } else {
+      emmaSpeak(text.replace(/\*\*([^*]+)\*\*/g,'$1'));
+    }
+  }
+  var pre=(window._introPrefetchTopic===emmaTopic)?window._introPrefetch:null;
+  window._introPrefetch=null;
+  if(pre){
+    pre.then(function(res){
+      if(res&&res.text){ begin(res.text,res.blobPromises); }
+      else {
+        // Prefetch failed — do the classic path
+        var sys=window._emmaBasePrompt||_emmaBuildStartPrompt();
+        emmaCallClaude(sys,function(text){begin(text,null);});
+      }
+    });
+    return;
+  }
+  var sysPrompt=_emmaBuildStartPrompt();
+  emmaCallClaude(sysPrompt,function(text){begin(text,null);});
+}
+
+function emmaCallClaude(sysPrompt,cb){
+  // Send a sliding window, not the whole conversation — the full system prompt
+  // (unit, expressions, redirect/anti-drift rules) is resent complete on EVERY
+  // turn regardless, so topic discipline never depends on old messages.
+  // 30 messages ≈ 15 student turns: covers a full normal session end-to-end,
+  // so turn counting and expression progress stay visible; only marathon chats
+  // get truncated, which is exactly where unbounded history was causing the
+  // slowdown. emmaHistory itself stays complete (the report needs it all).
+  var msgs=emmaHistory.length>30?emmaHistory.slice(-30):emmaHistory;
+  var _t0=Date.now();
+  fetch(W+'/emma-chat',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({system:sysPrompt,messages:msgs,topic:emmaTopic,max_tokens:300})
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    console.log('[perf] claude: '+(Date.now()-_t0)+'ms ('+msgs.length+' msgs sent)');
     if(d.error)throw new Error(d.error);
     cb(d.text);
   })
@@ -307,54 +368,73 @@ function emmaCallClaude(sysPrompt,cb){
 var _emmaSpeakId=0;
 var _emmaAudio=null;
 
-function emmaSpeak(text){
-  var status=document.getElementById('emmaStatus');
-  if(status)status.textContent='Emma is speaking...';
-  var turnId=++_emmaSpeakId;
-  fetch(W+'/emma-speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text})})
-  .then(function(r){if(!r.ok)throw new Error(r.status);return r.blob();})
-  .then(function(blob){
+// ── Sentence-chunked TTS ─────────────────────────────────────────────────────
+// Splits the reply into sentences, fires ALL TTS requests in parallel, plays
+// them back-to-back. Time-to-first-audio = synthesis of one short sentence
+// instead of the whole reply. Chunks capped at 3 to bound request count.
+function _emmaSplitSentences(text){
+  var parts=String(text).match(/.+?[.!?\u2026]+["\u201d']?(?=\s+|$)|.+$/g)||[String(text)];
+  var out=[];
+  parts.forEach(function(p){
+    p=p.trim();if(!p)return;
+    // Merge tiny fragments (abbreviations, "Great!", decimals) into a neighbor
+    if(out.length&&(p.length<20||out[out.length-1].length<20)){out[out.length-1]+=' '+p;}
+    else out.push(p);
+  });
+  if(out.length>3)out=[out[0],out[1],out.slice(2).join(' ')];
+  return out.length?out:[String(text)];
+}
+
+function _emmaFetchTTS(text){
+  return fetch(W+'/emma-speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text})})
+    .then(function(r){if(!r.ok)throw new Error(r.status);return r.blob();});
+}
+
+// Plays an ordered array of blob promises through the unlocked audio element.
+// turnId guards make any newer speak/interrupt cancel this sequence cleanly.
+function _emmaPlayChunks(blobPromises,turnId){
+  if(_emmaAudio){
+    _emmaAudio.onended=null;
+    _emmaAudio.onerror=null;
+    _emmaAudio.pause();
+    _emmaAudio=null;
+  }
+  var audio=window._emmaAudioEl||new Audio();
+  window._emmaAudioEl=audio;
+  var _t0=Date.now(),firstLogged=false;
+  function onDone(){
     if(turnId!==_emmaSpeakId)return;
-    // Stop any current audio
-    if(_emmaAudio){
-      _emmaAudio.onended=null;
-      _emmaAudio.onerror=null;
-      _emmaAudio.pause();
-      _emmaAudio=null;
-    }
-    var url=URL.createObjectURL(blob);
-    // Always use the pre-created element (unlocked during first tap)
-    var audio=window._emmaAudioEl||new Audio();
-    window._emmaAudioEl=audio;
-    _emmaAudio=audio;
-    // Clear old handlers before assigning new ones
-    audio.onended=null;
-    audio.onerror=null;
-    var localTurn=turnId;
-    function onDone(){
-      if(localTurn!==_emmaSpeakId)return;
-      URL.revokeObjectURL(url);
-      _emmaAudio=null;
-      emmaStateIdle();
-      var s=document.getElementById('emmaStatus');if(s)s.textContent='Your turn — tap to speak';
-      var btn=document.getElementById('emmaMicBtn');
-      if(btn){btn.disabled=false;btn.style.opacity='1';}
-    }
-    audio.onended=function(){
-      onDone();
-      if(!window._sugOnboardShown){window._sugOnboardShown=true;setTimeout(showSuggestionOnboarding,300);}
-    };
-    audio.onerror=function(){URL.revokeObjectURL(url);_emmaAudio=null;emmaStateIdle();};
-    audio.src=url;
-    var p=audio.play();
-    if(p&&p.catch)p.catch(function(){onDone();});
-  })
-  .catch(function(){
+    _emmaAudio=null;
     emmaStateIdle();
     var s=document.getElementById('emmaStatus');if(s)s.textContent='Your turn — tap to speak';
     var btn=document.getElementById('emmaMicBtn');
     if(btn){btn.disabled=false;btn.style.opacity='1';}
-  });
+    if(!window._sugOnboardShown){window._sugOnboardShown=true;setTimeout(showSuggestionOnboarding,300);}
+  }
+  function playAt(i){
+    if(turnId!==_emmaSpeakId)return;
+    if(i>=blobPromises.length){onDone();return;}
+    blobPromises[i].then(function(blob){
+      if(turnId!==_emmaSpeakId)return;
+      if(!firstLogged){firstLogged=true;console.log('[perf] tts first audio: '+(Date.now()-_t0)+'ms ('+blobPromises.length+' chunk(s), '+Math.round(blob.size/1024)+'KB first)');}
+      var url=URL.createObjectURL(blob);
+      _emmaAudio=audio;
+      audio.onended=function(){URL.revokeObjectURL(url);playAt(i+1);};
+      audio.onerror=function(){URL.revokeObjectURL(url);playAt(i+1);};
+      audio.src=url;
+      var p=audio.play();
+      if(p&&p.catch)p.catch(function(){URL.revokeObjectURL(url);onDone();});
+    }).catch(function(){onDone();});
+  }
+  playAt(0);
+}
+
+function emmaSpeak(text){
+  var status=document.getElementById('emmaStatus');
+  if(status)status.textContent='Emma is speaking...';
+  var turnId=++_emmaSpeakId;
+  var blobPromises=_emmaSplitSentences(text).map(function(t){return _emmaFetchTTS(t);});
+  _emmaPlayChunks(blobPromises,turnId);
 }
 function renderHighlightedBubble(text){
   // Convert **expression** to highlighted gold span
@@ -497,7 +577,7 @@ function wpToggleRec(){
 }
 
 function wpScoreWithAudio(audioB64,mimeType,wavB64,targetWord){
-  fetch(W+'/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:audioB64,mimeType:mimeType,wavB64:wavB64||null,referenceText:targetWord||''})})
+  fetch(W+'/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:audioB64,mimeType:mimeType,wavB64:wavB64||null,referenceText:targetWord||'',noEcho:true})})
   .then(function(r){return r.json();})
   .then(function(d){
     var scoreEl=document.getElementById('wpScore'),tipEl=document.getElementById('wpTip');
@@ -518,6 +598,7 @@ function wpScoreWithAudio(audioB64,mimeType,wavB64,targetWord){
 
 function showPronunciationPanel(bubbleId){
   var data=_pronData[bubbleId];if(!data)return;
+  if(!data.pronunciation)return; // scores still computing in the background
   var p=data.pronunciation;
   var overall=Math.round(p?(p.pronScore||0):0),acc=Math.round(p?(p.accuracyScore||0):0),flu=Math.round(p?(p.fluencyScore||0):0),nat=Math.round(p?(p.prosodyScore||0):0);
   var rc=pronRingColor(overall),nc=pronColor(overall),off=pronOffset(overall);
@@ -590,7 +671,7 @@ function showSuggestion(){
   var popup=document.createElement('div');popup.className='suggestion-popup';popup.id='suggestionPopup';var bdrop=document.createElement('div');bdrop.id='suggestionBdrop';bdrop.onclick=closeSuggestion;bdrop.style.cssText='position:fixed;inset:0;z-index:199;background:rgba(0,0,0,.65);';document.body.appendChild(bdrop);
   popup.innerHTML='<div class="suggestion-handle"></div><div class="suggestion-header"><div class="suggestion-lbl">Sugestão de resposta</div></div><div id="suggestionOptions"><div style="padding:20px 24px;font-size:14px;color:rgba(255,255,255,.3)">Carregando...</div></div><div class="suggestion-close" onclick="closeSuggestion()">Dispensar</div>';
   document.body.appendChild(popup);
-  fetch(W+'/emma-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:(window._emmaSystem||'')+' Give 2 short natural English responses the student could say. Return ONLY a JSON array of 2 strings.',messages:emmaHistory.concat([{role:'user',content:'Suggest 2 responses.'}]),max_tokens:100})})
+  fetch(W+'/emma-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:(window._emmaSystem||'')+' Give 2 short natural English responses the student could say. Return ONLY a JSON array of 2 strings.',messages:(emmaHistory.length>10?emmaHistory.slice(-10):emmaHistory).concat([{role:'user',content:'Suggest 2 responses.'}]),max_tokens:100})})
   .then(function(r){return r.json();})
   .then(function(d){
     try{
@@ -677,6 +758,12 @@ function emmaAddBubble(who,text){
       (function(id){
         playBtn.onclick=function(){pronPlayStudent(id);};
         infoBtn.onclick=function(){showPronunciationPanel(id);};
+        // Scores may still be computing in the background — start the ⓘ greyed
+        // and register it so the background lane can light it up on arrival.
+        window._pronInfoBtns=window._pronInfoBtns||{};
+        window._pronInfoBtns[id]=infoBtn;
+        var pd=_pronData[id];
+        if(!pd||!pd.pronunciation)infoBtn.style.opacity='0.3';
       })(pid);
     } else {
       // No pronunciation data yet — grey out but still wire onclick to show empty panel
@@ -767,7 +854,11 @@ function emmaStartRec(){
   navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
     emmaChunks=[];
     var mt2=mime();
-    emmaMr=new MediaRecorder(stream,mt2?{mimeType:mt2}:{});
+    // 32kbps opus/aac is plenty for speech — halves upload size and WAV-decode
+    // time versus the browser default, with no effect on Whisper/SpeechAce accuracy.
+    var recOpts=mt2?{mimeType:mt2,audioBitsPerSecond:32000}:{audioBitsPerSecond:32000};
+    try{emmaMr=new MediaRecorder(stream,recOpts);}
+    catch(e){emmaMr=new MediaRecorder(stream,mt2?{mimeType:mt2}:{});}
     emmaMr.ondataavailable=function(e){if(e.data&&e.data.size>0)emmaChunks.push(e.data);};
     emmaMr.start(250);
     emmaRec=true;
@@ -798,51 +889,97 @@ function emmaStopRec(){
       var b64=reader.result.split(',')[1];
       var _recBlob=new Blob(emmaChunks,{type:mt2});
       (function(blob,origB64,origMime){
-        function sendNow(wavB64){
-          fetch(W+'/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:origB64,mimeType:origMime,wavB64:wavB64||null})})
+        var pid='p'+(++_pronBubbleCounter);
+        var cancelled=false;
+
+        // ── FAST LANE — transcript only (no WAV). The conversation rides this
+        //    and never waits for pronunciation scoring.
+        var _t0=Date.now();
+        fetch(W+'/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:origB64,mimeType:origMime,skipPron:true,noEcho:true})})
+        .then(function(r){return r.json();})
+        .then(function(d){
+          console.log('[perf] transcribe fast lane: '+(Date.now()-_t0)+'ms (payload ~'+Math.round(origB64.length/1024)+'KB)');
+          var transcript=(d.text||'').trim();
+          // ── Whisper hallucination filter ─────────────────────────────────
+          // Whisper (trained on YouTube subs) hallucinates these phrases on silent/unclear audio.
+          // Treat them as empty transcriptions so the user just gets the "try again" prompt.
+          var whisperHallucinations = [
+            /^\s*learn english for free/i,
+            /www\.engvid\.com/i,
+            /engvid\.com/i,
+            /^\s*thanks for watching/i,
+            /^\s*thank you for watching/i,
+            /^\s*please subscribe/i,
+            /don['’]t forget to subscribe/i,
+            /^\s*subtitles? by/i,
+            /^\s*subtitled by/i,
+            /^\s*captions? by/i,
+            /transcription outsourcing/i,
+            /amara\.org/i,
+            /^\s*like and subscribe/i,
+            /^\s*see you in the next video/i,
+            /do(es)? not correct (my |the )?grammar/i,
+            /don['’]t correct (my |the )?grammar/i,
+            /please (do(es)? not|don['’]t) correct/i
+          ];
+          var isHallucination = whisperHallucinations.some(function(p){ return p.test(transcript); });
+          if(!transcript || isHallucination){
+            cancelled=true; // late-arriving scores would have no bubble to attach to
+            if(btn){btn.disabled=false;btn.style.opacity='1';}
+            if(status)status.textContent='Could not hear you. Tap to try again.';
+            return;
+          }
+          // Replay works immediately (local audio). Scores are null for now —
+          // the bubble's ⓘ starts greyed and lights up when the background
+          // lane delivers.
+          _pronData[pid]={transcript:transcript,pronunciation:null,audioB64:origB64,audioMime:origMime};
+          window._pendingPronId=pid;
+          // Memory cap: keep replay AUDIO only for the last 8 turns. Scores and
+          // transcripts stay forever (panel still works); older "Sua voz" replay
+          // simply no-ops (pronPlayStudent guards !audioB64). Prevents long chats
+          // from holding tens of MB of base64 audio and turning Safari sluggish.
+          var _cut=_pronBubbleCounter-8;
+          for(var _pi=_cut;_pi>0;_pi--){
+            var _old=_pronData['p'+_pi];
+            if(!_old||!_old.audioB64)break;
+            _old.audioB64=null;
+          }
+          emmaSubmit(transcript);
+        })
+        .catch(function(){cancelled=true;if(btn){btn.disabled=false;btn.style.opacity='1';}});
+
+        // ── BACKGROUND LANE — WAV build + pronunciation scoring. Fire-and-forget;
+        //    never blocks or delays the turn. Attaches results to the bubble.
+        function sendScore(wavB64){
+          if(!wavB64||cancelled)return;
+          var _ts=Date.now();
+          fetch(W+'/score-pron',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({wavB64:wavB64})})
           .then(function(r){return r.json();})
-          .then(function(d){
-            if(d.pronunciation||d.audioB64){
-              var pid='p'+(++_pronBubbleCounter);
-              _pronData[pid]={transcript:(d.text||'').trim(),pronunciation:d.pronunciation||null,audioB64:d.audioB64||origB64,audioMime:origMime};
-              window._pendingPronId=pid;
-              if(d.pronunciation) window._sessionPronunciationData.push({transcript:(d.text||'').trim(),scores:d.pronunciation});
+          .then(function(d2){
+            if(cancelled||!d2||!d2.pronunciation)return;
+            console.log('[perf] pron scores (background): '+(Date.now()-_ts)+'ms');
+            var rec=_pronData[pid];
+            if(!rec)return;
+            rec.pronunciation=d2.pronunciation;
+            window._sessionPronunciationData.push({transcript:rec.transcript,scores:d2.pronunciation});
+            var ib=(window._pronInfoBtns||{})[pid];
+            if(ib)ib.style.opacity='1';
+            if(!window._pronOnboardShown){
+              // First scores of the session — show onboarding exactly when
+              // feedback becomes available
+              window._pronOnboardShown=true;setTimeout(showPronOnboarding,300);
+            } else if(ib){
+              // Subtle glow so the student notices the scores landed
+              ib.classList.remove('glow-gold');void ib.offsetWidth;ib.classList.add('glow-gold');
+              setTimeout(function(){ib.classList.remove('glow-gold');},2500);
             }
-            var transcript=(d.text||'').trim();
-            // ── Whisper hallucination filter ─────────────────────────────────
-            // Whisper (trained on YouTube subs) hallucinates these phrases on silent/unclear audio.
-            // Treat them as empty transcriptions so the user just gets the "try again" prompt.
-            var whisperHallucinations = [
-              /^\s*learn english for free/i,
-              /www\.engvid\.com/i,
-              /engvid\.com/i,
-              /^\s*thanks for watching/i,
-              /^\s*thank you for watching/i,
-              /^\s*please subscribe/i,
-              /don['’]t forget to subscribe/i,
-              /^\s*subtitles? by/i,
-              /^\s*subtitled by/i,
-              /^\s*captions? by/i,
-              /transcription outsourcing/i,
-              /amara\.org/i,
-              /^\s*like and subscribe/i,
-              /^\s*see you in the next video/i,
-              /do(es)? not correct (my |the )?grammar/i,
-              /don['’]t correct (my |the )?grammar/i,
-              /please (do(es)? not|don['’]t) correct/i
-            ];
-            var isHallucination = whisperHallucinations.some(function(p){ return p.test(transcript); });
-            if(!transcript || isHallucination){if(btn){btn.disabled=false;btn.style.opacity='1';}if(status)status.textContent='Could not hear you. Tap to try again.';return;}
-            emmaSubmit(transcript);
-            // First student reply — show pronúncia onboarding
-            if(!window._pronOnboardShown){window._pronOnboardShown=true;setTimeout(showPronOnboarding,800);}
           })
-          .catch(function(){if(btn){btn.disabled=false;btn.style.opacity='1';}});
+          .catch(function(){});
         }
         try{
           var fr2=new FileReader();
           fr2.onloadend=function(){
-            if(!fr2.result){sendNow(null);return;}
+            if(!fr2.result){return;}
             try{
               var actx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:16000});
               actx.decodeAudioData(fr2.result,function(decoded){
@@ -859,14 +996,14 @@ function emmaStopRec(){
                     for(var i=0,off=44;i<s.length;i++,off+=2){var v=Math.max(-1,Math.min(1,s[i]));dv.setInt16(off,v<0?v*0x8000:v*0x7FFF,true);}
                     var wb=new Uint8Array(ab),cs=8192,wstr='';
                     for(var j=0;j<wb.length;j+=cs)wstr+=String.fromCharCode.apply(null,wb.subarray(j,Math.min(j+cs,wb.length)));
-                    sendNow(btoa(wstr));
-                  }).catch(function(){sendNow(null);});
-                }catch(e){sendNow(null);}
-              },function(){sendNow(null);});
-            }catch(e){sendNow(null);}
+                    sendScore(btoa(wstr));
+                  }).catch(function(){});
+                }catch(e){}
+              },function(){});
+            }catch(e){}
           };
           fr2.readAsArrayBuffer(blob);
-        }catch(e){sendNow(null);}
+        }catch(e){}
       })(_recBlob,b64,mt2);
       return;
     };

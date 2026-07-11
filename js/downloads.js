@@ -707,7 +707,7 @@ function downloadExercises(){
           var pe=pronExercises[pi];
           // Convert to 16kHz WAV for better Azure scoring
           function sendToAzure(wavB64){
-            fetch(W+'/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:b64,mimeType:mt,wavB64:wavB64||null,referenceText:pe.sentence})})
+            fetch(W+'/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:b64,mimeType:mt,wavB64:wavB64||null,referenceText:pe.sentence,noEcho:true})})
             .then(function(r){return r.json();})
             .then(function(d){
               var fb=document.getElementById('exPronFeedback_'+pi);
