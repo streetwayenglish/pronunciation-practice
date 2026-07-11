@@ -1125,44 +1125,36 @@
     body.appendChild(el('div','font-size:13px;color:#8a8073;margin:14px 2px 0;', esc(b.pt)+' \u00b7 '+(b.t==='AT'?'Antigo':'Novo')+' Testamento'));
 
     // player card
-    var stick=el('div','position:sticky;top:0;z-index:4;background:#faf9f7;padding:10px 0 8px;margin:2px 0 0;');
-    var pc=el('div','background:#fff;border:1px solid #ece8e0;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;box-shadow:0 4px 14px -8px rgba(0,0,0,.18);');
-    var play=el('button','width:52px;height:52px;border-radius:50%;background:#81953C;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;',
-      '<svg id="bPlayIco" width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M8 5.5 L19 12 L8 18.5 Z"/></svg>');
-    var right=el('div','flex:1;min-width:0;');
-    var barWrap=el('div','padding:12px 0;margin:-12px 0;cursor:pointer;touch-action:none;');
-    var bar=el('div','height:5px;border-radius:3px;background:#efece4;position:relative;');
-    var fill=el('div','position:absolute;left:0;top:0;bottom:0;width:0;border-radius:3px;background:#81953C;');
+    var stick=el('div','position:sticky;top:0;z-index:4;background:#faf9f7;padding:12px 0 10px;margin:2px 0 0;');
+    var pc=el('div','');
+    // progress bar — thin, boxless, with scrubber dot
+    var barWrap=el('div','padding:12px 0 4px;margin:-6px 0 0;cursor:pointer;touch-action:none;');
+    var bar=el('div','height:4px;border-radius:2px;background:#e4ded1;position:relative;');
+    var fill=el('div','position:absolute;left:0;top:0;bottom:0;width:0;border-radius:2px;background:#81953C;');
+    var dot=el('div','position:absolute;top:50%;left:0;width:13px;height:13px;border-radius:50%;background:#81953C;transform:translate(-50%,-50%);');
+    fill.appendChild(dot); dot.style.left='100%';
     bar.appendChild(fill);
     barWrap.appendChild(bar);
-    var times=el('div','display:flex;justify-content:space-between;font-size:11px;color:#a89c80;margin-top:7px;font-variant-numeric:tabular-nums;','<span id="bT0">0:00</span><span id="bT1">\u2013:\u2013\u2013</span>');
-    right.appendChild(barWrap); right.appendChild(times);
-    pc.appendChild(play); pc.appendChild(right);
-    stick.appendChild(pc);
-    // secondary controls row: -10s, +30s, speed
-    var ctrls=el('div','display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px;');
-    function ctrlBtn(txt){ return el('button','background:#fff;border:1px solid #e6e1d6;border-radius:11px;padding:7px 12px;font-size:12.5px;font-weight:700;color:#5a5346;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:4px;', txt); }
-    // round skip buttons — circular arrow (correct direction) with the number inside
-    function skipBtn(dir, num){
-      var b=el('button','width:40px;height:40px;border-radius:50%;background:#fff;border:1px solid #e6e1d6;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;position:relative;');
-      // back = counter-clockwise (arrowhead upper-left); forward = clockwise (arrowhead upper-right)
-      var arc = dir<0
-        ? '<path d="M6.5 8.5 A7 7 0 1 0 8.5 5.2" fill="none" stroke="#5a5346" stroke-width="1.9" stroke-linecap="round"/><path d="M4 4.2 L7.4 5.4 L6.2 8.8 Z" fill="#5a5346"/>'
-        : '<path d="M17.5 8.5 A7 7 0 1 1 15.5 5.2" fill="none" stroke="#5a5346" stroke-width="1.9" stroke-linecap="round"/><path d="M20 4.2 L16.6 5.4 L17.8 8.8 Z" fill="#5a5346"/>';
-      b.innerHTML='<svg width="24" height="24" viewBox="0 0 24 24">'+arc+
-        '<text x="12" y="15.5" font-size="8.5" font-weight="800" fill="#5a5346" text-anchor="middle" font-family="Inter,sans-serif">'+num+'</text></svg>';
-      return b;
-    }
-    var back10=skipBtn(-1,'10');
-    var fwd30=skipBtn(1,'30');
+    var times=el('div','display:flex;justify-content:space-between;font-size:11.5px;color:#a89c80;margin-top:6px;font-variant-numeric:tabular-nums;','<span id="bT0">0:00</span><span id="bT1">\u2013:\u2013\u2013</span>');
+    // transport — back10 · play · fwd30, genuine Material glyphs, no boxes
+    var transport=el('div','display:flex;align-items:center;justify-content:center;gap:46px;margin-top:14px;');
+    function iconBtn(pathD){ var b=el('button','width:52px;height:52px;border:none;background:transparent;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;'); b.innerHTML='<svg width="38.5" height="38.5" viewBox="0 -960 960 960" fill="#6b6455"><path d="'+pathD+'"/></svg>'; return b; }
+    var back10=iconBtn('M480-100q-70.77 0-132.61-26.77-61.85-26.77-107.85-72.77-46-46-72.77-107.85Q140-369.23 140-440h60q0 117 81.5 198.5T480-160q117 0 198.5-81.5T760-440q0-117-81.5-198.5T480-720h-10.62l63.54 63.54-42.15 43.38-136.92-137.3 137.69-137.31 42.15 43.38L469.38-780H480q70.77 0 132.61 26.77 61.85 26.77 107.85 72.77 46 46 72.77 107.85Q820-510.77 820-440q0 70.77-26.77 132.61-26.77 61.85-72.77 107.85-46 46-107.85 72.77Q550.77-100 480-100ZM368.46-326.15v-180h-57.69v-47.7h105.38v227.7h-47.69Zm135.39 0q-17 0-28.5-11.5t-11.5-28.5v-147.7q0-17 11.5-28.5t28.5-11.5h75.38q17 0 28.5 11.5t11.5 28.5v147.7q0 17-11.5 28.5t-28.5 11.5h-75.38Zm12.3-47.7h50.77q2.31 0 3.47-1.15 1.15-1.15 1.15-3.46v-123.08q0-2.31-1.15-3.46-1.16-1.15-3.47-1.15h-50.77q-2.3 0-3.46 1.15-1.15 1.15-1.15 3.46v123.08q0 2.31 1.15 3.46 1.16 1.15 3.46 1.15Z');
+    var fwd30=iconBtn('M300.77-326.15v-47.7h107.69v-48.46h-71.54v-35.38h71.54v-48.46H300.77v-47.7h121.54q14.69 0 24.27 9.58 9.57 9.58 9.57 24.27v160q0 14.69-9.57 24.27-9.58 9.58-24.27 9.58H300.77Zm243.08 0q-17 0-28.5-11.5t-11.5-28.5v-147.7q0-17 11.5-28.5t28.5-11.5h75.38q17 0 28.5 11.5t11.5 28.5v147.7q0 17-11.5 28.5t-28.5 11.5h-75.38Zm12.3-47.7h50.77q2.31 0 3.47-1.15 1.15-1.15 1.15-3.46v-123.08q0-2.31-1.15-3.46-1.16-1.15-3.47-1.15h-50.77q-2.3 0-3.46 1.15-1.15 1.15-1.15 3.46v123.08q0 2.31 1.15 3.46 1.16 1.15 3.46 1.15ZM480-100q-70.77 0-132.61-26.77-61.85-26.77-107.85-72.77-46-46-72.77-107.85Q140-369.23 140-440q0-70.77 26.77-132.61 26.77-61.85 72.77-107.85 46-46 107.85-72.77Q409.23-780 480-780h10.62l-64.31-64.31 42.15-43.38 137.69 137.31-136.92 137.3-42.15-43.38L490.62-720H480q-117 0-198.5 81.5T200-440q0 117 81.5 198.5T480-160q117 0 198.5-81.5T760-440h60q0 70.77-26.77 132.61-26.77 61.85-72.77 107.85-46 46-107.85 72.77Q550.77-100 480-100Z');
+    var play=el('button','width:64px;height:64px;border-radius:50%;background:#81953C;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 6px 18px -6px rgba(129,149,60,.55);-webkit-tap-highlight-color:transparent;',
+      '<svg id="bPlayIco" width="24" height="24" viewBox="0 0 24 24" fill="#fff"><path d="M8 5.5 L19 12 L8 18.5 Z"/></svg>');
+    transport.appendChild(back10); transport.appendChild(play); transport.appendChild(fwd30);
+    // speed pill — bottom center
+    var spRow=el('div','display:flex;justify-content:center;margin-top:12px;');
     var SPEEDS=[1,1.25,1.5,0.75];
     var spIx=0;
-    var speed=ctrlBtn('1\u00d7');
+    var speed=el('button','background:#ebe6db;border:none;border-radius:16px;padding:7px 18px;font-size:12.5px;font-weight:700;color:#5a5346;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;','1\u00d7');
+    spRow.appendChild(speed);
     back10.onclick=function(){ if(AUDIO.duration){ AUDIO.currentTime=Math.max(0,AUDIO.currentTime-10); fill.style.width=(AUDIO.currentTime/AUDIO.duration*100)+'%'; t0.textContent=fmt(AUDIO.currentTime); savePos(true);} };
     fwd30.onclick=function(){ if(AUDIO.duration){ AUDIO.currentTime=Math.min(AUDIO.duration-0.3,AUDIO.currentTime+30); fill.style.width=(AUDIO.currentTime/AUDIO.duration*100)+'%'; t0.textContent=fmt(AUDIO.currentTime); savePos(true);} };
     speed.onclick=function(){ spIx=(spIx+1)%SPEEDS.length; AUDIO.playbackRate=SPEEDS[spIx]; speed.textContent=(SPEEDS[spIx]+'').replace('.',',')+'\u00d7'; };
-    ctrls.appendChild(back10); ctrls.appendChild(speed); ctrls.appendChild(fwd30);
-    stick.appendChild(ctrls);
+    pc.appendChild(barWrap); pc.appendChild(times); pc.appendChild(transport); pc.appendChild(spRow);
+    stick.appendChild(pc);
     body.appendChild(stick);
 
     var note=el('div','display:none;font-size:12px;color:#a89c80;margin:0 2px 4px;','\u00c1udio em breve para este livro.');
