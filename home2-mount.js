@@ -1142,8 +1142,19 @@
     // secondary controls row: -10s, +30s, speed
     var ctrls=el('div','display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px;');
     function ctrlBtn(txt){ return el('button','background:#fff;border:1px solid #e6e1d6;border-radius:11px;padding:7px 12px;font-size:12.5px;font-weight:700;color:#5a5346;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:4px;', txt); }
-    var back10=ctrlBtn('<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5a5346" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>10s');
-    var fwd30=ctrlBtn('30s<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5a5346" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>');
+    // round skip buttons — circular arrow (correct direction) with the number inside
+    function skipBtn(dir, num){
+      var b=el('button','width:40px;height:40px;border-radius:50%;background:#fff;border:1px solid #e6e1d6;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;position:relative;');
+      // back = counter-clockwise (arrowhead upper-left); forward = clockwise (arrowhead upper-right)
+      var arc = dir<0
+        ? '<path d="M6.5 8.5 A7 7 0 1 0 8.5 5.2" fill="none" stroke="#5a5346" stroke-width="1.9" stroke-linecap="round"/><path d="M4 4.2 L7.4 5.4 L6.2 8.8 Z" fill="#5a5346"/>'
+        : '<path d="M17.5 8.5 A7 7 0 1 1 15.5 5.2" fill="none" stroke="#5a5346" stroke-width="1.9" stroke-linecap="round"/><path d="M20 4.2 L16.6 5.4 L17.8 8.8 Z" fill="#5a5346"/>';
+      b.innerHTML='<svg width="24" height="24" viewBox="0 0 24 24">'+arc+
+        '<text x="12" y="15.5" font-size="8.5" font-weight="800" fill="#5a5346" text-anchor="middle" font-family="Inter,sans-serif">'+num+'</text></svg>';
+      return b;
+    }
+    var back10=skipBtn(-1,'10');
+    var fwd30=skipBtn(1,'30');
     var SPEEDS=[1,1.25,1.5,0.75];
     var spIx=0;
     var speed=ctrlBtn('1\u00d7');
