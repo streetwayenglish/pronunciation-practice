@@ -1139,6 +1139,30 @@
     right.appendChild(barWrap); right.appendChild(times);
     pc.appendChild(play); pc.appendChild(right);
     stick.appendChild(pc);
+    // secondary controls row: -10s, +30s, speed
+    var ctrls=el('div','display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px;');
+    function ctrlBtn(txt){ return el('button','background:#fff;border:1px solid #e6e1d6;border-radius:11px;padding:7px 12px;font-size:12.5px;font-weight:700;color:#5a5346;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:4px;', txt); }
+    // round skip buttons — circular arrow (correct direction) with the number inside
+    function skipBtn(dir, num){
+      var b=el('button','width:40px;height:40px;border-radius:50%;background:#fff;border:1px solid #e6e1d6;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;position:relative;');
+      // back = counter-clockwise (arrowhead upper-left); forward = clockwise (arrowhead upper-right)
+      var arc = dir<0
+        ? '<path d="M6.5 8.5 A7 7 0 1 0 8.5 5.2" fill="none" stroke="#5a5346" stroke-width="1.9" stroke-linecap="round"/><path d="M4 4.2 L7.4 5.4 L6.2 8.8 Z" fill="#5a5346"/>'
+        : '<path d="M17.5 8.5 A7 7 0 1 1 15.5 5.2" fill="none" stroke="#5a5346" stroke-width="1.9" stroke-linecap="round"/><path d="M20 4.2 L16.6 5.4 L17.8 8.8 Z" fill="#5a5346"/>';
+      b.innerHTML='<svg width="24" height="24" viewBox="0 0 24 24">'+arc+
+        '<text x="12" y="15.5" font-size="8.5" font-weight="800" fill="#5a5346" text-anchor="middle" font-family="Inter,sans-serif">'+num+'</text></svg>';
+      return b;
+    }
+    var back10=skipBtn(-1,'10');
+    var fwd30=skipBtn(1,'30');
+    var SPEEDS=[1,1.25,1.5,0.75];
+    var spIx=0;
+    var speed=ctrlBtn('1\u00d7');
+    back10.onclick=function(){ if(AUDIO.duration){ AUDIO.currentTime=Math.max(0,AUDIO.currentTime-10); fill.style.width=(AUDIO.currentTime/AUDIO.duration*100)+'%'; t0.textContent=fmt(AUDIO.currentTime); savePos(true);} };
+    fwd30.onclick=function(){ if(AUDIO.duration){ AUDIO.currentTime=Math.min(AUDIO.duration-0.3,AUDIO.currentTime+30); fill.style.width=(AUDIO.currentTime/AUDIO.duration*100)+'%'; t0.textContent=fmt(AUDIO.currentTime); savePos(true);} };
+    speed.onclick=function(){ spIx=(spIx+1)%SPEEDS.length; AUDIO.playbackRate=SPEEDS[spIx]; speed.textContent=(SPEEDS[spIx]+'').replace('.',',')+'\u00d7'; };
+    ctrls.appendChild(back10); ctrls.appendChild(speed); ctrls.appendChild(fwd30);
+    stick.appendChild(ctrls);
     body.appendChild(stick);
 
     var note=el('div','display:none;font-size:12px;color:#a89c80;margin:0 2px 4px;','\u00c1udio em breve para este livro.');
@@ -1231,6 +1255,7 @@
     
     play.onclick=function(){
       if(AUDIO.paused){
+        try{ AUDIO.playbackRate=SPEEDS[spIx]; }catch(e){}
         if(resume>5 && AUDIO.currentTime<1 && (!AUDIO.duration || resume<AUDIO.duration-8)){ try{ AUDIO.currentTime=resume; }catch(e){} }
         resume=0;
         AUDIO.play(); ico.innerHTML='<rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/>'; tick(); }
@@ -1297,7 +1322,7 @@
     chip.addEventListener('click',function(){ chip.style.display='none'; });
     sc.appendChild(chip);
     function show(q, t){
-      chip.innerHTML='<span style="color:#EBC06A;font-weight:700;">'+esc(q)+'</span>'+
+      chip.innerHTML='<span style="color:#a7c257;font-weight:700;">'+esc(q)+'</span>'+
         '<span style="opacity:.55;margin:0 8px;">\u2192</span>'+esc(t)+
         '<span style="display:block;font-size:11px;opacity:.45;margin-top:4px;">toque para fechar</span>';
       chip.style.display='block';
@@ -1320,7 +1345,7 @@
         // sentence context only on demand (saves ~30x translation quota)
         if(sent && sent.split(/\s+/).length>2 && sent.length<420){
           var ctxEl=el('div','margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.14);font-size:12.5px;line-height:1.5;',
-            '<span style="color:#EBC06A;font-weight:700;cursor:pointer;">Ver no contexto \u2192</span>');
+            '<span style="color:#a7c257;font-weight:700;cursor:pointer;">Ver no contexto \u2192</span>');
           ctxEl.addEventListener('click', function(ev){
             ev.stopPropagation();
             ctxEl.innerHTML='<span style="opacity:.55;">Traduzindo a frase\u2026</span>';
