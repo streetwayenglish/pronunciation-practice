@@ -1149,17 +1149,11 @@
     b.paras.forEach(function(p){ cumW.push(totalW); totalW+=(p.match(/\S+/g)||[]).length; });
     var paraEls=[];
     b.paras.forEach(function(p, pi){
-      var row=el('div','display:flex;gap:10px;margin:18px 0;align-items:flex-start;');
-      var pb=el('button','flex-shrink:0;width:24px;height:24px;margin-top:4px;border-radius:50%;border:1.5px solid #d8d2c4;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;',
-        '<svg width="9" height="9" viewBox="0 0 24 24" fill="#a89c80"><path d="M7 4.5 L20 12 L7 19.5 Z"/></svg>');
-      pb.setAttribute('aria-label','Ouvir deste par\u00e1grafo');
-      pb.addEventListener('click', function(){ seekPara(pi); });
       var html=esc(p).split(/(\s+)/).map(function(tk){
         return /\S/.test(tk) ? '<span class="bw" style="cursor:pointer;">'+tk+'</span>' : tk;
       }).join('');
-      var para=el('p','flex:1;font-size:17px;line-height:1.75;color:#2a2620;margin:0;padding:2px 8px;border-radius:10px;transition:background .3s;', html);
-      row.appendChild(pb); row.appendChild(para);
-      body.appendChild(row);
+      var para=el('p','font-size:17px;line-height:1.75;color:#2a2620;margin:18px 0;padding:2px 8px;border-radius:10px;transition:background .3s;', html);
+      body.appendChild(para);
       paraEls.push(para);
     });
     function paraTime(i){
