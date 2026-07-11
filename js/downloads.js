@@ -309,7 +309,62 @@ function downloadExercises(){
   if(!r||!r.exercises)return;
   var area=document.getElementById('area');
   if(!area)return;
-  window._exReturnHTML=area.innerHTML;  // remember the exact report to return to
+  if(!window._exSkipCapture)window._exReturnHTML=area.innerHTML;  // remember the exact report to return to
+  window._exSkipCapture=false;
+
+  // ─── 1. Drop phonetics questions — this drill is grammar/vocabulary only ────
+  if(!r._exCleaned){
+    r._exCleaned=true;
+    var phonRe=/phoneme|phonetic|pronunc|pronounce|syllable|word stress|stressed|silent letter|rhym|vowel|consonant|\bIPA\b|\/[a-z\u00e6\u0251\u0254\u0259\u025b\u026a\u028a\u028c\u03b8\u00f0\u0283\u0292\u014b\u02d0:]{1,7}\//i;
+    r.exercises=(r.exercises||[]).filter(function(q){
+      if(!q||!q.question||!q.options)return false;
+      return !phonRe.test(q.question+' '+q.options.join(' '));
+    });
+  }
+
+  // ─── 2. Audit answers once per report — Haiku re-solves each question and ───
+  //      fixes a mismarked answer index; flawed/phonetics questions are dropped.
+  if(!r._exVerified&&!window._exAuditing){
+    window._exAuditing=true;
+    area.innerHTML=renderModeTabs()+
+      '<style>@keyframes _exAP{0%,100%{opacity:.4}50%{opacity:1}}</style>'+
+      '<div style="min-height:55vh;display:flex;align-items:center;justify-content:center;">'+
+        '<div style="font-size:13px;font-weight:600;color:#999;letter-spacing:.02em;animation:_exAP 1.4s ease-in-out infinite;">Preparando exerc\u00edcios\u2026</div>'+
+      '</div>';
+    var auditQs=(r.exercises||[]).slice(0,8);
+    var payload=auditQs.map(function(q,i){return{i:i,question:q.question,options:q.options};});
+    fetch(W+'/emma-chat',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        system:'You audit multiple-choice English grammar/vocabulary exercises for Brazilian learners. For each item, decide the 0-based index of the option that is truly correct. Reply with ONLY a JSON array, no prose, no markdown fences: [{"i":<item i>,"correct":<option index>}]. Set "correct":-1 if: the question is about phonetics, phonemes, pronunciation, sounds or syllables instead of grammar/vocabulary; OR no option is correct; OR more than one option is equally correct.',
+        messages:[{role:'user',content:JSON.stringify(payload)}],
+        topic:'exercise-audit',max_tokens:600
+      })
+    })
+    .then(function(res){return res.json();})
+    .then(function(d){
+      var t=(typeof d.text==='string'&&d.text)?d.text:(d.content&&d.content[0]&&d.content[0].text)||'';
+      t=String(t).replace(/```json|```/g,'').trim();
+      var verdicts=JSON.parse(t);
+      if(!Array.isArray(verdicts))return;
+      var drop={};
+      verdicts.forEach(function(v){
+        if(!v||typeof v.i!=='number')return;
+        var q=auditQs[v.i];if(!q)return;
+        if(typeof v.correct!=='number'||v.correct<0||v.correct>=q.options.length){drop[v.i]=true;return;}
+        q.answer=v.correct;
+      });
+      r.exercises=auditQs.filter(function(q,i){return !drop[i];});
+    })
+    .catch(function(){/* audit failed — show exercises as-is rather than block */})
+    .then(function(){
+      r._exVerified=true;
+      window._exAuditing=false;
+      window._exSkipCapture=true;   // don't let the loading screen become the "back" target
+      downloadExercises();
+    });
+    return;
+  }
 
   // Shuffle each question's options once — LLMs put the correct answer first,
   // so without this, option A is almost always right. Correctness is judged
@@ -318,9 +373,17 @@ function downloadExercises(){
     r._exShuffled=true;
     (r.exercises||[]).forEach(function(q){
       if(!q||!q.options||q.options.length<2)return;
+      // q.answer is an INDEX into options — remember the correct text,
+      // shuffle, then re-point the index at the text's new position.
+      var correctText=(typeof q.answer==='number' && q.options[q.answer]!==undefined)
+        ? q.options[q.answer] : null;
       for(var i=q.options.length-1;i>0;i--){
         var j=Math.floor(Math.random()*(i+1));
         var t=q.options[i];q.options[i]=q.options[j];q.options[j]=t;
+      }
+      if(correctText!==null){
+        var ni=q.options.indexOf(correctText);
+        if(ni>=0) q.answer=ni;
       }
     });
   }
