@@ -702,18 +702,17 @@ function _makeOnboardOverlay(text,topPx,rightPx,bottomPx,leftPx){
   setTimeout(function(){if(overlay.parentNode)overlay.remove();},8300);
 }
 function showPronOnboarding(){
-  var infoIcons=document.querySelectorAll('.pron-info-icon');
-  if(infoIcons.length===0)return;
-  var last=infoIcons[infoIcons.length-1];
-  last.classList.remove('glow-gold');void last.offsetWidth;last.classList.add('glow-gold');
-  var iconRow=last.parentNode;if(!iconRow)return;
-  var existing=iconRow.querySelector('.pron-inline-label');if(existing)existing.remove();
+  var icons=document.querySelectorAll('.stu-info');
+  if(icons.length===0)return;
+  var last=icons[icons.length-1];
+  var bubble=last.closest('.emma-bubble.student');if(!bubble||!bubble.parentNode)return;
+  var wrap=bubble.parentNode;
+  var existing=wrap.querySelector('.pron-inline-label');if(existing)existing.remove();
   var lbl=document.createElement('div');lbl.className='pron-inline-label';
   lbl.textContent='Feedback de pronúncia';
-  lbl.style.cssText='font-size:11px;font-weight:700;letter-spacing:.03em;color:#f5c842;background:rgba(20,20,20,.95);padding:5px 11px;border-radius:8px;border:1.5px solid rgba(201,162,39,.6);white-space:nowrap;box-shadow:0 2px 16px rgba(0,0,0,.4);animation:labelFadeIn 8s ease forwards;align-self:flex-end;margin-right:4px;margin-top:2px;';
-  iconRow.parentNode.insertBefore(lbl,iconRow.nextSibling);
+  lbl.style.cssText='font-size:11px;font-weight:700;letter-spacing:.03em;color:#E6B31E;background:rgba(20,20,20,.95);padding:5px 11px;border-radius:8px;border:1.5px solid rgba(230,179,30,.5);white-space:nowrap;box-shadow:0 2px 16px rgba(0,0,0,.4);animation:labelFadeIn 8s ease forwards;align-self:flex-end;margin-right:4px;margin-top:2px;';
+  wrap.insertBefore(lbl,bubble.nextSibling);
   setTimeout(function(){if(lbl.parentNode)lbl.remove();},8300);
-  setTimeout(function(){last.classList.remove('glow-gold');},8000);
 }
 
 function showSuggestionOnboarding(){
@@ -739,38 +738,18 @@ function emmaAddBubble(who,text){
   var div=document.createElement('div');div.className='emma-bubble '+who;div.innerHTML=text;
   if(who==='student'){
     var pid=window._pendingPronId||null;window._pendingPronId=null;
-    var icons=document.createElement('div');
-    icons.style.cssText='display:flex;justify-content:flex-end;gap:5px;padding-right:4px;opacity:.85';
-    var playBtn=document.createElement('div');
-    playBtn.style.cssText='width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;line-height:0';
-    playBtn.innerHTML='<svg width="11" height="11" viewBox="2 0 22 24" fill="rgba(255,255,255,.85)"><path d="M8 5v14l11-7z"/></svg>';
-    var infoBtn=document.createElement('div');
-    infoBtn.className='pron-info-icon';
-    infoBtn.className='pron-info-icon';infoBtn.style.cssText='width:22px;height:22px;border-radius:50%;background:transparent;border:1.5px solid rgba(201,162,39,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;line-height:0';
-    infoBtn.innerHTML='<div style="width:15px;height:15px;border-radius:50%;background:rgba(201,162,39,.45);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;line-height:1;font-family:-apple-system,sans-serif">i</div>';
-    icons.appendChild(playBtn);icons.appendChild(infoBtn);
-    // Wrap bubble+icons in container with minimal gap
-    var container=document.createElement('div');
-    container.style.cssText='display:flex;flex-direction:column;align-items:flex-end;gap:1px;';
-    container.appendChild(div);
-    container.appendChild(icons);
-    if(pid){
-      (function(id){
-        playBtn.onclick=function(){pronPlayStudent(id);};
-        infoBtn.onclick=function(){showPronunciationPanel(id);};
-        // Scores may still be computing in the background — start the ⓘ greyed
-        // and register it so the background lane can light it up on arrival.
-        window._pronInfoBtns=window._pronInfoBtns||{};
-        window._pronInfoBtns[id]=infoBtn;
-        var pd=_pronData[id];
-        if(!pd||!pd.pronunciation)infoBtn.style.opacity='0.3';
-      })(pid);
-    } else {
-      // No pronunciation data yet — grey out but still wire onclick to show empty panel
-      playBtn.style.opacity='0.3';
-      infoBtn.style.opacity='0.3';
-    }
-    wrap.appendChild(container);
+    // Graphite bubble: text above, one faint-gray info icon below (inside the
+    // bubble, bottom-right). Layout is flex-column via conversation.css.
+    // The old external action row (play + i circles) is gone — replay and
+    // scores live in the details panel the icon opens.
+    div.innerHTML='<span class="stu-text">'+text+'</span>';
+    var infoBtn=document.createElement('button');
+    infoBtn.className='stu-info';
+    infoBtn.setAttribute('aria-label','Detalhes');
+    infoBtn.innerHTML='<svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5.35" fill="none" stroke="rgba(255,255,255,.38)" stroke-width="1.1"/><rect x="5.3" y="5.1" width="1.4" height="4" rx="0.7" fill="rgba(255,255,255,.38)"/><circle cx="6" cy="3.2" r="0.85" fill="rgba(255,255,255,.38)"/></svg>';
+    if(pid){(function(id){infoBtn.onclick=function(){showPronunciationPanel(id);};})(pid);}
+    div.appendChild(infoBtn);
+    wrap.appendChild(div);
     wrap.scrollTop=wrap.scrollHeight;
     return;
   }
@@ -960,16 +939,10 @@ function emmaStopRec(){
             if(!rec)return;
             rec.pronunciation=d2.pronunciation;
             window._sessionPronunciationData.push({transcript:rec.transcript,scores:d2.pronunciation});
-            var ib=(window._pronInfoBtns||{})[pid];
-            if(ib)ib.style.opacity='1';
+            // Icon stays faint gray by design (stateless). First scores of the
+            // session still trigger the one-time onboarding label.
             if(!window._pronOnboardShown){
-              // First scores of the session — show onboarding exactly when
-              // feedback becomes available
               window._pronOnboardShown=true;setTimeout(showPronOnboarding,300);
-            } else if(ib){
-              // Subtle glow so the student notices the scores landed
-              ib.classList.remove('glow-gold');void ib.offsetWidth;ib.classList.add('glow-gold');
-              setTimeout(function(){ib.classList.remove('glow-gold');},2500);
             }
           })
           .catch(function(){});
