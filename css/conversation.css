@@ -374,7 +374,7 @@
     padding: 0;
     border-radius: 50%;
     font-size: 0;
-    background: var(--yellow);
+    background: #E6B31E; /* warm gold — one step darker than the old lemon yellow */
     position: relative;
     overflow: hidden;
     transition: transform .15s;
@@ -411,9 +411,9 @@
   /* Listening pulse: soft yellow ring breathing outward.
      Overrides the red box-shadow animation from base.css (.emma-mic.rec animation: rp 1s) */
   @keyframes emmaMicListenPulse {
-    0%   { box-shadow: 0 0 0 0   rgba(245, 200, 66, 0.55); }
-    70%  { box-shadow: 0 0 0 22px rgba(245, 200, 66, 0); }
-    100% { box-shadow: 0 0 0 0   rgba(245, 200, 66, 0); }
+    0%   { box-shadow: 0 0 0 0   rgba(230, 179, 30, 0.55); }
+    70%  { box-shadow: 0 0 0 22px rgba(230, 179, 30, 0); }
+    100% { box-shadow: 0 0 0 0   rgba(230, 179, 30, 0); }
   }
   body.tab-conversation .emma-mic.rec {
     animation: emmaMicListenPulse 1.6s ease-out infinite;
@@ -425,34 +425,31 @@
     align-items: center;
   }
 
-  /* User (student) bubble — original semi-transparent gold, white text */
+  /* User (student) bubble — neutral graphite, flex column: text above, info icon below */
   body.tab-conversation .emma-bubble.student {
-    background: rgba(180,140,0,.5) !important;
-    border: 1px solid rgba(245,200,66,.4) !important;
-    color: #fff !important;
+    background: #2E2E33 !important;
+    border: none !important;
+    color: #F2F2F4 !important;
+    font-size: 15px;
+    line-height: 1.45;
+    padding: 11px 13px 8px 15px;
+    border-radius: 18px 18px 5px 18px;
+    max-width: 78%;
+    align-self: flex-end;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
-
-  /* CSS overrides for play/info button sizes (forces correct sizing even if cached emma.js still has old inline styles) */
-  body.tab-conversation .pron-info-icon {
-    width: 34px !important;
-    height: 34px !important;
-    border-width: 2px !important;
-    border-color: rgba(245, 200, 66, 0.4) !important;
-  }
-  body.tab-conversation .pron-info-icon > div {
-    width: 23px !important;
-    height: 23px !important;
-    font-size: 13px !important;
-    background: rgba(245, 200, 66, 0.45) !important;
-  }
-  /* Play button (sibling of .pron-info-icon, lives in same icons container) */
-  body.tab-conversation div:has(> .pron-info-icon) > div:first-child {
-    width: 34px !important;
-    height: 34px !important;
-  }
-  body.tab-conversation div:has(> .pron-info-icon) > div:first-child svg {
-    width: 17px !important;
-    height: 17px !important;
+  /* The single info icon inside the bubble — faint gray at all times (stateless).
+     Tap opens the message details panel (replay + pronunciation live there). */
+  body.tab-conversation .emma-bubble.student .stu-info {
+    align-self: flex-end;
+    background: none;
+    border: none;
+    padding: 2px;          /* small invisible bump to the tap target */
+    margin: -2px -2px -2px 0;
+    cursor: pointer;
+    line-height: 0;
   }
 
   /* Translate icon — match preview: positioned bottom:10 right:12.
