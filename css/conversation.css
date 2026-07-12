@@ -425,13 +425,12 @@
     align-items: center;
   }
 
-  /* User (student) bubble — neutral graphite, flex column: text above, info icon below */
+  /* User (student) bubble — neutral graphite, flex column: text above, info icon below.
+     Font-size/line-height inherit from .emma-bubble so user and Emma text match exactly. */
   body.tab-conversation .emma-bubble.student {
     background: #2E2E33 !important;
     border: none !important;
     color: #F2F2F4 !important;
-    font-size: 15px;
-    line-height: 1.45;
     padding: 11px 13px 8px 15px;
     border-radius: 18px 18px 5px 18px;
     max-width: 78%;
