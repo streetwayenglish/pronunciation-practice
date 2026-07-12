@@ -846,7 +846,12 @@ function _emmaFixChatInsets(){
   }
   if(foot){
     var fh=foot.getBoundingClientRect().height;
-    if(fh>0&&fh<wrapRect.height)wrap.style.paddingBottom=Math.round(fh+24)+'px';
+    // Bottom inset lives in a ::after spacer (see conversation.css) because iOS
+    // Safari ignores scroll-container bottom padding in overflow math.
+    if(fh>0&&fh<wrapRect.height){
+      wrap.style.setProperty('--emma-bottom-inset',Math.round(fh+24)+'px');
+      wrap.style.paddingBottom='0px';
+    }
   }
   // keep the newest bubble in view after the geometry change
   wrap.scrollTop=wrap.scrollHeight;
