@@ -71,6 +71,10 @@ function renderEmma(){
   window._vidSpeaking.src=R2+'/emma-speaking.mp4';
   window._vidIdle.load();window._vidTransition.load();window._vidSpeaking.load();
   window._emmaTransitioning=false;
+  // Calibrate bubble-area paddings from real rendered geometry (video bottom,
+  // footer height) — once after first paint, again after layout fully settles.
+  requestAnimationFrame(function(){_emmaFixChatInsets();});
+  setTimeout(_emmaFixChatInsets,400);
   // Cold-start prefetch: begin the Claude intro + TTS downloads NOW, during the
   // seconds before the user's first tap. Playback still waits for the tap.
   if(emmaHistory.length===0){try{emmaPrefetchIntro();}catch(e){}}
@@ -746,7 +750,7 @@ function emmaAddBubble(who,text){
     var infoBtn=document.createElement('button');
     infoBtn.className='stu-info';
     infoBtn.setAttribute('aria-label','Detalhes');
-    infoBtn.innerHTML='<svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5.35" fill="none" stroke="rgba(255,255,255,.38)" stroke-width="1.1"/><rect x="5.3" y="5.1" width="1.4" height="4" rx="0.7" fill="rgba(255,255,255,.38)"/><circle cx="6" cy="3.2" r="0.85" fill="rgba(255,255,255,.38)"/></svg>';
+    infoBtn.innerHTML='<svg width="13" height="13" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5.35" fill="none" stroke="rgba(255,255,255,.38)" stroke-width="1.1"/><rect x="5.3" y="5.1" width="1.4" height="4" rx="0.7" fill="rgba(255,255,255,.38)"/><circle cx="6" cy="3.2" r="0.85" fill="rgba(255,255,255,.38)"/></svg>';
     if(pid){(function(id){infoBtn.onclick=function(){showPronunciationPanel(id);};})(pid);}
     div.appendChild(infoBtn);
     wrap.appendChild(div);
@@ -819,6 +823,37 @@ function emmaAddBubble(who,text){
   div.appendChild(tBtn);
   wrap.appendChild(div);
   wrap.scrollTop=wrap.scrollHeight;
+}
+
+// ── Chat inset auto-calibration ──────────────────────────────────────────────
+// The bubble area scrolls behind the video (top) and the dock (bottom). Its
+// paddings were hand-tuned constants, but the video is scaled (1.18) and
+// offset by device safe-areas, so on some devices bubbles hid behind the
+// video/footer with no way to scroll them out. This measures the REAL rendered
+// geometry (getBoundingClientRect includes transforms) and sets the paddings
+// from it. Runs on chat open and on resize/rotation; only applies in the
+// overlay layout (wrap position:absolute), never on desktop's normal flow.
+function _emmaFixChatInsets(){
+  var wrap=document.querySelector('body.tab-conversation .emma-bubble-wrap');
+  if(!wrap)return;
+  if(getComputedStyle(wrap).position!=='absolute')return;
+  var vid=document.querySelector('body.tab-conversation .emma-video-wrap');
+  var foot=document.querySelector('body.tab-conversation .emma-footer');
+  var wrapRect=wrap.getBoundingClientRect();
+  if(vid){
+    var vb=vid.getBoundingClientRect().bottom-wrapRect.top;
+    if(vb>0&&vb<wrapRect.height)wrap.style.paddingTop=Math.round(vb+12)+'px';
+  }
+  if(foot){
+    var fh=foot.getBoundingClientRect().height;
+    if(fh>0&&fh<wrapRect.height)wrap.style.paddingBottom=Math.round(fh+24)+'px';
+  }
+  // keep the newest bubble in view after the geometry change
+  wrap.scrollTop=wrap.scrollHeight;
+}
+if(!window._emmaInsetListener){
+  window._emmaInsetListener=true;
+  window.addEventListener('resize',function(){setTimeout(_emmaFixChatInsets,60);});
 }
 
 function emmaToggleRec(){
