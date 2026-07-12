@@ -322,7 +322,10 @@
     left: 0;
     right: 0;
     bottom: 0;
-    padding: calc(56.25vw + 60px) 14px max(calc(env(safe-area-inset-bottom, 0px) + 160px), 200px);
+    /* Bottom inset is NOT padding: iOS Safari ignores a flex scroll container's
+       bottom padding when computing overflow, which disabled scrolling while a
+       bubble sat under the dock. A real ::after spacer (below) is always counted. */
+    padding: calc(56.25vw + 60px) 14px 0;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -334,6 +337,13 @@
     min-height: 0;
     transform: translate3d(0, 0, 0);
     will-change: scroll-position;
+  }
+  /* Real spacer standing in for bottom padding — sized by JS to the measured
+     footer height (+margin); 200px fallback matches the old constant. */
+  body.tab-conversation .emma-bubble-wrap::after {
+    content: '';
+    display: block;
+    flex: 0 0 var(--emma-bottom-inset, 200px);
   }
   body.tab-conversation .emma-bubble {
     font-size: 17px;
