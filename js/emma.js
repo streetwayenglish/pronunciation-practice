@@ -244,10 +244,11 @@ function _emmaBuildStartPrompt(){
   var unitScenario0 = unit0sc ? unit0sc.scenario : '';
 
   var sysPrompt='You are Emma, an English coach. This session has ONE topic and ONE scenario — listed below. You will not deviate from it under any circumstances. '+
+    'BREVITY — TOP PRIORITY, EQUAL TO PACING: you are a VOICE agent; the student LISTENS to every word. HARD LIMIT: 25 words per response. Ideal: 10-20 words. Short sentences — never chain clauses with dashes or commas to sneak past the sentence limit. One idea, one question. BAD (too long): "Right, it\'s your first day — I\'m Emma, your new colleague from the London office, and I\'ve just walked over to your desk. Hi there, nice to meet you! So, what\'s your name?" GOOD: "Hi, I\'m Emma from the London office — what\'s your name?" If a response exceeds 25 words, it is a failure. '+
     'Topic: '+emmaTopic+'. Unit: '+unitTitle0+'. '+
     curriculumContext+
     practicedContext+
-    'Your approach this session: '+unitScenario0+' '+
+    'Scenario (PRIVATE background for you — never narrate or explain it aloud; let it emerge through natural dialogue): '+unitScenario0+' '+
     'TEACHING APPROACH: Teach English through natural conversation about the unit topic. '+
     'FLEXIBLE: The student can ask questions, request explanations, change the teaching approach, say they do not want to role play, ask for more detail, or engage in any way they choose — as long as the SUBJECT stays on the current unit. All of these are valid and you should adapt immediately: "can you tell me more about Noah?", "what happened next?", "explain that to me", "I prefer you just tell me the story", "can we discuss this differently?". These are NOT topic switches — they are engagement choices. '+
     'FIXED: The only thing the student cannot do is switch to a completely different subject — a different Bible story, a different travel situation, a different business topic. If they explicitly name a different subject, redirect warmly: "That comes in a future session — right now we are on '+unitTitle0+'." '+
@@ -260,9 +261,9 @@ function _emmaBuildStartPrompt(){
     'Teaching rules: '+
     '1) Stay on the current unit topic — but be flexible on approach. If the student prefers to discuss the story rather than role play, or wants you to explain rather than act, adapt. Topic is fixed, teaching method is flexible. '+
     '2) Teach the target expressions one at a time, naturally woven into the conversation. Get the student to use each one before moving on. '+
-    '3) Keep every response to 1-2 sentences max. One question at a time. '+
+    '3) BREVITY (see top rule): max 25 words, ideal 10-20, one question at a time. Count your words before responding. '+
     '4) Speak naturally — warm, real. No bullet points. NEVER use asterisks or stage directions like *smiles*, *settles*, *leans*, *nods* or any physical description. Just speak. '+
-    '5) Opening: MAXIMUM 10 words. Then immediately ask the student a question. For Bible topics say something like: "The creation story — what do you already know about it?" Never describe your own posture or feelings. '+
+    '5) Opening: greeting + ONE simple question, 12 words MAXIMUM total. Do not introduce the scenario, your backstory, or the setting — just greet and ask. Example: "The creation story — what do you already know about it?" Never describe your own posture or feelings. '+
     '6) When the student uses a target expression correctly, affirm it briefly and introduce the next one. '+
     '7) PACING — this is the most important rule for session quality. The conversation must last AT LEAST 12 student turns. Do not wrap up before then under any circumstances. Track your turn count internally. '+
     'BEFORE turn 12: you are FORBIDDEN from ending or winding down. If the natural scenario resolves before turn 12 (e.g. the airport check-in is done, the coffee is ordered, the appointment is booked), you MUST immediately extend with one of: '+
@@ -292,7 +293,7 @@ function emmaPrefetchIntro(){
   var _t0=Date.now();
   window._introPrefetch=fetch(W+'/emma-chat',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({system:sysPrompt,messages:[{role:'user',content:'[Start the conversation - introduce yourself and begin the scenario]'}],topic:emmaTopic,max_tokens:300})
+    body:JSON.stringify({system:sysPrompt,messages:[{role:'user',content:'[Start: greet the student and ask one simple question. 12 words maximum. Do not describe the scenario or your backstory. Exception: if the scenario casts the STUDENT in a specific role they could not guess, name it in one short clause first, e.g. "You are the receptionist today — ready?"]'}],topic:emmaTopic,max_tokens:300})
   })
   .then(function(r){return r.json();})
   .then(function(d){
@@ -310,7 +311,7 @@ function emmaStartConvo(){
   var status=document.getElementById('emmaStatus');
   if(status)status.textContent='Emma is preparing...';
   emmaStateIdle();
-  emmaHistory=[{role:'user',content:'[Start the conversation - introduce yourself and begin the scenario]'}];
+  emmaHistory=[{role:'user',content:'[Start: greet the student and ask one simple question. 12 words maximum. Do not describe the scenario or your backstory. Exception: if the scenario casts the STUDENT in a specific role they could not guess, name it in one short clause first, e.g. "You are the receptionist today — ready?"]'}];
   function begin(text,blobPromises){
     emmaHistory.push({role:'assistant',content:text});
     emmaAddBubble('emma', renderHighlightedBubble(text));
@@ -858,7 +859,15 @@ function _emmaFixChatInsets(){
 }
 if(!window._emmaInsetListener){
   window._emmaInsetListener=true;
-  window.addEventListener('resize',function(){setTimeout(_emmaFixChatInsets,60);});
+  window._emmaInsetW=window.innerWidth;
+  window.addEventListener('resize',function(){
+    // Only recalibrate on WIDTH changes (rotation/split-view). iOS fires resize
+    // when Safari's URL bar collapses during scrolling — recalibrating then
+    // would force-scroll the user to the bottom mid-read.
+    if(window.innerWidth===window._emmaInsetW)return;
+    window._emmaInsetW=window.innerWidth;
+    setTimeout(_emmaFixChatInsets,60);
+  });
 }
 
 function emmaToggleRec(){
@@ -888,12 +897,15 @@ function emmaStopRec(){
   if(!emmaMr||!emmaRec)return;
   emmaRec=false;
   emmaMr.stop();
-  emmaMr.stream.getTracks().forEach(function(t){t.stop();});
+  // NOTE: tracks are stopped inside onstop, AFTER the recorder flushes its
+  // final chunk — stopping them here could clip the last ~250ms of speech
+  // (the student's final word) on iOS.
   var btn=document.getElementById('emmaMicBtn');
   var status=document.getElementById('emmaStatus');
   if(btn){btn.classList.remove('rec');btn.innerHTML='&#127908; Tap to speak';btn.disabled=true;btn.style.opacity='0.5';}
   if(status)status.textContent='Transcribing...';
   emmaMr.onstop=function(){
+    try{emmaMr.stream.getTracks().forEach(function(t){t.stop();});}catch(e){}
     var mt2=emmaMr.mimeType||'audio/webm';
     var blob=new Blob(emmaChunks,{type:mt2});
     if(blob.size<1000){
@@ -915,7 +927,7 @@ function emmaStopRec(){
         fetch(W+'/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:origB64,mimeType:origMime,skipPron:true,noEcho:true})})
         .then(function(r){return r.json();})
         .then(function(d){
-          console.log('[perf] transcribe fast lane: '+(Date.now()-_t0)+'ms (payload ~'+Math.round(origB64.length/1024)+'KB)');
+          console.log('[perf] transcribe fast lane: '+(Date.now()-_t0)+'ms (payload ~'+Math.round(origB64.length/1024)+'KB, stt: '+(d.sttProvider||'?')+')');
           var transcript=(d.text||'').trim();
           // ── Whisper hallucination filter ─────────────────────────────────
           // Whisper (trained on YouTube subs) hallucinates these phrases on silent/unclear audio.
@@ -987,8 +999,13 @@ function emmaStopRec(){
           })
           .catch(function(){});
         }
-        try{
-          var fr2=new FileReader();
+        // Deferred 1.5s so the WAV upload (the turn's biggest transfer) never
+        // competes with the fast lane, Claude, or TTS for mobile bandwidth —
+        // scores are background by definition, they can start late.
+        setTimeout(function(){
+          if(cancelled)return;
+          try{
+            var fr2=new FileReader();
           fr2.onloadend=function(){
             if(!fr2.result){return;}
             try{
@@ -1014,7 +1031,8 @@ function emmaStopRec(){
             }catch(e){}
           };
           fr2.readAsArrayBuffer(blob);
-        }catch(e){}
+          }catch(e){}
+        },1500);
       })(_recBlob,b64,mt2);
       return;
     };
@@ -1144,27 +1162,29 @@ function emmaSubmit(transcript){
       };
     }
     var reply=(parsed&&parsed.reply)||raw;
+    console.log('[len] reply: '+String(reply).trim().split(/\s+/).length+' words');
     var spoken='';
     if(parsed&&parsed.correction&&parsed.correction.original&&parsed.correction.fixed){
-      emmaAddCorrectionBubble(parsed.correction.original,parsed.correction.fixed);
       var corrExplanation='Oh, just a quick note — instead of “'+parsed.correction.original+'”, we say “'+parsed.correction.fixed+'”. Can you try that again?';
       spoken=corrExplanation;
+      // TTS request goes out FIRST — the network is the slow part; bubbles
+      // render while the request is already in flight.
+      emmaSpeak(corrExplanation);
+      emmaStateSpeaking();
+      emmaAddCorrectionBubble(parsed.correction.original,parsed.correction.fixed);
       emmaAddBubble('emma',corrExplanation.trim());
       window._emmaWaitingForRepeat=parsed.correction.fixed;
       window._emmaPendingReply=reply;
       emmaHistory.push({role:'assistant',content:corrExplanation});
-      emmaStateSpeaking();
-      emmaSpeak(corrExplanation);
       var btn2=document.getElementById('emmaMicBtn');
       if(btn2){btn2.disabled=false;btn2.style.opacity='1';}
       return;
     }
     spoken+=reply;
-    emmaHistory.push({role:'assistant',content:reply});
-    var highlightedReply=renderHighlightedBubble(parsed.reply);
-    emmaAddBubble('emma',highlightedReply);
-    emmaStateSpeaking();
     emmaSpeak(spoken.replace(/\*\*([^*]+)\*\*/g,'$1'));
+    emmaStateSpeaking();
+    emmaHistory.push({role:'assistant',content:reply});
+    emmaAddBubble('emma',renderHighlightedBubble(parsed.reply));
   });
 }
 
