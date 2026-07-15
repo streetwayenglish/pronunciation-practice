@@ -1014,8 +1014,11 @@
   });
 })();
 
-/* ═══════════ Bíblia em resumo — 66 book summaries (read + listen) ═══════════ */
-(function(){
+/* ═══════════ Summaries libraries — Bíblia em resumo + 50 Livros Essenciais ═══
+   ONE shared implementation (entry card, grouped list, reader, audio player,
+   tap-to-translate), driven by a config object and instantiated once per
+   module below. A fix here fixes every library. ═══════════════════════════ */
+function _summariesLibrary(cfg){
   var DATA=null, AUDIO=null, curBtn=null, raf=0;
 
   function el(tag, css, html){ var d=document.createElement(tag); if(css)d.style.cssText=css; if(html!=null)d.innerHTML=html; return d; }
@@ -1023,19 +1026,19 @@
 
   // ── Entry card on the Bible path detail (locked design from the Cowork chat) ──
   function injectCard(){
-    var ds=document.querySelector('#h2root .detail-screen[data-path="bible"]'); if(!ds) return;
-    if(ds.querySelector('.bible-sum-card')) return;
+    var ds=document.querySelector('#h2root .detail-screen[data-path="'+cfg.pathSlug+'"]'); if(!ds) return;
+    if(ds.querySelector('.'+cfg.cardClass)) return;
     var pc=ds.querySelector('.path-card'); if(!pc) return;
     var card=el('div','margin:14px 16px 2px;');
-    card.className='bible-sum-card';
+    card.className=cfg.cardClass;
     card.innerHTML=
       '<div style="background:#F7F3E8;border:2px solid #E8963C;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;">'+
         '<div style="width:40px;height:40px;border-radius:10px;background:#FAEEDA;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+
           '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#854F0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>'+
         '</div>'+
         '<div style="flex:1;min-width:0;">'+
-          '<p style="margin:0;font-size:14px;font-weight:600;color:#2C2C2A;">B\u00edblia em resumo</p>'+
-          '<p style="margin:2px 0 0;font-size:12px;color:#5F5E5A;line-height:1.4;">Pratique ingl\u00eas lendo e ouvindo os 66 livros da B\u00edblia</p>'+
+          '<p style="margin:0;font-size:14px;font-weight:600;color:#2C2C2A;">'+cfg.cardTitle+'</p>'+
+          '<p style="margin:2px 0 0;font-size:12px;color:#5F5E5A;line-height:1.4;">'+cfg.cardSub+'</p>'+
         '</div>'+
         '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888780" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>'+
       '</div>';
@@ -1045,7 +1048,7 @@
 
   function load(cb){
     if(DATA){ cb(); return; }
-    fetch('bible-summaries.json').then(function(r){return r.json();}).then(function(j){ DATA=j; cb(); })
+    fetch(cfg.dataUrl).then(function(r){return r.json();}).then(function(j){ DATA=j; cb(); })
       .catch(function(){ alert('N\u00e3o foi poss\u00edvel carregar os resumos. Verifique sua conex\u00e3o.'); });
   }
 
@@ -1070,13 +1073,13 @@
   // ── Book list ──
   function openList(){
     load(function(){
-      var sc=screen('bibleListScreen');
-      sc.appendChild(header('B\u00edblia em resumo', function(){ sc.remove(); }));
+      var sc=screen(cfg.idPrefix+'ListScreen');
+      sc.appendChild(header(cfg.listTitle, function(){ sc.remove(); }));
       var body=el('div','flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 16px calc(env(safe-area-inset-bottom,0px) + 28px);');
-      function section(label, from, to){
+      function section(label, list){
         body.appendChild(el('div','font-size:11px;font-weight:700;letter-spacing:.16em;color:#8a8073;margin:20px 2px 8px;', label));
         var wrap=el('div','background:#fff;border:1px solid #ece8e0;border-radius:16px;overflow:hidden;');
-        DATA.books.filter(function(b){return b.n>=from&&b.n<=to;}).forEach(function(b,i,arr){
+        list.forEach(function(b,i,arr){
           var row=el('div','display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;'+(i<arr.length-1?'border-bottom:1px solid #f2efe9;':''));
           row.innerHTML=
             '<div style="width:26px;font-size:12px;font-weight:700;color:#c2b49a;font-variant-numeric:tabular-nums;flex-shrink:0;">'+b.n+'</div>'+
@@ -1090,8 +1093,7 @@
         });
         body.appendChild(wrap);
       }
-      section('ANTIGO TESTAMENTO', 1, 39);
-      section('NOVO TESTAMENTO', 40, 66);
+      cfg.groups(DATA.books).forEach(function(g){ section(g.label, g.books); });
       sc.appendChild(body);
     });
   }
@@ -1118,11 +1120,11 @@
   function fmt(t){ t=Math.max(0,Math.floor(t||0)); return Math.floor(t/60)+':'+('0'+t%60).slice(-2); }
 
   function openBook(b){
-    var sc=screen('bibleBookScreen');
+    var sc=screen(cfg.idPrefix+'BookScreen');
     sc.appendChild(header(b.en, function(){ stopAudio(); sc.remove(); }));
     var body=el('div','flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 20px calc(env(safe-area-inset-bottom,0px) + 40px);');
 
-    body.appendChild(el('div','font-size:13px;color:#8a8073;margin:14px 2px 0;', esc(b.pt)+' \u00b7 '+(b.t==='AT'?'Antigo':'Novo')+' Testamento'));
+    body.appendChild(el('div','font-size:13px;color:#8a8073;margin:14px 2px 0;', cfg.meta(b, esc)));
 
     // player card
     var stick=el('div','position:sticky;top:0;z-index:4;background:#faf9f7;padding:12px 0 10px;margin:2px 0 0;');
@@ -1130,8 +1132,8 @@
     // progress bar — thin, boxless, with scrubber dot
     var barWrap=el('div','padding:12px 0 4px;margin:-6px 0 0;cursor:pointer;touch-action:none;');
     var bar=el('div','height:4px;border-radius:2px;background:#e4ded1;position:relative;');
-    var fill=el('div','position:absolute;left:0;top:0;bottom:0;width:0;border-radius:2px;background:#81953C;');
-    var dot=el('div','position:absolute;top:50%;left:0;width:13px;height:13px;border-radius:50%;background:#81953C;transform:translate(-50%,-50%);');
+    var fill=el('div','position:absolute;left:0;top:0;bottom:0;width:0;border-radius:2px;background:'+cfg.accent+';');
+    var dot=el('div','position:absolute;top:50%;left:0;width:13px;height:13px;border-radius:50%;background:'+cfg.accent+';transform:translate(-50%,-50%);');
     fill.appendChild(dot); dot.style.left='100%';
     bar.appendChild(fill);
     barWrap.appendChild(bar);
@@ -1141,25 +1143,25 @@
     function iconBtn(pathD){ var b=el('button','width:52px;height:52px;border:none;background:transparent;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;'); b.innerHTML='<svg width="38.5" height="38.5" viewBox="0 -960 960 960" fill="#6b6455"><path d="'+pathD+'"/></svg>'; return b; }
     var back10=iconBtn('M480-100q-70.77 0-132.61-26.77-61.85-26.77-107.85-72.77-46-46-72.77-107.85Q140-369.23 140-440h60q0 117 81.5 198.5T480-160q117 0 198.5-81.5T760-440q0-117-81.5-198.5T480-720h-10.62l63.54 63.54-42.15 43.38-136.92-137.3 137.69-137.31 42.15 43.38L469.38-780H480q70.77 0 132.61 26.77 61.85 26.77 107.85 72.77 46 46 72.77 107.85Q820-510.77 820-440q0 70.77-26.77 132.61-26.77 61.85-72.77 107.85-46 46-107.85 72.77Q550.77-100 480-100ZM368.46-326.15v-180h-57.69v-47.7h105.38v227.7h-47.69Zm135.39 0q-17 0-28.5-11.5t-11.5-28.5v-147.7q0-17 11.5-28.5t28.5-11.5h75.38q17 0 28.5 11.5t11.5 28.5v147.7q0 17-11.5 28.5t-28.5 11.5h-75.38Zm12.3-47.7h50.77q2.31 0 3.47-1.15 1.15-1.15 1.15-3.46v-123.08q0-2.31-1.15-3.46-1.16-1.15-3.47-1.15h-50.77q-2.3 0-3.46 1.15-1.15 1.15-1.15 3.46v123.08q0 2.31 1.15 3.46 1.16 1.15 3.46 1.15Z');
     var fwd30=iconBtn('M300.77-326.15v-47.7h107.69v-48.46h-71.54v-35.38h71.54v-48.46H300.77v-47.7h121.54q14.69 0 24.27 9.58 9.57 9.58 9.57 24.27v160q0 14.69-9.57 24.27-9.58 9.58-24.27 9.58H300.77Zm243.08 0q-17 0-28.5-11.5t-11.5-28.5v-147.7q0-17 11.5-28.5t28.5-11.5h75.38q17 0 28.5 11.5t11.5 28.5v147.7q0 17-11.5 28.5t-28.5 11.5h-75.38Zm12.3-47.7h50.77q2.31 0 3.47-1.15 1.15-1.15 1.15-3.46v-123.08q0-2.31-1.15-3.46-1.16-1.15-3.47-1.15h-50.77q-2.3 0-3.46 1.15-1.15 1.15-1.15 3.46v123.08q0 2.31 1.15 3.46 1.16 1.15 3.46 1.15ZM480-100q-70.77 0-132.61-26.77-61.85-26.77-107.85-72.77-46-46-72.77-107.85Q140-369.23 140-440q0-70.77 26.77-132.61 26.77-61.85 72.77-107.85 46-46 107.85-72.77Q409.23-780 480-780h10.62l-64.31-64.31 42.15-43.38 137.69 137.31-136.92 137.3-42.15-43.38L490.62-720H480q-117 0-198.5 81.5T200-440q0 117 81.5 198.5T480-160q117 0 198.5-81.5T760-440h60q0 70.77-26.77 132.61-26.77 61.85-72.77 107.85-46 46-107.85 72.77Q550.77-100 480-100Z');
-    var play=el('button','width:64px;height:64px;border-radius:50%;background:#81953C;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:none;-webkit-tap-highlight-color:transparent;',
+    var play=el('button','width:64px;height:64px;border-radius:50%;background:'+cfg.accent+';border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:none;-webkit-tap-highlight-color:transparent;',
       '<svg id="bPlayIco" width="24" height="24" viewBox="0 0 24 24" fill="#fff"><path d="M8 5.5 L19 12 L8 18.5 Z"/></svg>');
     transport.appendChild(back10); transport.appendChild(play); transport.appendChild(fwd30);
     // speed pill — bottom center
     var spRow=el('div','display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;');
-    var spd=1; try{ spd=parseFloat(localStorage.getItem('bible_speed'))||1; }catch(e){}
+    var spd=1; try{ spd=parseFloat(localStorage.getItem(cfg.store+'_speed'))||1; }catch(e){}
     spd=Math.min(2,Math.max(0.5,spd));
     var spLbl=el('div','font-size:12.5px;font-weight:700;color:#5a5346;width:44px;text-align:left;font-variant-numeric:tabular-nums;','');
     var spWrap=el('div','width:150px;padding:12px 0;margin:-12px 0;cursor:pointer;touch-action:none;');
     var spBar=el('div','height:4px;border-radius:2px;background:#e4ded1;position:relative;');
-    var spFill=el('div','position:absolute;left:0;top:0;bottom:0;width:0;border-radius:2px;background:#81953C;');
-    var spDot=el('div','position:absolute;top:50%;left:100%;width:12px;height:12px;border-radius:50%;background:#81953C;transform:translate(-50%,-50%);');
+    var spFill=el('div','position:absolute;left:0;top:0;bottom:0;width:0;border-radius:2px;background:'+cfg.accent+';');
+    var spDot=el('div','position:absolute;top:50%;left:100%;width:12px;height:12px;border-radius:50%;background:'+cfg.accent+';transform:translate(-50%,-50%);');
     spFill.appendChild(spDot); spBar.appendChild(spFill); spWrap.appendChild(spBar);
     function spFmt(v){ return (Math.round(v*20)/20+'').replace('.',',')+'\u00d7'; }
     function spApply(v,save){ spd=Math.min(2,Math.max(0.5,v));
       spFill.style.width=((spd-0.5)/1.5*100)+'%'; spLbl.textContent=spFmt(spd);
       if(typeof spBtn!=='undefined'&&spBtn){ spBtn.textContent=spFmt(spd); }
       try{ AUDIO.playbackRate=spd; }catch(e){}
-      if(save){ try{ localStorage.setItem('bible_speed', String(spd)); }catch(e){} } }
+      if(save){ try{ localStorage.setItem(cfg.store+'_speed', String(spd)); }catch(e){} } }
     var spDrag=false;
     function spMove(ev){ if(!spDrag) return;
       var r=spBar.getBoundingClientRect();
@@ -1214,7 +1216,7 @@
       }
       if(a===_hl) return;
       if(_hl>=0&&paraEls[_hl]) paraEls[_hl].style.background='transparent';
-      if(paraEls[a]) paraEls[a].style.background='rgba(129,149,60,.09)';
+      if(paraEls[a]) paraEls[a].style.background=''+cfg.hl+'';
       _hl=a;
     }
     var _hlT=0;
@@ -1226,14 +1228,14 @@
     wireTranslate(sc, body);
     // restore reading position
     try{
-      var sp=parseInt(localStorage.getItem('bible_scroll_'+b.file)||'0',10);
+      var sp=parseInt(localStorage.getItem(cfg.store+'_scroll_'+b.file)||'0',10);
       if(sp>100) requestAnimationFrame(function(){ body.scrollTop=sp; });
     }catch(e){}
     var _st=0, _hlPend=false;
     body.addEventListener('scroll', function(){
       if(!_hlPend){ _hlPend=true; requestAnimationFrame(function(){ _hlPend=false; try{ scrollHL(); }catch(e){} }); }
       var now=Date.now(); if(now-_st<1500) return; _st=now;
-      try{ localStorage.setItem('bible_scroll_'+b.file, String(Math.floor(body.scrollTop))); }catch(e){}
+      try{ localStorage.setItem(cfg.store+'_scroll_'+b.file, String(Math.floor(body.scrollTop))); }catch(e){}
     });
     requestAnimationFrame(function(){ try{ scrollHL(); }catch(e){} });
 
@@ -1241,7 +1243,7 @@
     stopAudio();
     if(!AUDIO){ AUDIO=new Audio(); AUDIO.preload='metadata'; }
     AUDIO.src=DATA.audio_base + b.file + '.mp3';
-    _posKey='bible_pos_'+b.file;
+    _posKey=cfg.store+'_pos_'+b.file;
     var resume=0; try{ resume=parseInt(localStorage.getItem(_posKey)||'0',10)||0; }catch(e){}
     var ico=play.querySelector('#bPlayIco');
     var t0=times.querySelector('#bT0'), t1=times.querySelector('#bT1');
@@ -1276,7 +1278,7 @@
         try{ AUDIO.load(); }catch(e){}
       }
     }
-    window._bibleSeekPara=seekPara; // referenced by paragraph buttons defined above
+    window['_'+cfg.idPrefix+'SeekPara']=seekPara; // referenced by paragraph buttons defined above
     
     play.onclick=function(){
       if(AUDIO.paused){
@@ -1347,7 +1349,7 @@
     chip.addEventListener('click',function(){ chip.style.display='none'; });
     sc.appendChild(chip);
     function show(q, t){
-      chip.innerHTML='<span style="color:#a7c257;font-weight:700;">'+esc(q)+'</span>'+
+      chip.innerHTML='<span style="color:'+cfg.chipWord+';font-weight:700;">'+esc(q)+'</span>'+
         '<span style="opacity:.55;margin:0 8px;">\u2192</span>'+esc(t)+
         '<span style="display:block;font-size:11px;opacity:.45;margin-top:4px;">toque para fechar</span>';
       chip.style.display='block';
@@ -1370,7 +1372,7 @@
         // sentence context only on demand (saves ~30x translation quota)
         if(sent && sent.split(/\s+/).length>2 && sent.length<420){
           var ctxEl=el('div','margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.14);font-size:12.5px;line-height:1.5;',
-            '<span style="color:#a7c257;font-weight:700;cursor:pointer;">Ver no contexto \u2192</span>');
+            '<span style="color:'+cfg.chipWord+';font-weight:700;cursor:pointer;">Ver no contexto \u2192</span>');
           ctxEl.addEventListener('click', function(ev){
             ev.stopPropagation();
             ctxEl.innerHTML='<span style="opacity:.55;">Traduzindo a frase\u2026</span>';
@@ -1411,7 +1413,7 @@
       lookupCtx(w.textContent, sent);
     });
     // phrase selection -> floating button
-    var selBtn=el('button','position:absolute;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);background:#81953C;color:#fff;border:none;border-radius:22px;padding:11px 18px;font-size:13.5px;font-weight:700;font-family:inherit;display:none;z-index:5;box-shadow:0 6px 20px rgba(0,0,0,.2);cursor:pointer;','Traduzir sele\u00e7\u00e3o');
+    var selBtn=el('button','position:absolute;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);background:'+cfg.accent+';color:#fff;border:none;border-radius:22px;padding:11px 18px;font-size:13.5px;font-weight:700;font-family:inherit;display:none;z-index:5;box-shadow:0 6px 20px rgba(0,0,0,.2);cursor:pointer;','Traduzir sele\u00e7\u00e3o');
     sc.appendChild(selBtn);
     document.addEventListener('selectionchange', function(){
       if(!document.body.contains(sc)) return;
@@ -1429,6 +1431,52 @@
   var iv=setInterval(function(){
     tries++;
     injectCard();
-    if(document.querySelector('#h2root .bible-sum-card') || tries>120){ clearInterval(iv); }
+    if(document.querySelector('#h2root .'+cfg.cardClass) || tries>120){ clearInterval(iv); }
   }, 500);
-})();
+}
+
+/* ── Bíblia em resumo ─────────────────────────────────────────────────────── */
+_summariesLibrary({
+  pathSlug:'bible',
+  cardClass:'bible-sum-card',
+  cardTitle:'B\u00edblia em resumo',
+  cardSub:'Pratique ingl\u00eas lendo e ouvindo os 66 livros da B\u00edblia',
+  dataUrl:'bible-summaries.json',
+  idPrefix:'bible',
+  listTitle:'B\u00edblia em resumo',
+  store:'bible',
+  accent:'#81953C',
+  hl:'rgba(129,149,60,.09)',
+  chipWord:'#a7c257',
+  groups:function(books){
+    return [
+      {label:'ANTIGO TESTAMENTO', books:books.filter(function(b){return b.n>=1&&b.n<=39;})},
+      {label:'NOVO TESTAMENTO',   books:books.filter(function(b){return b.n>=40&&b.n<=66;})}
+    ];
+  },
+  meta:function(b, esc){ return esc(b.pt)+' \u00b7 '+(b.t==='AT'?'Antigo':'Novo')+' Testamento'; }
+});
+
+/* ── 50 Livros Essenciais (Business English) ─────────────────────────────── */
+_summariesLibrary({
+  pathSlug:'business-english',
+  cardClass:'biz-sum-card',
+  cardTitle:'50 Livros Essenciais',
+  cardSub:'Os maiores cl\u00e1ssicos de neg\u00f3cios e desenvolvimento pessoal, resumidos em ingl\u00eas.',
+  dataUrl:'business-summaries.json',
+  idPrefix:'bizbooks',
+  listTitle:'50 Livros Essenciais',
+  store:'bizbooks',
+  accent:'#E8963C',
+  hl:'rgba(232,150,60,.10)',
+  chipWord:'#f0b269',
+  groups:function(books){
+    var order=[], map={};
+    books.forEach(function(b){
+      if(!map[b.t]){ map[b.t]={label:String(b.t).toUpperCase(), books:[]}; order.push(b.t); }
+      map[b.t].books.push(b);
+    });
+    return order.map(function(t){ return map[t]; });
+  },
+  meta:function(b, esc){ return esc(b.pt)+' \u00b7 '+esc(b.t); }
+});
