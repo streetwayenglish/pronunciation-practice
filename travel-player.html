@@ -395,8 +395,10 @@ if(REV){showCover(false);showSheet(false);runReview();}
 else{buildSteps();si=0;
  vid.pause();showSheet(false);showCover(false);tag('');
  hero.className='hero-ov show atbottom';
- hero.innerHTML='<div class="hscrim"></div><div class="hbody" style="padding-bottom:10vh"><div><div class="hero-eye">Situações de Viagem · '+String(SCN.n).padStart(2,'0')+'</div><div class="hero-title" style="margin-top:6px">'+SCN.title+'</div></div><button class="hero-btn" id="hgo">Começar →</button></div>';
+ hero.innerHTML='<div class="hscrim"></div><div class="hbody" style="padding-bottom:11vh"><div><div class="hero-eye">Situações de Viagem · '+String(SCN.n).padStart(2,'0')+'</div><div class="hero-title" style="margin-top:6px;font-size:24px">'+SCN.title+'</div></div><button class="hero-btn" id="hgo" style="margin-top:4px">Começar →</button></div>';
  $('hgo').onclick=()=>{hero.className='hero-ov';render();};
- showThumbT();}
+ showThumbT();
+ (SCN.vocab||[]).forEach(function(w){var im=new Image();im.src=TRAVEL.vocab_base+w.img;
+  var au=new Audio();au.preload='auto';au.src=TRAVEL.vocab_base+w.img.replace('.jpg','.mp3');});}
 
 </script></body></html>
