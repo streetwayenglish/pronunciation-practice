@@ -1071,7 +1071,8 @@ function _summariesLibrary(cfg){
   }
 
   // ── Book list ──
-  function openList(){
+  function prefetchPosters(){try{(D.scenes||[]).forEach(function(s){var im=new Image();im.src=D.video_base+s.file.replace('.mp4','.jpg');});}catch(e){}}
+  function openList(){prefetchPosters();
     load(function(){
       var sc=screen(cfg.idPrefix+'ListScreen');
       sc.appendChild(header(cfg.listTitle, function(){ sc.remove(); }));
@@ -1561,7 +1562,7 @@ _summariesLibrary({
     if(prat>0){
       var due=dueCount(), doneToday=(srs().lastSession===today());
       body+='<div id="tvRev" style="background:'+(doneToday?'#f0ede4':'#fff')+';border:1.5px solid '+((due&&!doneToday)?GOLD:'#ece8e0')+';border-radius:16px;padding:14px;margin:12px 0;display:flex;gap:12px;align-items:center;'+((due&&!doneToday)?'cursor:pointer;':'')+'">'+
-        '<div style="font-size:24px;">\ud83d\udd01</div><div style="flex:1;">'+
+        '<div style="width:40px;height:40px;border-radius:10px;background:#E8F5E4;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5BA84D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m9 16 2 2 4-4"/></svg></div><div style="flex:1;">'+
         '<p style="margin:0;font-size:14px;font-weight:700;color:#2C2C2A;">Revis\u00e3o do dia</p>'+
         '<p style="margin:2px 0 0;font-size:12px;color:#5F5E5A;">'+(doneToday?'Revis\u00e3o feita \u2713 \u2014 volte amanh\u00e3':(due?Math.min(due,8)+' itens \u00b7 ~2 min':'Nada vencido hoje \u2014 volte amanh\u00e3'))+'</p></div>'+
         ((due&&!doneToday)?'<div style="color:'+GOLD+';font-weight:700;font-size:13px;">come\u00e7ar \u203a</div>':'')+'</div>';
@@ -1573,7 +1574,7 @@ _summariesLibrary({
         var s=DATA.scenes.filter(function(x){return x.n===n;})[0]; if(!s)return;
         var st=state(s.file);
         body+='<div class="tvRow" data-n="'+s.n+'" style="display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;'+(i<g[1].length-1?'border-bottom:1px solid #f2eee6;':'')+'">'+
-          '<div style="width:26px;height:26px;border-radius:8px;background:'+(st==='dom'?'rgba(230,179,30,.15)':st==='prat'?'#eef3fa':'#f4f1ea')+';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:'+(st==='dom'?GOLD:st==='prat'?ACC:'#8a8073')+';flex-shrink:0;">'+(st==='dom'?'\ud83c\udfc5':st==='prat'?'\u2713':s.n)+'</div>'+
+          '<div style="width:26px;height:26px;border-radius:8px;background:'+(st==='dom'?'rgba(230,179,30,.15)':st==='prat'?'#E8F5E4':'#f4f1ea')+';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:'+(st==='dom'?GOLD:st==='prat'?'#5BA84D':'#8a8073')+';flex-shrink:0;">'+(st==='dom'?'\ud83c\udfc5':st==='prat'?'\u2713':s.n)+'</div>'+
           '<div style="flex:1;min-width:0;"><p style="margin:0;font-size:14px;font-weight:600;color:#2C2C2A;">'+esc(s.title)+'</p>'+
           (st?'<p style="margin:1px 0 0;font-size:11px;color:#8a8073;">'+(st==='dom'?'dominada':'praticada')+'</p>':'')+'</div>'+
           '<div style="color:#c9c2b4;">\u203a</div></div>';
