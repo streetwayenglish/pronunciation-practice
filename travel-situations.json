@@ -158,6 +158,28 @@
      ],
      "hl": "to check"
     }
+   ],
+   "vocab": [
+    {
+     "en": "passport",
+     "pt": "passaporte",
+     "img": "travel-vocab-passport.jpg"
+    },
+    {
+     "en": "boarding pass",
+     "pt": "cartão de embarque",
+     "img": "travel-vocab-boarding-pass.jpg"
+    },
+    {
+     "en": "bags",
+     "pt": "malas",
+     "img": "travel-vocab-bags.jpg"
+    },
+    {
+     "en": "gate",
+     "pt": "portão",
+     "img": "travel-vocab-gate.jpg"
+    }
    ]
   },
   {
@@ -292,6 +314,28 @@
      ],
      "revPt": "Pergunte se tira os sapatos também.",
      "hl": "off"
+    }
+   ],
+   "vocab": [
+    {
+     "en": "laptop",
+     "pt": "laptop",
+     "img": "travel-vocab-laptop.jpg"
+    },
+    {
+     "en": "tray",
+     "pt": "bandeja",
+     "img": "travel-vocab-tray.jpg"
+    },
+    {
+     "en": "shoes",
+     "pt": "sapatos",
+     "img": "travel-vocab-shoes.jpg"
+    },
+    {
+     "en": "belt",
+     "pt": "cinto",
+     "img": "travel-vocab-belt.jpg"
     }
    ]
   },
@@ -448,6 +492,23 @@
      ],
      "hl": "purpose"
     }
+   ],
+   "vocab": [
+    {
+     "en": "tourism",
+     "pt": "turismo",
+     "img": "travel-vocab-tourism.jpg"
+    },
+    {
+     "en": "hotel",
+     "pt": "hotel",
+     "img": "travel-vocab-hotel.jpg"
+    },
+    {
+     "en": "downtown",
+     "pt": "centro",
+     "img": "travel-vocab-downtown.jpg"
+    }
    ]
   },
   {
@@ -603,6 +664,18 @@
      ],
      "hl": "headed"
     }
+   ],
+   "vocab": [
+    {
+     "en": "traffic",
+     "pt": "trânsito",
+     "img": "travel-vocab-traffic.jpg"
+    },
+    {
+     "en": "downtown",
+     "pt": "centro",
+     "img": "travel-vocab-downtown.jpg"
+    }
    ]
   },
   {
@@ -753,6 +826,28 @@
      "revPt": "Diga que a reserva está no nome de Silva.",
      "hl": "under"
     }
+   ],
+   "vocab": [
+    {
+     "en": "reservation",
+     "pt": "reserva",
+     "img": "travel-vocab-reservation.jpg"
+    },
+    {
+     "en": "key",
+     "pt": "chave",
+     "img": "travel-vocab-key.jpg"
+    },
+    {
+     "en": "queen room",
+     "pt": "quarto queen",
+     "img": "travel-vocab-queen-room.jpg"
+    },
+    {
+     "en": "breakfast",
+     "pt": "café da manhã",
+     "img": "travel-vocab-breakfast.jpg"
+    }
    ]
   },
   {
@@ -881,6 +976,23 @@
      ],
      "revPt": "Peça o frango grelhado.",
      "hl": "I'll have"
+    }
+   ],
+   "vocab": [
+    {
+     "en": "grilled chicken",
+     "pt": "frango grelhado",
+     "img": "travel-vocab-grilled-chicken.jpg"
+    },
+    {
+     "en": "salmon",
+     "pt": "salmão",
+     "img": "travel-vocab-salmon.jpg"
+    },
+    {
+     "en": "water",
+     "pt": "água",
+     "img": "travel-vocab-water.jpg"
     }
    ]
   },
@@ -1013,6 +1125,28 @@
      ],
      "revPt": "Pergunte como chega ao metrô.",
      "hl": "How can I get to"
+    }
+   ],
+   "vocab": [
+    {
+     "en": "subway",
+     "pt": "metrô",
+     "img": "travel-vocab-subway.jpg"
+    },
+    {
+     "en": "corner",
+     "pt": "esquina",
+     "img": "travel-vocab-corner.jpg"
+    },
+    {
+     "en": "turn left",
+     "pt": "virar à esquerda",
+     "img": "travel-vocab-turn-left.jpg"
+    },
+    {
+     "en": "on foot",
+     "pt": "a pé",
+     "img": "travel-vocab-on-foot.jpg"
     }
    ]
   },
@@ -1168,6 +1302,28 @@
      ],
      "hl": "Cash or card"
     }
+   ],
+   "vocab": [
+    {
+     "en": "cash",
+     "pt": "dinheiro",
+     "img": "travel-vocab-cash.jpg"
+    },
+    {
+     "en": "card",
+     "pt": "cartão",
+     "img": "travel-vocab-card.jpg"
+    },
+    {
+     "en": "bag",
+     "pt": "sacola",
+     "img": "travel-vocab-bag.jpg"
+    },
+    {
+     "en": "receipt",
+     "pt": "recibo",
+     "img": "travel-vocab-receipt.jpg"
+    }
    ]
   },
   {
@@ -1305,6 +1461,18 @@
      ],
      "revPt": "Pergunte se têm algo para dor de garganta.",
      "hl": "something for"
+    }
+   ],
+   "vocab": [
+    {
+     "en": "sore throat",
+     "pt": "dor de garganta",
+     "img": "travel-vocab-sore-throat.jpg"
+    },
+    {
+     "en": "lozenges",
+     "pt": "pastilhas",
+     "img": "travel-vocab-lozenges.jpg"
     }
    ]
   },
@@ -1463,6 +1631,23 @@
      ],
      "hl": "on"
     }
+   ],
+   "vocab": [
+    {
+     "en": "suitcase",
+     "pt": "mala",
+     "img": "travel-vocab-suitcase.jpg"
+    },
+    {
+     "en": "flight",
+     "pt": "voo",
+     "img": "travel-vocab-flight.jpg"
+    },
+    {
+     "en": "report",
+     "pt": "relatório",
+     "img": "travel-vocab-report.jpg"
+    }
    ]
   },
   {
@@ -1612,6 +1797,23 @@
      ],
      "hl": "Would you like"
     }
+   ],
+   "vocab": [
+    {
+     "en": "orange juice",
+     "pt": "suco de laranja",
+     "img": "travel-vocab-orange-juice.jpg"
+    },
+    {
+     "en": "ice",
+     "pt": "gelo",
+     "img": "travel-vocab-ice.jpg"
+    },
+    {
+     "en": "blanket",
+     "pt": "manta",
+     "img": "travel-vocab-blanket.jpg"
+    }
    ]
   },
   {
@@ -1754,6 +1956,18 @@
       "a": 0
      },
      "hl": "group three"
+    }
+   ],
+   "vocab": [
+    {
+     "en": "boarding pass",
+     "pt": "cartão de embarque",
+     "img": "travel-vocab-boarding-pass.jpg"
+    },
+    {
+     "en": "passport",
+     "pt": "passaporte",
+     "img": "travel-vocab-passport.jpg"
     }
    ]
   },
@@ -1913,6 +2127,23 @@
      ],
      "hl": "For here or to go"
     }
+   ],
+   "vocab": [
+    {
+     "en": "latte",
+     "pt": "latte",
+     "img": "travel-vocab-latte.jpg"
+    },
+    {
+     "en": "medium",
+     "pt": "médio",
+     "img": "travel-vocab-medium.jpg"
+    },
+    {
+     "en": "to go",
+     "pt": "para levar",
+     "img": "travel-vocab-to-go.jpg"
+    }
    ]
   },
   {
@@ -2051,6 +2282,18 @@
      ],
      "revPt": "Diga que o ar-condicionado não está funcionando.",
      "hl": "isn't working"
+    }
+   ],
+   "vocab": [
+    {
+     "en": "wifi",
+     "pt": "wifi",
+     "img": "travel-vocab-wifi.jpg"
+    },
+    {
+     "en": "air conditioning",
+     "pt": "ar-condicionado",
+     "img": "travel-vocab-air-conditioning.jpg"
     }
    ]
   },
@@ -2196,6 +2439,13 @@
       "Separate, please."
      ],
      "hl": "Together or separate"
+    }
+   ],
+   "vocab": [
+    {
+     "en": "check",
+     "pt": "conta",
+     "img": "travel-vocab-check.jpg"
     }
    ]
   },
@@ -2351,6 +2601,28 @@
      ],
      "revPt": "Pergunte que horas fecham.",
      "hl": "What time"
+    }
+   ],
+   "vocab": [
+    {
+     "en": "tickets",
+     "pt": "ingressos",
+     "img": "travel-vocab-tickets.jpg"
+    },
+    {
+     "en": "adults",
+     "pt": "adultos",
+     "img": "travel-vocab-adults.jpg"
+    },
+    {
+     "en": "student card",
+     "pt": "carteirinha de estudante",
+     "img": "travel-vocab-student-card.jpg"
+    },
+    {
+     "en": "discount",
+     "pt": "desconto",
+     "img": "travel-vocab-discount.jpg"
     }
    ]
   },
@@ -2509,7 +2781,25 @@
      ],
      "hl": "What can I get you"
     }
+   ],
+   "vocab": [
+    {
+     "en": "combo",
+     "pt": "combo",
+     "img": "travel-vocab-combo.jpg"
+    },
+    {
+     "en": "coke",
+     "pt": "coca",
+     "img": "travel-vocab-coke.jpg"
+    },
+    {
+     "en": "first window",
+     "pt": "primeira janela",
+     "img": "travel-vocab-first-window.jpg"
+    }
    ]
   }
- ]
+ ],
+ "vocab_base": "https://pub-6854c22656e84873836dc1d4ca2ff6ae.r2.dev/Travel%20vocabulary/"
 }
