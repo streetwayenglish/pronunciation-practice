@@ -67,15 +67,18 @@
    "adapt": [
     {
      "base": "May I see your passport, please?",
-     "blank": "May I see your ____, please?",
      "word": "ticket",
      "full": "May I see your ticket, please?"
     },
     {
      "base": "May I see your passport, please?",
-     "blank": "May I see your ____, please?",
      "word": "boarding pass",
      "full": "May I see your boarding pass, please?"
+    },
+    {
+     "base": "May I see your passport, please?",
+     "word": "ID",
+     "full": "May I see your ID, please?"
     }
    ],
    "check": [
@@ -197,15 +200,18 @@
    "adapt": [
     {
      "base": "Do I take my shoes off too?",
-     "blank": "Do I take my ____ off too?",
      "word": "belt",
      "full": "Do I take my belt off too?"
     },
     {
      "base": "Can I keep my jacket on?",
-     "blank": "Can I keep my ____ on?",
      "word": "cap",
      "full": "Can I keep my cap on?"
+    },
+    {
+     "base": "Do I take my shoes off too?",
+     "word": "watch",
+     "full": "Do I take my watch off too?"
     }
    ],
    "check": [
@@ -317,15 +323,18 @@
    "adapt": [
     {
      "base": "I'm staying for two weeks.",
-     "blank": "I'm staying for ____.",
      "word": "one week",
      "full": "I'm staying for one week."
     },
     {
      "base": "I'm staying for two weeks.",
-     "blank": "I'm staying for ____.",
      "word": "ten days",
      "full": "I'm staying for ten days."
+    },
+    {
+     "base": "I'm staying for two weeks.",
+     "word": "three days",
+     "full": "I'm staying for three days."
     }
    ],
    "check": [
@@ -443,15 +452,18 @@
    "adapt": [
     {
      "base": "The Grand Hotel downtown, please.",
-     "blank": "The ____, please.",
      "word": "airport",
      "full": "The airport, please."
     },
     {
      "base": "The Grand Hotel downtown, please.",
-     "blank": "The ____, please.",
      "word": "train station",
      "full": "The train station, please."
+    },
+    {
+     "base": "The Grand Hotel downtown, please.",
+     "word": "museum",
+     "full": "The museum, please."
     }
    ],
    "check": [
@@ -569,13 +581,16 @@
    "adapt": [
     {
      "base": "Yes, it's under Silva.",
-     "blank": "Yes, it's under ____.",
      "word": "Costa",
      "full": "Yes, it's under Costa."
     },
     {
+     "base": "Yes, it's under Silva.",
+     "word": "Santos",
+     "full": "Yes, it's under Santos."
+    },
+    {
      "base": "A queen room for five nights?",
-     "blank": "Actually, it's ____ nights.",
      "word": "three",
      "full": "Actually, it's three nights."
     }
@@ -697,15 +712,18 @@
    "adapt": [
     {
      "base": "I'll have the grilled chicken.",
-     "blank": "I'll have the ____.",
      "word": "pasta",
      "full": "I'll have the pasta."
     },
     {
      "base": "She will have the salmon.",
-     "blank": "She will have the ____.",
      "word": "salad",
      "full": "She will have the salad."
+    },
+    {
+     "base": "I'll have the grilled chicken.",
+     "word": "salmon",
+     "full": "I'll have the salmon."
     }
    ],
    "check": [
@@ -759,7 +777,7 @@
    "lines": [
     {
      "who": "traveler",
-     "en": "Excuse me, how do I get to the subway?",
+     "en": "Excuse me, how can I get to the subway?",
      "pt": "Com licença, como eu chego ao metrô?",
      "start": 0,
      "end": 2.29
@@ -788,7 +806,7 @@
    ],
    "chunks": [
     [
-     "How do I get to…?",
+     "How can I get to…?",
      "Como eu chego a…?"
     ],
     [
@@ -802,16 +820,19 @@
    ],
    "adapt": [
     {
-     "base": "How do I get to the subway?",
-     "blank": "How do I get to the ____?",
+     "base": "How can I get to the subway?",
      "word": "museum",
-     "full": "How do I get to the museum?"
+     "full": "How can I get to the museum?"
     },
     {
-     "base": "How do I get to the subway?",
-     "blank": "How do I get to the ____?",
+     "base": "How can I get to the subway?",
      "word": "train station",
-     "full": "How do I get to the train station?"
+     "full": "How can I get to the train station?"
+    },
+    {
+     "base": "How can I get to the subway?",
+     "word": "airport",
+     "full": "How can I get to the airport?"
     }
    ],
    "check": [
@@ -847,7 +868,7 @@
     "rev": [
      {
       "pt": "Pergunte como chega ao metrô.",
-      "en": "How do I get to the subway?"
+      "en": "How can I get to the subway?"
      },
      {
       "pt": "Pergunte se é longe daqui.",
@@ -933,15 +954,18 @@
    "adapt": [
     {
      "base": "Card, please.",
-     "blank": "____, please.",
      "word": "Cash",
      "full": "Cash, please."
     },
     {
      "base": "Yes, please.",
-     "blank": "____, thanks.",
      "word": "No",
      "full": "No, thanks."
+    },
+    {
+     "base": "Card, please.",
+     "word": "A bag",
+     "full": "A bag, please."
     }
    ],
    "check": [
@@ -1052,15 +1076,18 @@
    "adapt": [
     {
      "base": "Do you have something for a sore throat?",
-     "blank": "Do you have something for a ____?",
      "word": "headache",
      "full": "Do you have something for a headache?"
     },
     {
      "base": "Do you have something for a sore throat?",
-     "blank": "Do you have something for a ____?",
      "word": "cough",
      "full": "Do you have something for a cough?"
+    },
+    {
+     "base": "Do you have something for a sore throat?",
+     "word": "fever",
+     "full": "Do you have something for a fever?"
     }
    ],
    "check": [
@@ -1182,15 +1209,18 @@
    "adapt": [
     {
      "base": "My suitcase didn't arrive.",
-     "blank": "My ____ didn't arrive.",
      "word": "backpack",
      "full": "My backpack didn't arrive."
     },
     {
      "base": "Flight two one eight from São Paulo.",
-     "blank": "Flight ____ from São Paulo.",
      "word": "nine two four",
      "full": "Flight nine two four from São Paulo."
+    },
+    {
+     "base": "My suitcase didn't arrive.",
+     "word": "bag",
+     "full": "My bag didn't arrive."
     }
    ],
    "check": [
@@ -1312,15 +1342,18 @@
    "adapt": [
     {
      "base": "Yes, orange juice, please.",
-     "blank": "Yes, ____, please.",
      "word": "apple juice",
      "full": "Yes, apple juice, please."
     },
     {
      "base": "Could I have a blanket?",
-     "blank": "Could I have a ____?",
      "word": "pillow",
      "full": "Could I have a pillow?"
+    },
+    {
+     "base": "Yes, orange juice, please.",
+     "word": "water",
+     "full": "Yes, water, please."
     }
    ],
    "check": [
@@ -1425,15 +1458,18 @@
    "adapt": [
     {
      "base": "Has group three boarded yet?",
-     "blank": "Has group ____ boarded yet?",
      "word": "five",
      "full": "Has group five boarded yet?"
     },
     {
      "base": "Has group three boarded yet?",
-     "blank": "Has group ____ boarded yet?",
      "word": "two",
      "full": "Has group two boarded yet?"
+    },
+    {
+     "base": "Has group three boarded yet?",
+     "word": "four",
+     "full": "Has group four boarded yet?"
     }
    ],
    "check": [
@@ -1551,15 +1587,18 @@
    "adapt": [
     {
      "base": "A medium latte, please.",
-     "blank": "A ____ latte, please.",
      "word": "large",
      "full": "A large latte, please."
     },
     {
      "base": "A medium latte, please.",
-     "blank": "A medium ____, please.",
      "word": "cappuccino",
      "full": "A medium cappuccino, please."
+    },
+    {
+     "base": "A medium latte, please.",
+     "word": "small",
+     "full": "A small latte, please."
     }
    ],
    "check": [
@@ -1674,15 +1713,18 @@
    "adapt": [
     {
      "base": "The air conditioning isn't working.",
-     "blank": "The ____ isn't working.",
      "word": "shower",
      "full": "The shower isn't working."
     },
     {
      "base": "The air conditioning isn't working.",
-     "blank": "The ____ isn't working.",
      "word": "TV",
      "full": "The TV isn't working."
+    },
+    {
+     "base": "The air conditioning isn't working.",
+     "word": "wifi",
+     "full": "The wifi isn't working."
     }
    ],
    "check": [
@@ -1791,15 +1833,18 @@
    "adapt": [
     {
      "base": "Together, please.",
-     "blank": "____, please.",
      "word": "Separate",
      "full": "Separate, please."
     },
     {
      "base": "Could we have the check, please?",
-     "blank": "Could we have the ____, please?",
      "word": "menu",
      "full": "Could we have the menu, please?"
+    },
+    {
+     "base": "Could we have the check, please?",
+     "word": "bill",
+     "full": "Could we have the bill, please?"
     }
    ],
    "check": [
@@ -1921,15 +1966,18 @@
    "adapt": [
     {
      "base": "Two adults, please.",
-     "blank": "Two ____, please.",
      "word": "students",
      "full": "Two students, please."
     },
     {
      "base": "What time do you close?",
-     "blank": "What time do you ____?",
      "word": "open",
      "full": "What time do you open?"
+    },
+    {
+     "base": "Two adults, please.",
+     "word": "children",
+     "full": "Two children, please."
     }
    ],
    "check": [
@@ -2060,15 +2108,18 @@
    "adapt": [
     {
      "base": "A cheeseburger combo, please.",
-     "blank": "A ____ combo, please.",
      "word": "chicken",
      "full": "A chicken combo, please."
     },
     {
      "base": "Medium. And a coke, no ice.",
-     "blank": "____. And a coke, no ice.",
      "word": "Large",
      "full": "Large. And a coke, no ice."
+    },
+    {
+     "base": "Medium. And a coke, no ice.",
+     "word": "water",
+     "full": "Medium. And a water, no ice."
     }
    ],
    "check": [
