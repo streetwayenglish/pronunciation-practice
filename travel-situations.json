@@ -180,7 +180,8 @@
      "pt": "portão",
      "img": "travel-vocab-gate.jpg"
     }
-   ]
+   ],
+   "thumb": 15
   },
   {
    "n": 2,
@@ -337,7 +338,8 @@
      "pt": "cinto",
      "img": "travel-vocab-belt.jpg"
     }
-   ]
+   ],
+   "thumb": 0
   },
   {
    "n": 3,
@@ -509,7 +511,8 @@
      "pt": "centro",
      "img": "travel-vocab-downtown.jpg"
     }
-   ]
+   ],
+   "thumb": 0
   },
   {
    "n": 4,
@@ -676,7 +679,8 @@
      "pt": "centro",
      "img": "travel-vocab-downtown.jpg"
     }
-   ]
+   ],
+   "thumb": 0.5
   },
   {
    "n": 5,
@@ -848,7 +852,8 @@
      "pt": "café da manhã",
      "img": "travel-vocab-breakfast.jpg"
     }
-   ]
+   ],
+   "thumb": 0
   },
   {
    "n": 6,
@@ -994,7 +999,8 @@
      "pt": "água",
      "img": "travel-vocab-water.jpg"
     }
-   ]
+   ],
+   "thumb": 0.9
   },
   {
    "n": 7,
@@ -1148,7 +1154,8 @@
      "pt": "a pé",
      "img": "travel-vocab-on-foot.jpg"
     }
-   ]
+   ],
+   "thumb": 1.8
   },
   {
    "n": 8,
@@ -1324,7 +1331,8 @@
      "pt": "recibo",
      "img": "travel-vocab-receipt.jpg"
     }
-   ]
+   ],
+   "thumb": 0.1
   },
   {
    "n": 9,
@@ -1474,7 +1482,8 @@
      "pt": "pastilhas",
      "img": "travel-vocab-lozenges.jpg"
     }
-   ]
+   ],
+   "thumb": 0
   },
   {
    "n": 10,
@@ -1648,7 +1657,8 @@
      "pt": "relatório",
      "img": "travel-vocab-report.jpg"
     }
-   ]
+   ],
+   "thumb": 0
   },
   {
    "n": 11,
@@ -1814,7 +1824,8 @@
      "pt": "manta",
      "img": "travel-vocab-blanket.jpg"
     }
-   ]
+   ],
+   "thumb": 0
   },
   {
    "n": 12,
@@ -1969,7 +1980,8 @@
      "pt": "passaporte",
      "img": "travel-vocab-passport.jpg"
     }
-   ]
+   ],
+   "thumb": 0
   },
   {
    "n": 13,
@@ -2144,7 +2156,8 @@
      "pt": "para levar",
      "img": "travel-vocab-to-go.jpg"
     }
-   ]
+   ],
+   "thumb": 0.9
   },
   {
    "n": 14,
@@ -2295,7 +2308,8 @@
      "pt": "ar-condicionado",
      "img": "travel-vocab-air-conditioning.jpg"
     }
-   ]
+   ],
+   "thumb": 1.4
   },
   {
    "n": 15,
@@ -2447,7 +2461,8 @@
      "pt": "conta",
      "img": "travel-vocab-check.jpg"
     }
-   ]
+   ],
+   "thumb": 0.1
   },
   {
    "n": 16,
@@ -2624,7 +2639,8 @@
      "pt": "desconto",
      "img": "travel-vocab-discount.jpg"
     }
-   ]
+   ],
+   "thumb": 0.1
   },
   {
    "n": 17,
@@ -2798,7 +2814,8 @@
      "pt": "primeira janela",
      "img": "travel-vocab-first-window.jpg"
     }
-   ]
+   ],
+   "thumb": 0.1
   }
  ],
  "vocab_base": "https://pub-6854c22656e84873836dc1d4ca2ff6ae.r2.dev/Travel%20vocabulary/"
