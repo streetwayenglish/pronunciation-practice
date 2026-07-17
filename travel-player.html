@@ -177,7 +177,7 @@ function startW(){stopW();const t=()=>{if(stopAt==null)return;var rem=stopAt-vid
 function segEnd(se){var lines=(SCN&&SCN.lines)||[];var stop=se.end;
  for(var i=0;i<lines.length;i++){var nx=lines[i];if(nx.start>se.start&&nx.start>=se.end-0.02&&nx.start-se.end<0.12){var trimmed=nx.start-0.05;if(trimmed>se.start+0.25)stop=Math.min(stop,trimmed);break;}}
  return stop;}
-function playSeg(file,se,cb){ensure(file,()=>{onSegEnd=cb||(()=>{});vid.muted=false;stopAt=segEnd(se);try{vid.currentTime=se.start;}catch(e){}vid.play().catch(()=>{});startW();});}
+function playSeg(file,se,cb){ensure(file,()=>{onSegEnd=cb||(()=>{});vid.muted=false;hidePoster();stopAt=segEnd(se);try{vid.currentTime=se.start;}catch(e){}vid.play().catch(()=>{});startW();});}
 /* ── speech ── */
 let sr=null,rt=null,matched=[],_recDone=false,_fin=null,tries=0;
 function killRec(){if(rt){clearTimeout(rt);rt=null;}if(sr){try{sr.onresult=sr.onerror=sr.onend=null;sr.stop();}catch(e){}sr=null;}}
@@ -211,6 +211,16 @@ var sl=SCN.lines[Math.floor(SCN.lines.length/2)];add('who',{start:sl.start,end:s
         if(K.kind==='hear'&&K.answers&&K.answers.length)add('react',{start:L.start,end:L.end,file:SCN.file,answers:K.answers,line:L.en});
         if(K.kind==='say'&&K.revPt)add('rev',{pt:K.revPt,en:(K.say||L.en)});});
 saveS(s);}saveP(p);return p[SCN.file];}
+function showThumbT(){var po=document.getElementById('poster');vid.style.opacity='0';
+ var fallback=function(){ensure(SCN.file,()=>{var t=SCN.thumb,tg=(typeof t==='number')?t:0;
+  if(t==='last'&&vid.duration&&isFinite(vid.duration))tg=Math.max(0,vid.duration-0.05);
+  if(tg<0.05){try{vid.currentTime=0;vid.pause();}catch(e){}vid.style.opacity='1';return;}
+  var done=function(){vid.removeEventListener('seeked',done);vid.style.opacity='1';};
+  vid.addEventListener('seeked',done);try{vid.currentTime=tg;}catch(e){}setTimeout(done,6000);});};
+ if(po){po.onerror=function(){po.style.opacity='0';fallback();};po.onload=function(){po.style.opacity='1';};
+  po.src=url(SCN.file).replace('.mp4','.jpg');ensure(SCN.file,function(){});}
+ else{fallback();}}
+function hidePoster(){var po=document.getElementById('poster');if(po)po.style.opacity='0';vid.style.opacity='1';}
 /* ── flow steps ── */
 let steps=[],si=0;
 function buildSteps(){steps=[{k:'watch'}];(SCN.vocab||[]).forEach((w,i)=>steps.push({k:'vocab',i:i}));SCN.lines.forEach((l,i)=>{steps.push({k:'line',i:i});(SCN.key||[]).forEach((kk,ki)=>{if(kk.li===i)steps.push({k:'key',i:ki});});});
@@ -235,7 +245,7 @@ function render(){setProg();tries=0;const s=steps[si];st={tag:''};
 /* watch / rewatch */
 function rWatch(again){st.tag=again?T.watchAgain:T.tagWatch;playing=false;showSheet(false);showCover(true);vid.playbackRate=1;
  function paint(){cover.innerHTML='<div class="covtitle">'+SCN.title+' · '+(playing?'Assistindo':(again?T.watchAgain:T.ouca))+'</div><button class="covplay" id="covbtn" aria-label="play">'+(playing?I.pause:I.play)+'</button>';$('covbtn').onclick=toggle;}
- function toggle(){if(!playing){playing=true;paint();vid.muted=false;ensure(SCN.file,()=>{vid.onended=()=>{vid.onended=null;endedW();};try{vid.currentTime=0;}catch(e){}vid.play().catch(()=>{playing=false;paint();});});}else{playing=false;vid.pause();paint();}}
+ function toggle(){if(!playing){playing=true;paint();vid.muted=false;hidePoster();ensure(SCN.file,()=>{vid.onended=()=>{vid.onended=null;endedW();};try{vid.currentTime=0;}catch(e){}vid.play().catch(()=>{playing=false;paint();});});}else{playing=false;vid.pause();paint();}}
  function endedW(){playing=false;showCover(false);showSheet(true);tag('');
   sheet.innerHTML='<div class="slabel grn">'+(again?'ÚLTIMA ETAPA':T.lpLabel)+'</div><div class="card"><div class="blockcard"><h3>'+(again?'3 perguntas rápidas':T.lpHead)+'</h3></div></div><div class="controls"><button class="ctl" id="bl">'+I.rot+'</button><button class="center c-green" id="bc">'+I.arrow+'</button><button class="ctl" style="visibility:hidden"></button></div>';
   $('bl').onclick=()=>{showSheet(false);showCover(true);playing=true;paint();ensure(SCN.file,()=>{vid.onended=()=>{vid.onended=null;endedW();};try{vid.currentTime=0;}catch(e){}vid.play().catch(()=>{});});};
@@ -380,9 +390,9 @@ document.querySelectorAll('.mpick').forEach(x=>x.style.display='none');
 bindClose();post('ready');
 if(REV){showCover(false);showSheet(false);runReview();}
 else{buildSteps();si=0;
- hero.className='hero-ov show atcenter cream';
- hero.innerHTML='<div class="hbody"><div class="hero-eye">Situações de Viagem · '+String(SCN.n).padStart(2,'0')+'</div><div class="hero-title">'+SCN.title+'</div><div class="hero-sub">Assista, repita linha por linha e domine a situação.</div><button class="hero-btn" id="hgo">Começar →</button></div>';
+ hero.className='hero-ov show atbottom';
+ hero.innerHTML='<div class="hscrim"></div><div class="hbody"><div><div class="hero-eye">Situações de Viagem · '+String(SCN.n).padStart(2,'0')+'</div><div class="hero-title" style="margin-top:6px">'+SCN.title+'</div></div><button class="hero-btn" id="hgo">Começar →</button></div>';
  $('hgo').onclick=()=>{hero.className='hero-ov';render();};
- ensure(SCN.file,()=>{try{vid.currentTime=Math.max(0.04,SCN.thumb||0);}catch(e){}});}
+ showThumbT();}
 
 </script></body></html>
