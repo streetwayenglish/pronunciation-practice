@@ -1575,7 +1575,7 @@ _summariesLibrary({
         body+='<div class="tvRow" data-n="'+s.n+'" style="display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;'+(i<g[1].length-1?'border-bottom:1px solid #f2eee6;':'')+'">'+
           '<div style="width:26px;height:26px;border-radius:8px;background:'+(st==='dom'?'rgba(230,179,30,.15)':st==='prat'?'#eef3fa':'#f4f1ea')+';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:'+(st==='dom'?GOLD:st==='prat'?ACC:'#8a8073')+';flex-shrink:0;">'+(st==='dom'?'\ud83c\udfc5':st==='prat'?'\u2713':s.n)+'</div>'+
           '<div style="flex:1;min-width:0;"><p style="margin:0;font-size:14px;font-weight:600;color:#2C2C2A;">'+esc(s.title)+'</p>'+
-          '<p style="margin:1px 0 0;font-size:11px;color:#8a8073;">'+s.lines.length+' falas'+(st==='dom'?' \u00b7 dominada':st==='prat'?' \u00b7 praticada':'')+'</p></div>'+
+          (st?'<p style="margin:1px 0 0;font-size:11px;color:#8a8073;">'+(st==='dom'?'dominada':'praticada')+'</p>':'')+'</div>'+
           '<div style="color:#c9c2b4;">\u203a</div></div>';
       });
       body+='</div>';
