@@ -132,7 +132,32 @@
       "a": 0
      }
     ]
-   }
+   },
+   "key": [
+    {
+     "li": 2,
+     "kind": "hear",
+     "insight": "to check aqui = despachar — nada de 'verificar'.",
+     "variants": [
+      "Are you checking any bags?",
+      "Any luggage to check?"
+     ],
+     "tap": {
+      "q": "O que ela quer saber?",
+      "opts": [
+       "Se você vai despachar mala",
+       "Se você conferiu as malas",
+       "Se você já fez check-in"
+      ],
+      "a": 0
+     },
+     "answers": [
+      "Just this one.",
+      "No bags, thanks.",
+      "Just these two."
+     ]
+    }
+   ]
   },
   {
    "n": 2,
@@ -255,7 +280,18 @@
      }
     ],
     "nums": []
-   }
+   },
+   "key": [
+    {
+     "li": 1,
+     "kind": "say",
+     "insight": "take off = tirar (roupa, sapato). O 'off' faz parte do verbo — fale sempre os dois juntos.",
+     "variants": [
+      "Should I take my shoes off?"
+     ],
+     "revPt": "Pergunte se tira os sapatos também."
+    }
+   ]
   },
   {
    "n": 3,
@@ -384,7 +420,32 @@
       "a": 0
      }
     ]
-   }
+   },
+   "key": [
+    {
+     "li": 0,
+     "kind": "hear",
+     "insight": "purpose = motivo. A pergunta clássica da imigração.",
+     "variants": [
+      "Why are you visiting?",
+      "What brings you to the US?"
+     ],
+     "tap": {
+      "q": "O que ele perguntou?",
+      "opts": [
+       "O motivo da viagem",
+       "Quanto tempo você fica",
+       "Onde você vai ficar"
+      ],
+      "a": 0
+     },
+     "answers": [
+      "Tourism. I'm staying for two weeks.",
+      "Tourism.",
+      "Business."
+     ]
+    }
+   ]
   },
   {
    "n": 4,
@@ -513,7 +574,32 @@
       "a": 0
      }
     ]
-   }
+   },
+   "key": [
+    {
+     "li": 0,
+     "kind": "hear",
+     "insight": "headed = indo. Motoristas falam assim — não estranhe.",
+     "variants": [
+      "Where to?",
+      "Where are you going?"
+     ],
+     "tap": {
+      "q": "O que ele quer saber?",
+      "opts": [
+       "Para onde você vai",
+       "Como você está",
+       "De onde você veio"
+      ],
+      "a": 0
+     },
+     "answers": [
+      "The Grand Hotel downtown, please.",
+      "The airport, please.",
+      "The Grand Hotel, please."
+     ]
+    }
+   ]
   },
   {
    "n": 5,
@@ -651,7 +737,18 @@
       "a": 0
      }
     ]
-   }
+   },
+   "key": [
+    {
+     "li": 1,
+     "kind": "say",
+     "insight": "under = 'no nome de'. É assim que se fala de reservas.",
+     "variants": [
+      "It's under the name Silva."
+     ],
+     "revPt": "Diga que a reserva está no nome de Silva."
+    }
+   ]
   },
   {
    "n": 6,
@@ -767,7 +864,19 @@
      }
     ],
     "nums": []
-   }
+   },
+   "key": [
+    {
+     "li": 1,
+     "kind": "say",
+     "say": "I'll have the grilled chicken.",
+     "insight": "I'll have… = vou querer… O jeito padrão de pedir comida.",
+     "variants": [
+      "I'd like the grilled chicken."
+     ],
+     "revPt": "Peça o frango grelhado."
+    }
+   ]
   },
   {
    "n": 7,
@@ -886,7 +995,19 @@
       "a": 0
      }
     ]
-   }
+   },
+   "key": [
+    {
+     "li": 0,
+     "kind": "say",
+     "insight": "How can I get to…? = como chego a…? Sua pergunta mais útil na rua.",
+     "variants": [
+      "How do I get to the subway?",
+      "Is this the way to the subway?"
+     ],
+     "revPt": "Pergunte como chega ao metrô."
+    }
+   ]
   },
   {
    "n": 8,
@@ -1015,7 +1136,31 @@
       "a": 0
      }
     ]
-   }
+   },
+   "key": [
+    {
+     "li": 0,
+     "kind": "hear",
+     "insight": "That'll be… = vai ficar (preço). Cash or card = dinheiro ou cartão.",
+     "variants": [
+      "How would you like to pay?",
+      "Debit or credit?"
+     ],
+     "tap": {
+      "q": "O que ele perguntou no final?",
+      "opts": [
+       "Como você vai pagar",
+       "Se você quer sacola",
+       "Se você quer o recibo"
+      ],
+      "a": 0
+     },
+     "answers": [
+      "Card, please.",
+      "Cash, please."
+     ]
+    }
+   ]
   },
   {
    "n": 9,
@@ -1141,7 +1286,18 @@
       "a": 0
      }
     ]
-   }
+   },
+   "key": [
+    {
+     "li": 1,
+     "kind": "say",
+     "insight": "something for… = algo para… Funciona para qualquer sintoma.",
+     "variants": [
+      "I need something for a sore throat."
+     ],
+     "revPt": "Pergunte se têm algo para dor de garganta."
+    }
+   ]
   },
   {
    "n": 10,
@@ -1274,7 +1430,30 @@
       "a": 0
      }
     ]
-   }
+   },
+   "key": [
+    {
+     "li": 1,
+     "kind": "hear",
+     "insight": "Which flight were you on? — preposição no final é normal em inglês.",
+     "variants": [
+      "What was your flight number?"
+     ],
+     "tap": {
+      "q": "O que ela perguntou?",
+      "opts": [
+       "Qual era o seu voo",
+       "Para onde você voou",
+       "Quando você chegou"
+      ],
+      "a": 0
+     },
+     "answers": [
+      "Flight two one eight from São Paulo.",
+      "Flight two one eight."
+     ]
+    }
+   ]
   },
   {
    "n": 11,
@@ -1397,7 +1576,32 @@
      }
     ],
     "nums": []
-   }
+   },
+   "key": [
+    {
+     "li": 0,
+     "kind": "hear",
+     "insight": "Would you like…? = versão educada de 'do you want'. Padrão a bordo.",
+     "variants": [
+      "Anything to drink?",
+      "Can I get you something to drink?"
+     ],
+     "tap": {
+      "q": "O que ela ofereceu?",
+      "opts": [
+       "Algo para beber",
+       "Algo para comer",
+       "Uma manta"
+      ],
+      "a": 0
+     },
+     "answers": [
+      "Yes, orange juice, please.",
+      "Just water, thanks.",
+      "No, thanks."
+     ]
+    }
+   ]
   },
   {
    "n": 12,
@@ -1519,7 +1723,27 @@
       "a": 0
      }
     ]
-   }
+   },
+   "key": [
+    {
+     "li": 2,
+     "kind": "hear",
+     "insight": "group three = seu grupo de embarque. Fique de ouvido no SEU número.",
+     "variants": [
+      "Boarding group three.",
+      "Group three, please."
+     ],
+     "tap": {
+      "q": "O que ela informou?",
+      "opts": [
+       "Seu grupo de embarque",
+       "Seu assento",
+       "Seu portão"
+      ],
+      "a": 0
+     }
+    }
+   ]
   },
   {
    "n": 13,
@@ -1652,7 +1876,31 @@
       "a": 0
      }
     ]
-   }
+   },
+   "key": [
+    {
+     "li": 2,
+     "kind": "hear",
+     "insight": "A pergunta que todo brasileiro trava: for here = para tomar aqui · to go = para levar.",
+     "variants": [
+      "Is that for here or to go?",
+      "Staying or taking away?"
+     ],
+     "tap": {
+      "q": "O que ela perguntou?",
+      "opts": [
+       "Para aqui ou para levar",
+       "Qual tamanho você quer",
+       "O nome do pedido"
+      ],
+      "a": 0
+     },
+     "answers": [
+      "To go, please.",
+      "For here, please."
+     ]
+    }
+   ]
   },
   {
    "n": 14,
@@ -1778,7 +2026,19 @@
       "a": 0
      }
     ]
-   }
+   },
+   "key": [
+    {
+     "li": 2,
+     "kind": "say",
+     "say": "The air conditioning isn't working.",
+     "insight": "isn't working = não está funcionando. Serve para reclamar de qualquer coisa.",
+     "variants": [
+      "The AC is broken."
+     ],
+     "revPt": "Diga que o ar-condicionado não está funcionando."
+    }
+   ]
   },
   {
    "n": 15,
@@ -1898,7 +2158,31 @@
       "a": 0
      }
     ]
-   }
+   },
+   "key": [
+    {
+     "li": 1,
+     "kind": "hear",
+     "insight": "Together or separate? = junto ou separado — a decisão de toda mesa.",
+     "variants": [
+      "One check or separate?",
+      "How would you like to split it?"
+     ],
+     "tap": {
+      "q": "O que ele perguntou?",
+      "opts": [
+       "Como vão dividir a conta",
+       "Se querem sobremesa",
+       "Se gostaram da comida"
+      ],
+      "a": 0
+     },
+     "answers": [
+      "Together, please.",
+      "Separate, please."
+     ]
+    }
+   ]
   },
   {
    "n": 16,
@@ -2040,7 +2324,19 @@
       "a": 0
      }
     ]
-   }
+   },
+   "key": [
+    {
+     "li": 4,
+     "kind": "say",
+     "say": "What time do you close?",
+     "insight": "What time do you…? = que horas vocês…? Troque o verbo e pergunte qualquer horário.",
+     "variants": [
+      "When do you close?"
+     ],
+     "revPt": "Pergunte que horas fecham."
+    }
+   ]
   },
   {
    "n": 17,
@@ -2173,7 +2469,30 @@
       "a": 0
      }
     ]
-   }
+   },
+   "key": [
+    {
+     "li": 0,
+     "kind": "hear",
+     "insight": "What can I get you? = o que vai querer? A abertura padrão de qualquer balcão.",
+     "variants": [
+      "What can I get for you?",
+      "What would you like?"
+     ],
+     "tap": {
+      "q": "O que a voz perguntou?",
+      "opts": [
+       "O que você vai pedir",
+       "Como você vai pagar",
+       "Qual janela ir"
+      ],
+      "a": 0
+     },
+     "answers": [
+      "A cheeseburger combo, please."
+     ]
+    }
+   ]
   }
  ]
 }
