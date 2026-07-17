@@ -272,12 +272,9 @@ function rKey(K){st.tag='FRASE-CHAVE';
   '<div style="background:#FAF6EA;border-left:3px solid #E6B31E;padding:9px 12px;margin-top:12px;text-align:left"><span style="font-size:13px;color:#5F5E5A;line-height:1.55">'+K.insight+'</span></div>'+
   ((K.variants&&K.variants.length)?'<div style="font-size:10px;font-weight:700;letter-spacing:.14em;color:#9a9a96;margin-top:12px">'+varLabel+'</div>'+K.variants.map(v=>'<div style="font-size:14px;color:#444441;font-style:italic;margin-top:3px">'+v+'</div>').join(''):'');
  if(K.kind==='hear'){
-  frame('Ouça de novo','gold',body,'',null,I.play,'c-black',()=>playSeg(SCN.file,L,null),I.arrow+T.cont,tapQ);
-  playSeg(SCN.file,L,tapQ2);
-  var asked=false;
-  function tapQ2(){}
-  function tapQ(){if(asked)return;asked=true;mc(K.tap.q,'',K.tap.opts.slice(),K.tap.opts[K.tap.a],adv);}
- } else {
+  frame('Ouça de novo','gold',body,I.rot+T.hear,()=>playSeg(SCN.file,L,null),I.arrow+T.cont,'c-green',adv,'',null);
+  playSeg(SCN.file,L,null);
+  } else {
   function speak(){recBegin(target,score);frame(T.listening,'red',body,'',null,I.stop,'c-red',submit,'',null);}
   function submit(){frame(T.checking,'gry',body,'',null,'<span class="spin"></span>','c-busy',()=>{},'',null);recSubmit();}
   function score(s){const colored=colorWords(target);if(s>=PASS){chime();frame(T.gotit,'grn','<div class="sent">'+colored+'</div>','',null,I.check,'c-green',()=>{},'',null);setTimeout(adv,1000);}else{tries++;if(tries>=MAXTRY){frame(T.effort,'amb','<div class="sent">'+colored+'</div>','',null,I.arrow,'c-black',adv,'',null);}else{frame(T.almost,'amb','<div class="sent">'+colored+'</div>','',null,I.mic,'c-black',speak,I.arrow+T.cont,adv);}}}
