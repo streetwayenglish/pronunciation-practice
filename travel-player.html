@@ -191,10 +191,12 @@ function showSheet(on){sheet.style.display=on?'flex':'none';}
 function showCover(on){cover.style.display=on?'flex':'none';}
 const SK='<div class="skiprow"><button class="skipbtn">Pular</button></div>';
 function bindSkip(){const b=sheet.querySelector('.skipbtn');if(b)b.onclick=adv;}
-function backCtl(){return '';}function bindBack(){}
-function frame(label,cls,body,lh,lf,ch,cc,cf,rh,rf){showCover(false);showSheet(true);tag(st.tag||'');var cap=(ch===I.mic&&cc==='c-black')?'Toque para gravar':((ch===I.stop&&cc==='c-red')?'Parar':'');sheet.innerHTML='<div class="slabel '+cls+'">'+label+'</div><div class="card">'+body+'</div><div class="controls"><button class="ctl" id="bl">'+(lh||'')+'</button><div class="cwrap"><button class="center '+cc+'" id="bc">'+(ch||'')+'</button>'+(cap?'<span class="reccap">'+cap+'</span>':'')+'</div><button class="ctl" id="br">'+(rh||'')+'</button></div>';$('bl').onclick=lf||(()=>{});if(!lh)$('bl').style.visibility='hidden';$('bc').onclick=cf||(()=>{});$('br').onclick=rf||(()=>{});if(!rh)$('br').style.visibility='hidden';}
-function shell(label,cls,inner){showCover(false);showSheet(true);tag(st.tag||'');sheet.innerHTML='<div class="slabel '+cls+'">'+label+'</div><div class="card">'+inner+'</div>'+SK;bindSkip();}
-function mc(label,sub,options,correct,after){showCover(false);showSheet(true);tag(st.tag||'');let done=false;sheet.innerHTML='<div class="slabel blk">'+label+'</div><div class="card">'+(sub||'')+'<div id="opts"></div></div>'+SK;bindSkip();shuffle(options).forEach(o=>{const b=document.createElement('div');b.className='opt';b.textContent=o;b.onclick=()=>{if(done)return;if(o===correct){b.classList.add('correct');done=true;chime();setTimeout(after,750);}else{b.classList.add('wrong');b.style.pointerEvents='none';buzz();}};$('opts').appendChild(b);});}
+function backCtl(){return si>0?'<button class="backsheet" id="bks" aria-label="Voltar">'+I.backIcon+'</button>':'';}
+function bindBack(){const b=$('bks');if(b)b.onclick=goBack;}
+function goBack(){killRec();stopW();si=Math.max(0,si-1);render();}
+function frame(label,cls,body,lh,lf,ch,cc,cf,rh,rf){showCover(false);showSheet(true);tag(st.tag||'');var cap=(ch===I.mic&&cc==='c-black')?'Toque para gravar':((ch===I.stop&&cc==='c-red')?'Parar':'');sheet.innerHTML='<div class="slabel '+cls+'">'+label+'</div>'+backCtl()+'<div class="card">'+body+'</div><div class="controls"><button class="ctl" id="bl">'+(lh||'')+'</button><div class="cwrap"><button class="center '+cc+'" id="bc">'+(ch||'')+'</button>'+(cap?'<span class="reccap">'+cap+'</span>':'')+'</div><button class="ctl" id="br">'+(rh||'')+'</button></div>';$('bl').onclick=lf||(()=>{});if(!lh)$('bl').style.visibility='hidden';$('bc').onclick=cf||(()=>{});$('br').onclick=rf||(()=>{});if(!rh)$('br').style.visibility='hidden';bindBack();}
+function shell(label,cls,inner){showCover(false);showSheet(true);tag(st.tag||'');sheet.innerHTML='<div class="slabel '+cls+'">'+label+'</div>'+backCtl()+'<div class="card">'+inner+'</div>'+SK;bindSkip();bindBack();}
+function mc(label,sub,options,correct,after){showCover(false);showSheet(true);tag(st.tag||'');let done=false;sheet.innerHTML='<div class="slabel blk">'+label+'</div>'+backCtl()+'<div class="card">'+(sub||'')+'<div id="opts"></div></div>'+SK;bindSkip();bindBack();shuffle(options).forEach(o=>{const b=document.createElement('div');b.className='opt';b.textContent=o;b.onclick=()=>{if(done)return;if(o===correct){b.classList.add('correct');done=true;chime();setTimeout(after,750);}else{b.classList.add('wrong');b.style.pointerEvents='none';buzz();}};$('opts').appendChild(b);});}
 function sentPt(text,pt){if(!pt)return '<div class="sent">'+text+'</div>';return '<div class="senttap" onclick="var p=this.querySelector(\'.trpt\');p.style.display=p.style.display===\'block\'?\'none\':\'block\';"><div class="sent">'+text+'</div><div class="trpt">'+pt+'</div></div>';}
 /* ── progress / storage ── */
 function today(){return new Date().toISOString().slice(0,10);}
@@ -271,8 +273,9 @@ function rVocab(W,i){st.tag='VOCABULÁRIO · '+(i+1)+'/'+SCN.vocab.length;
  var nx=SCN.vocab[i+1]; if(nx){var pf=new Image();pf.src=TRAVEL.vocab_base+nx.img;
   var pa=new Audio();pa.preload='auto';pa.src=TRAVEL.vocab_base+nx.img.replace('.jpg','.mp3');}
  const body='<img src="'+TRAVEL.vocab_base+W.img+'" alt="" style="width:100%;max-width:230px;aspect-ratio:1;object-fit:cover;border-radius:14px;display:block;margin:0 auto" onerror="this.style.display=\'none\'">'+
-  '<div class="sent" style="margin-top:12px">'+W.en+'</div>'+
+  '<div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px"><div class="sent" style="margin:0">'+W.en+'</div><button class="lbtn" onclick="_vocabPlay()">'+I.play+'</button></div>'+
   '<div style="font-size:14px;color:#8a8073;margin-top:2px">'+W.pt+'</div>';
+ window._vocabPlay=function(){vocabAudio(W);};
  function speak(){recBegin(W.en,score);frame(T.listening,'red',body,'',null,I.stop,'c-red',submit,'',null);}
  function submit(){frame(T.checking,'gry',body,'',null,'<span class="spin"></span>','c-busy',()=>{},'',null);recSubmit();}
  function score(s){if(s>=PASS){chime();frame(T.gotit,'grn',body,'',null,I.check,'c-green',()=>{},'',null);setTimeout(adv,900);}
@@ -390,8 +393,9 @@ document.querySelectorAll('.mpick').forEach(x=>x.style.display='none');
 bindClose();post('ready');
 if(REV){showCover(false);showSheet(false);runReview();}
 else{buildSteps();si=0;
+ vid.pause();showSheet(false);showCover(false);tag('');
  hero.className='hero-ov show atbottom';
- hero.innerHTML='<div class="hscrim"></div><div class="hbody"><div><div class="hero-eye">Situações de Viagem · '+String(SCN.n).padStart(2,'0')+'</div><div class="hero-title" style="margin-top:6px">'+SCN.title+'</div></div><button class="hero-btn" id="hgo">Começar →</button></div>';
+ hero.innerHTML='<div class="hscrim"></div><div class="hbody" style="padding-bottom:10vh"><div><div class="hero-eye">Situações de Viagem · '+String(SCN.n).padStart(2,'0')+'</div><div class="hero-title" style="margin-top:6px">'+SCN.title+'</div></div><button class="hero-btn" id="hgo">Começar →</button></div>';
  $('hgo').onclick=()=>{hero.className='hero-ov';render();};
  showThumbT();}
 
