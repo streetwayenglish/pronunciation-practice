@@ -155,7 +155,8 @@
       "Just this one.",
       "No bags, thanks.",
       "Just these two."
-     ]
+     ],
+     "hl": "to check"
     }
    ]
   },
@@ -289,7 +290,8 @@
      "variants": [
       "Should I take my shoes off?"
      ],
-     "revPt": "Pergunte se tira os sapatos também."
+     "revPt": "Pergunte se tira os sapatos também.",
+     "hl": "off"
     }
    ]
   },
@@ -443,7 +445,8 @@
       "Tourism. I'm staying for two weeks.",
       "Tourism.",
       "Business."
-     ]
+     ],
+     "hl": "purpose"
     }
    ]
   },
@@ -597,7 +600,8 @@
       "The Grand Hotel downtown, please.",
       "The airport, please.",
       "The Grand Hotel, please."
-     ]
+     ],
+     "hl": "headed"
     }
    ]
   },
@@ -746,7 +750,8 @@
      "variants": [
       "It's under the name Silva."
      ],
-     "revPt": "Diga que a reserva está no nome de Silva."
+     "revPt": "Diga que a reserva está no nome de Silva.",
+     "hl": "under"
     }
    ]
   },
@@ -874,7 +879,8 @@
      "variants": [
       "I'd like the grilled chicken."
      ],
-     "revPt": "Peça o frango grelhado."
+     "revPt": "Peça o frango grelhado.",
+     "hl": "I'll have"
     }
    ]
   },
@@ -1005,7 +1011,8 @@
       "How do I get to the subway?",
       "Is this the way to the subway?"
      ],
-     "revPt": "Pergunte como chega ao metrô."
+     "revPt": "Pergunte como chega ao metrô.",
+     "hl": "How can I get to"
     }
    ]
   },
@@ -1158,7 +1165,8 @@
      "answers": [
       "Card, please.",
       "Cash, please."
-     ]
+     ],
+     "hl": "Cash or card"
     }
    ]
   },
@@ -1295,7 +1303,8 @@
      "variants": [
       "I need something for a sore throat."
      ],
-     "revPt": "Pergunte se têm algo para dor de garganta."
+     "revPt": "Pergunte se têm algo para dor de garganta.",
+     "hl": "something for"
     }
    ]
   },
@@ -1435,7 +1444,7 @@
     {
      "li": 1,
      "kind": "hear",
-     "insight": "Which flight were you on? — preposição no final é normal em inglês.",
+     "insight": "A preposição fica no final — isso é normal em inglês.",
      "variants": [
       "What was your flight number?"
      ],
@@ -1451,7 +1460,8 @@
      "answers": [
       "Flight two one eight from São Paulo.",
       "Flight two one eight."
-     ]
+     ],
+     "hl": "on"
     }
    ]
   },
@@ -1599,7 +1609,8 @@
       "Yes, orange juice, please.",
       "Just water, thanks.",
       "No, thanks."
-     ]
+     ],
+     "hl": "Would you like"
     }
    ]
   },
@@ -1741,7 +1752,8 @@
        "Seu portão"
       ],
       "a": 0
-     }
+     },
+     "hl": "group three"
     }
    ]
   },
@@ -1898,7 +1910,8 @@
      "answers": [
       "To go, please.",
       "For here, please."
-     ]
+     ],
+     "hl": "For here or to go"
     }
    ]
   },
@@ -2036,7 +2049,8 @@
      "variants": [
       "The AC is broken."
      ],
-     "revPt": "Diga que o ar-condicionado não está funcionando."
+     "revPt": "Diga que o ar-condicionado não está funcionando.",
+     "hl": "isn't working"
     }
    ]
   },
@@ -2163,7 +2177,7 @@
     {
      "li": 1,
      "kind": "hear",
-     "insight": "Together or separate? = junto ou separado — a decisão de toda mesa.",
+     "insight": "together = junto · separate = separado. A decisão de toda mesa.",
      "variants": [
       "One check or separate?",
       "How would you like to split it?"
@@ -2180,7 +2194,8 @@
      "answers": [
       "Together, please.",
       "Separate, please."
-     ]
+     ],
+     "hl": "Together or separate"
     }
    ]
   },
@@ -2334,7 +2349,8 @@
      "variants": [
       "When do you close?"
      ],
-     "revPt": "Pergunte que horas fecham."
+     "revPt": "Pergunte que horas fecham.",
+     "hl": "What time"
     }
    ]
   },
@@ -2474,7 +2490,7 @@
     {
      "li": 0,
      "kind": "hear",
-     "insight": "What can I get you? = o que vai querer? A abertura padrão de qualquer balcão.",
+     "insight": "É assim que qualquer atendente abre o pedido — 'o que vai querer?'.",
      "variants": [
       "What can I get for you?",
       "What would you like?"
@@ -2490,7 +2506,8 @@
      },
      "answers": [
       "A cheeseburger combo, please."
-     ]
+     ],
+     "hl": "What can I get you"
     }
    ]
   }
