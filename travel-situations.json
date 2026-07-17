@@ -66,47 +66,43 @@
    ],
    "adapt": [
     {
-     "pt": "Você tem DUAS malas para despachar. Responda.",
-     "en": "Just these two.",
-     "alt": [
-      "I have two bags.",
-      "Two bags, please."
-     ]
+     "base": "May I see your passport, please?",
+     "blank": "May I see your ____, please?",
+     "word": "ticket",
+     "full": "May I see your ticket, please?"
     },
     {
-     "pt": "Você não tem malas para despachar. Responda.",
-     "en": "No bags, thanks.",
-     "alt": [
-      "No, just a carry-on.",
-      "Nothing to check."
-     ]
+     "base": "May I see your passport, please?",
+     "blank": "May I see your ____, please?",
+     "word": "boarding pass",
+     "full": "May I see your boarding pass, please?"
     }
    ],
    "check": [
     {
-     "q": "Qual é o portão de embarque?",
+     "q": "Which gate is it?",
      "opts": [
-      "Portão doze",
-      "Portão dois",
-      "Portão vinte"
+      "Gate twelve",
+      "Gate two",
+      "Gate twenty"
      ],
      "a": 0
     },
     {
-     "q": "Quantas malas o viajante despacha?",
+     "q": "How many bags does he check?",
      "opts": [
-      "Uma",
-      "Duas",
-      "Nenhuma"
+      "Just one",
+      "Two",
+      "None"
      ],
      "a": 0
     },
     {
-     "q": "O que a agente pede primeiro?",
+     "q": "What does the agent ask for first?",
      "opts": [
-      "O passaporte",
-      "O cartão de embarque",
-      "A mala"
+      "The passport",
+      "The boarding pass",
+      "The suitcase"
      ],
      "a": 0
     }
@@ -200,46 +196,43 @@
    ],
    "adapt": [
     {
-     "pt": "Pergunte se pode ficar com o BONÉ.",
-     "en": "Can I keep my cap on?",
-     "alt": [
-      "Can I keep my hat on?"
-     ]
+     "base": "Do I take my shoes off too?",
+     "blank": "Do I take my ____ off too?",
+     "word": "belt",
+     "full": "Do I take my belt off too?"
     },
     {
-     "pt": "Pergunte se precisa tirar o RELÓGIO.",
-     "en": "Do I take my watch off too?",
-     "alt": [
-      "Do I need to take off my watch?",
-      "Should I take my watch off?"
-     ]
+     "base": "Can I keep my jacket on?",
+     "blank": "Can I keep my ____ on?",
+     "word": "cap",
+     "full": "Can I keep my cap on?"
     }
    ],
    "check": [
     {
-     "q": "O que vai na bandeja primeiro?",
+     "q": "What goes in the tray?",
      "opts": [
-      "O laptop",
-      "Os sapatos",
-      "O cinto"
+      "The laptop",
+      "The shoes",
+      "The belt"
      ],
      "a": 0
     },
     {
-     "q": "O que o viajante PODE manter?",
+     "q": "What can he keep on?",
      "opts": [
-      "A jaqueta",
-      "Os sapatos",
-      "O cinto"
+      "His jacket",
+      "His shoes",
+      "His belt"
      ],
      "a": 0
     },
     {
-     "q": "O que o oficial responde no final?",
+     "q": "What does the officer say at the end?",
      "opts": [
-      "Pode ir",
-      "Espere aqui",
-      "Volte amanhã"
+      "Go ahead",
+      "Wait here",
+      "Come back tomorrow"
      ],
      "a": 0
     }
@@ -323,46 +316,43 @@
    ],
    "adapt": [
     {
-     "pt": "Você veio a NEGÓCIOS por UMA semana. Responda.",
-     "en": "Business. I'm staying for one week.",
-     "alt": [
-      "Business. One week."
-     ]
+     "base": "I'm staying for two weeks.",
+     "blank": "I'm staying for ____.",
+     "word": "one week",
+     "full": "I'm staying for one week."
     },
     {
-     "pt": "Você vai ficar na casa de um AMIGO. Responda onde vai ficar.",
-     "en": "At a friend's house.",
-     "alt": [
-      "I'm staying at a friend's house.",
-      "With a friend."
-     ]
+     "base": "I'm staying for two weeks.",
+     "blank": "I'm staying for ____.",
+     "word": "ten days",
+     "full": "I'm staying for ten days."
     }
    ],
    "check": [
     {
-     "q": "Qual o propósito da viagem?",
+     "q": "What's the purpose of the visit?",
      "opts": [
-      "Turismo",
-      "Negócios",
-      "Estudos"
+      "Tourism",
+      "Business",
+      "Study"
      ],
      "a": 0
     },
     {
-     "q": "Quanto tempo ele vai ficar?",
+     "q": "How long is he staying?",
      "opts": [
-      "Duas semanas",
-      "Uma semana",
-      "Dez dias"
+      "Two weeks",
+      "One week",
+      "Ten days"
      ],
      "a": 0
     },
     {
-     "q": "Onde ele vai ficar?",
+     "q": "Where is he staying?",
      "opts": [
-      "No Grand Hotel",
-      "Com amigos",
-      "Num Airbnb"
+      "At the Grand Hotel",
+      "With friends",
+      "At an Airbnb"
      ],
      "a": 0
     }
@@ -452,45 +442,43 @@
    ],
    "adapt": [
     {
-     "pt": "Peça para ir ao AEROPORTO.",
-     "en": "The airport, please.",
-     "alt": [
-      "To the airport, please."
-     ]
+     "base": "The Grand Hotel downtown, please.",
+     "blank": "The ____, please.",
+     "word": "airport",
+     "full": "The airport, please."
     },
     {
-     "pt": "Pergunte quanto TEMPO vai levar.",
-     "en": "How long will it take?",
-     "alt": [
-      "How long does it take?"
-     ]
+     "base": "The Grand Hotel downtown, please.",
+     "blank": "The ____, please.",
+     "word": "train station",
+     "full": "The train station, please."
     }
    ],
    "check": [
     {
-     "q": "Para onde o viajante vai?",
+     "q": "Where is he going?",
      "opts": [
-      "Grand Hotel",
-      "Aeroporto",
-      "Estação de trem"
+      "The Grand Hotel",
+      "The airport",
+      "The train station"
      ],
      "a": 0
     },
     {
-     "q": "Quanto custa a corrida, aproximadamente?",
+     "q": "How much is the ride?",
      "opts": [
-      "US$ 20–25",
-      "US$ 15",
-      "US$ 35"
+      "Around twenty dollars",
+      "Around twelve dollars",
+      "Around thirty-five dollars"
      ],
      "a": 0
     },
     {
-     "q": "O que pode deixar mais caro?",
+     "q": "What can make it more expensive?",
      "opts": [
-      "O trânsito",
-      "A hora",
-      "A bagagem"
+      "Traffic",
+      "The time",
+      "Luggage"
      ],
      "a": 0
     }
@@ -580,43 +568,39 @@
    ],
    "adapt": [
     {
-     "pt": "A reserva está no SEU nome. Responda.",
-     "en": "Yes, it's under your name.",
-     "alt": [
-      "It's under [seu nome]."
-     ],
-     "free": true
+     "base": "Yes, it's under Silva.",
+     "blank": "Yes, it's under ____.",
+     "word": "Costa",
+     "full": "Yes, it's under Costa."
     },
     {
-     "pt": "São TRÊS noites, não cinco. Corrija a recepcionista.",
-     "en": "Actually, it's three nights.",
-     "alt": [
-      "No, three nights.",
-      "It's for three nights."
-     ]
+     "base": "A queen room for five nights?",
+     "blank": "Actually, it's ____ nights.",
+     "word": "three",
+     "full": "Actually, it's three nights."
     }
    ],
    "check": [
     {
-     "q": "Qual é o número do quarto?",
+     "q": "What's the room number?",
      "opts": [
-      "304",
-      "403",
-      "204"
+      "Three zero four",
+      "Four zero three",
+      "Two zero four"
      ],
      "a": 0
     },
     {
-     "q": "Até que horas vai o café da manhã?",
+     "q": "Breakfast is until what time?",
      "opts": [
-      "10h",
-      "9h",
-      "11h"
+      "Ten",
+      "Nine",
+      "Eleven"
      ],
      "a": 0
     },
     {
-     "q": "Em que nome está a reserva?",
+     "q": "What name is the reservation under?",
      "opts": [
       "Silva",
       "Souza",
@@ -712,46 +696,43 @@
    ],
    "adapt": [
     {
-     "pt": "Peça uma MASSA para você e uma SALADA para ele.",
-     "en": "I'll have the pasta, and he will have the salad.",
-     "alt": [
-      "I'll have the pasta and he'll have the salad."
-     ]
+     "base": "I'll have the grilled chicken.",
+     "blank": "I'll have the ____.",
+     "word": "pasta",
+     "full": "I'll have the pasta."
     },
     {
-     "pt": "Peça um suco de laranja para beber.",
-     "en": "An orange juice, please.",
-     "alt": [
-      "Orange juice, please.",
-      "I'll have an orange juice."
-     ]
+     "base": "She will have the salmon.",
+     "blank": "She will have the ____.",
+     "word": "salad",
+     "full": "She will have the salad."
     }
    ],
    "check": [
     {
-     "q": "O que ELE pediu?",
+     "q": "What did HE order?",
      "opts": [
-      "Frango grelhado",
-      "Salmão",
-      "Massa"
+      "Grilled chicken",
+      "Salmon",
+      "Pasta"
      ],
      "a": 0
     },
     {
-     "q": "O que ELA vai comer?",
+     "q": "What will SHE have?",
      "opts": [
-      "Salmão",
-      "Frango",
-      "Salada"
+      "The salmon",
+      "The chicken",
+      "A salad"
      ],
      "a": 0
     },
     {
-     "q": "O que pediram para beber?",
+     "q": "What did they order to drink?",
      "opts": [
-      "Água",
-      "Refrigerante",
-      "Vinho"
+      "Just water",
+      "Soda",
+      "Wine"
      ],
      "a": 0
     }
@@ -821,46 +802,43 @@
    ],
    "adapt": [
     {
-     "pt": "Pergunte como chega à ESTAÇÃO DE TREM.",
-     "en": "How do I get to the train station?",
-     "alt": [
-      "Excuse me, how do I get to the train station?"
-     ]
+     "base": "How do I get to the subway?",
+     "blank": "How do I get to the ____?",
+     "word": "museum",
+     "full": "How do I get to the museum?"
     },
     {
-     "pt": "Alguém te agradeceu. Responda: de nada / disponha.",
-     "en": "Anytime!",
-     "alt": [
-      "You're welcome!",
-      "No problem!"
-     ]
+     "base": "How do I get to the subway?",
+     "blank": "How do I get to the ____?",
+     "word": "train station",
+     "full": "How do I get to the train station?"
     }
    ],
    "check": [
     {
-     "q": "Para onde ele quer ir?",
+     "q": "Where does he want to go?",
      "opts": [
-      "Ao metrô",
-      "Ao museu",
-      "Ao hotel"
+      "The subway",
+      "The museum",
+      "The hotel"
      ],
      "a": 0
     },
     {
-     "q": "Qual é o caminho?",
+     "q": "What's the way?",
      "opts": [
-      "Reto e à esquerda",
-      "Reto e à direita",
-      "Só virar à esquerda"
+      "Straight, then left",
+      "Straight, then right",
+      "Just turn left"
      ],
      "a": 0
     },
     {
-     "q": "Quanto tempo a pé?",
+     "q": "How far is it on foot?",
      "opts": [
-      "5 minutos",
-      "15 minutos",
-      "50 minutos"
+      "About five minutes",
+      "Fifteen minutes",
+      "Fifty minutes"
      ],
      "a": 0
     }
@@ -954,46 +932,43 @@
    ],
    "adapt": [
     {
-     "pt": "Você vai pagar em DINHEIRO. Responda.",
-     "en": "Cash, please.",
-     "alt": [
-      "I'll pay cash."
-     ]
+     "base": "Card, please.",
+     "blank": "____, please.",
+     "word": "Cash",
+     "full": "Cash, please."
     },
     {
-     "pt": "Você NÃO quer sacola. Responda educadamente.",
-     "en": "No, thanks.",
-     "alt": [
-      "No, thank you.",
-      "I'm fine, thanks."
-     ]
+     "base": "Yes, please.",
+     "blank": "____, thanks.",
+     "word": "No",
+     "full": "No, thanks."
     }
    ],
    "check": [
     {
-     "q": "Quanto ficou a compra?",
+     "q": "How much is it?",
      "opts": [
-      "US$ 12,50",
-      "US$ 12,15",
-      "US$ 2,50"
+      "Twelve fifty",
+      "Twelve fifteen",
+      "Two fifty"
      ],
      "a": 0
     },
     {
-     "q": "Como ele pagou?",
+     "q": "How does he pay?",
      "opts": [
-      "Cartão",
-      "Dinheiro",
-      "Pix"
+      "Card",
+      "Cash",
+      "Phone"
      ],
      "a": 0
     },
     {
-     "q": "O que o caixa entrega no final?",
+     "q": "What does he get at the end?",
      "opts": [
-      "O recibo",
-      "O troco",
-      "Um cupom"
+      "The receipt",
+      "The change",
+      "A coupon"
      ],
      "a": 0
     }
@@ -1076,43 +1051,43 @@
    ],
    "adapt": [
     {
-     "pt": "Pergunte se têm algo para DOR DE CABEÇA.",
-     "en": "Do you have something for a headache?",
-     "alt": []
+     "base": "Do you have something for a sore throat?",
+     "blank": "Do you have something for a ____?",
+     "word": "headache",
+     "full": "Do you have something for a headache?"
     },
     {
-     "pt": "Pergunte com que frequência deve tomar.",
-     "en": "How often do I take them?",
-     "alt": [
-      "How often should I take them?"
-     ]
+     "base": "Do you have something for a sore throat?",
+     "blank": "Do you have something for a ____?",
+     "word": "cough",
+     "full": "Do you have something for a cough?"
     }
    ],
    "check": [
     {
-     "q": "Qual é o problema do viajante?",
+     "q": "What's the problem?",
      "opts": [
-      "Dor de garganta",
-      "Dor de cabeça",
-      "Febre"
+      "A sore throat",
+      "A headache",
+      "A fever"
      ],
      "a": 0
     },
     {
-     "q": "De quanto em quanto tempo tomar?",
+     "q": "How often does she take them?",
      "opts": [
-      "A cada 3 horas",
-      "A cada 8 horas",
-      "2x ao dia"
+      "One every three hours",
+      "One every eight hours",
+      "Twice a day"
      ],
      "a": 0
     },
     {
-     "q": "O que a farmacêutica ofereceu?",
+     "q": "What did the pharmacist offer?",
      "opts": [
-      "Pastilhas",
-      "Xarope",
-      "Comprimidos"
+      "Lozenges",
+      "Syrup",
+      "Pills"
      ],
      "a": 0
     }
@@ -1206,43 +1181,43 @@
    ],
    "adapt": [
     {
-     "pt": "Sua MOCHILA não chegou. Reporte o problema.",
-     "en": "Excuse me, my backpack didn't arrive.",
-     "alt": []
+     "base": "My suitcase didn't arrive.",
+     "blank": "My ____ didn't arrive.",
+     "word": "backpack",
+     "full": "My backpack didn't arrive."
     },
     {
-     "pt": "Você estava no voo NOVE DOIS QUATRO. Responda.",
-     "en": "Flight nine two four.",
-     "alt": [
-      "Flight nine two four from São Paulo."
-     ]
+     "base": "Flight two one eight from São Paulo.",
+     "blank": "Flight ____ from São Paulo.",
+     "word": "nine two four",
+     "full": "Flight nine two four from São Paulo."
     }
    ],
    "check": [
     {
-     "q": "Qual era o voo?",
+     "q": "Which flight was she on?",
      "opts": [
-      "218",
-      "281",
-      "812"
+      "Two one eight",
+      "Two eight one",
+      "Eight one two"
      ],
      "a": 0
     },
     {
-     "q": "O que vão preencher?",
+     "q": "What do they fill out?",
      "opts": [
-      "Um relatório",
-      "Um formulário de visto",
-      "Uma reclamação online"
+      "A report",
+      "A visa form",
+      "A complaint"
      ],
      "a": 0
     },
     {
-     "q": "Quando a mala deve chegar?",
+     "q": "When do most bags arrive?",
      "opts": [
-      "Em até um dia",
-      "Em uma semana",
-      "Em três dias"
+      "Within a day",
+      "In a week",
+      "In three days"
      ],
      "a": 0
     }
@@ -1336,45 +1311,43 @@
    ],
    "adapt": [
     {
-     "pt": "Peça uma ÁGUA COM gelo.",
-     "en": "Water with ice, please.",
-     "alt": [
-      "Could I have water with ice?"
-     ]
+     "base": "Yes, orange juice, please.",
+     "blank": "Yes, ____, please.",
+     "word": "apple juice",
+     "full": "Yes, apple juice, please."
     },
     {
-     "pt": "Peça FONES DE OUVIDO.",
-     "en": "Could I have headphones?",
-     "alt": [
-      "Could I have some headphones, please?"
-     ]
+     "base": "Could I have a blanket?",
+     "blank": "Could I have a ____?",
+     "word": "pillow",
+     "full": "Could I have a pillow?"
     }
    ],
    "check": [
     {
-     "q": "O que ele pediu para beber?",
+     "q": "What does he drink?",
      "opts": [
-      "Suco de laranja",
-      "Água",
-      "Coca"
+      "Orange juice",
+      "Water",
+      "Coke"
      ],
      "a": 0
     },
     {
-     "q": "Ele quis gelo?",
+     "q": "Does he want ice?",
      "opts": [
-      "Não",
-      "Sim",
-      "Não disse"
+      "No ice",
+      "With ice",
+      "He didn't say"
      ],
      "a": 0
     },
     {
-     "q": "O que mais ele pediu?",
+     "q": "What else does he ask for?",
      "opts": [
-      "Uma manta",
-      "Um travesseiro",
-      "Fones"
+      "A blanket",
+      "A pillow",
+      "Headphones"
      ],
      "a": 0
     }
@@ -1451,43 +1424,43 @@
    ],
    "adapt": [
     {
-     "pt": "Você está no grupo CINCO. Pergunte se já embarcou.",
-     "en": "Has group five boarded yet?",
-     "alt": []
+     "base": "Has group three boarded yet?",
+     "blank": "Has group ____ boarded yet?",
+     "word": "five",
+     "full": "Has group five boarded yet?"
     },
     {
-     "pt": "Entregue os documentos dizendo: aqui está.",
-     "en": "Here you go.",
-     "alt": [
-      "Here you are."
-     ]
+     "base": "Has group three boarded yet?",
+     "blank": "Has group ____ boarded yet?",
+     "word": "two",
+     "full": "Has group two boarded yet?"
     }
    ],
    "check": [
     {
-     "q": "Em qual grupo ele está?",
+     "q": "Which group is he in?",
      "opts": [
-      "Três",
-      "Cinco",
-      "Dois"
+      "Group three",
+      "Group five",
+      "Group two"
      ],
      "a": 0
     },
     {
-     "q": "O grupo dele já embarcou?",
+     "q": "Has his group boarded?",
      "opts": [
-      "Está começando agora",
-      "Já terminou",
-      "Ainda não foi chamado"
+      "It's just starting",
+      "It already finished",
+      "It wasn't called yet"
      ],
      "a": 0
     },
     {
-     "q": "O que a agente pediu?",
+     "q": "What does the agent ask for?",
      "opts": [
-      "Cartão de embarque e passaporte",
-      "Só o passaporte",
-      "Visto e passaporte"
+      "Boarding pass and passport",
+      "Only the passport",
+      "Visa and passport"
      ],
      "a": 0
     }
@@ -1577,43 +1550,43 @@
    ],
    "adapt": [
     {
-     "pt": "No Starbucks, o tamanho médio se chama GRANDE. Peça um latte médio 'à moda Starbucks'.",
-     "en": "A grande latte, please.",
-     "alt": []
+     "base": "A medium latte, please.",
+     "blank": "A ____ latte, please.",
+     "word": "large",
+     "full": "A large latte, please."
     },
     {
-     "pt": "Você vai tomar AQUI. Responda.",
-     "en": "For here, please.",
-     "alt": [
-      "For here."
-     ]
+     "base": "A medium latte, please.",
+     "blank": "A medium ____, please.",
+     "word": "cappuccino",
+     "full": "A medium cappuccino, please."
     }
    ],
    "check": [
     {
-     "q": "O que ela pediu?",
+     "q": "What does she order?",
      "opts": [
-      "Um latte médio",
-      "Um cappuccino",
-      "Um chá"
+      "A medium latte",
+      "A cappuccino",
+      "A tea"
      ],
      "a": 0
     },
     {
-     "q": "Para aqui ou para levar?",
+     "q": "For here or to go?",
      "opts": [
-      "Para levar",
-      "Para aqui",
-      "Não disse"
+      "To go",
+      "For here",
+      "She didn't say"
      ],
      "a": 0
     },
     {
-     "q": "Quanto ficou?",
+     "q": "How much is it?",
      "opts": [
-      "US$ 4,75",
-      "US$ 4,15",
-      "US$ 5,75"
+      "Four seventy-five",
+      "Four fifteen",
+      "Five seventy"
      ],
      "a": 0
     }
@@ -1700,43 +1673,43 @@
    ],
    "adapt": [
     {
-     "pt": "O CHUVEIRO não está funcionando. Reporte.",
-     "en": "The shower isn't working.",
-     "alt": [
-      "Excuse me, the shower isn't working."
-     ]
+     "base": "The air conditioning isn't working.",
+     "blank": "The ____ isn't working.",
+     "word": "shower",
+     "full": "The shower isn't working."
     },
     {
-     "pt": "A TV não está funcionando. Reporte.",
-     "en": "The TV isn't working.",
-     "alt": []
+     "base": "The air conditioning isn't working.",
+     "blank": "The ____ isn't working.",
+     "word": "TV",
+     "full": "The TV isn't working."
     }
    ],
    "check": [
     {
-     "q": "O que ele pergunta primeiro?",
+     "q": "What does he ask first?",
      "opts": [
-      "A senha do wifi",
-      "O horário do café",
-      "O número do quarto"
+      "The wifi password",
+      "Breakfast time",
+      "The room number"
      ],
      "a": 0
     },
     {
-     "q": "O que não está funcionando?",
+     "q": "What isn't working?",
      "opts": [
-      "O ar-condicionado",
-      "O chuveiro",
-      "A TV"
+      "The air conditioning",
+      "The shower",
+      "The TV"
      ],
      "a": 0
     },
     {
-     "q": "Qual é o quarto dele? (o mesmo do check-in!)",
+     "q": "What's his room number?",
      "opts": [
-      "304",
-      "305",
-      "204"
+      "Three zero four",
+      "Three zero five",
+      "Two zero four"
      ],
      "a": 0
     }
@@ -1817,45 +1790,43 @@
    ],
    "adapt": [
     {
-     "pt": "⭐ Nos EUA a gorjeta quase nunca está incluída. Pergunte se o serviço está incluído.",
-     "en": "Is service included?",
-     "alt": [
-      "Is the tip included?"
-     ]
+     "base": "Together, please.",
+     "blank": "____, please.",
+     "word": "Separate",
+     "full": "Separate, please."
     },
     {
-     "pt": "Vocês vão pagar SEPARADO. Responda.",
-     "en": "Separate, please.",
-     "alt": [
-      "Separately, please."
-     ]
+     "base": "Could we have the check, please?",
+     "blank": "Could we have the ____, please?",
+     "word": "menu",
+     "full": "Could we have the menu, please?"
     }
    ],
    "check": [
     {
-     "q": "Quanto deu a conta?",
+     "q": "How much is the check?",
      "opts": [
-      "US$ 32,50",
-      "US$ 32,15",
-      "US$ 22,50"
+      "Thirty-two fifty",
+      "Thirty-two fifteen",
+      "Twenty-two fifty"
      ],
      "a": 0
     },
     {
-     "q": "Como vão pagar?",
+     "q": "How do they pay?",
      "opts": [
-      "Junto",
-      "Separado",
-      "Metade cada"
+      "Together",
+      "Separate",
+      "Half and half"
      ],
      "a": 0
     },
     {
-     "q": "Nos EUA, a gorjeta normalmente…",
+     "q": "In the US, the tip is usually…",
      "opts": [
-      "NÃO está incluída na conta",
-      "Já vem incluída",
-      "É proibida"
+      "Not included",
+      "Always included",
+      "Forbidden"
      ],
      "a": 0
     }
@@ -1949,41 +1920,43 @@
    ],
    "adapt": [
     {
-     "pt": "Compre UM adulto e UMA criança.",
-     "en": "One adult and one child, please.",
-     "alt": []
+     "base": "Two adults, please.",
+     "blank": "Two ____, please.",
+     "word": "students",
+     "full": "Two students, please."
     },
     {
-     "pt": "Pergunte que horas eles ABREM.",
-     "en": "What time do you open?",
-     "alt": []
+     "base": "What time do you close?",
+     "blank": "What time do you ____?",
+     "word": "open",
+     "full": "What time do you open?"
     }
    ],
    "check": [
     {
-     "q": "Quanto custam os ingressos?",
+     "q": "How much are the tickets?",
      "opts": [
-      "US$ 24",
-      "US$ 20",
-      "US$ 34"
+      "Twenty-four dollars",
+      "Twenty dollars",
+      "Thirty-four dollars"
      ],
      "a": 0
     },
     {
-     "q": "Qual é o desconto de estudante?",
+     "q": "What's the student discount?",
      "opts": [
-      "10%",
-      "15%",
-      "25%"
+      "Ten percent",
+      "Fifteen percent",
+      "Twenty-five percent"
      ],
      "a": 0
     },
     {
-     "q": "Que horas fecha?",
+     "q": "What time do they close?",
      "opts": [
-      "18h",
-      "16h",
-      "20h"
+      "Six o'clock",
+      "Seven o'clock",
+      "Five o'clock"
      ],
      "a": 0
     }
@@ -2086,45 +2059,43 @@
    ],
    "adapt": [
     {
-     "pt": "Peça um combo de FRANGO, tamanho GRANDE.",
-     "en": "A chicken combo, large, please.",
-     "alt": [
-      "A large chicken combo, please."
-     ]
+     "base": "A cheeseburger combo, please.",
+     "blank": "A ____ combo, please.",
+     "word": "chicken",
+     "full": "A chicken combo, please."
     },
     {
-     "pt": "Peça uma coca COM gelo.",
-     "en": "A coke with ice, please.",
-     "alt": [
-      "And a coke with ice."
-     ]
+     "base": "Medium. And a coke, no ice.",
+     "blank": "____. And a coke, no ice.",
+     "word": "Large",
+     "full": "Large. And a coke, no ice."
     }
    ],
    "check": [
     {
-     "q": "O que ele pediu?",
+     "q": "What does he order?",
      "opts": [
-      "Combo de cheeseburger",
-      "Combo de frango",
-      "Só batata"
+      "A cheeseburger combo",
+      "A chicken combo",
+      "Just fries"
      ],
      "a": 0
     },
     {
-     "q": "Qual tamanho?",
+     "q": "What size?",
      "opts": [
-      "Médio",
-      "Grande",
-      "Pequeno"
+      "Medium",
+      "Large",
+      "Small"
      ],
      "a": 0
     },
     {
-     "q": "Quanto ficou?",
+     "q": "How much is it?",
      "opts": [
-      "US$ 9,80",
-      "US$ 9,18",
-      "US$ 8,90"
+      "Nine eighty",
+      "Nine eighteen",
+      "Eight ninety"
      ],
      "a": 0
     }
