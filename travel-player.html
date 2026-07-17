@@ -253,13 +253,23 @@ function rLine(L,i){st.tag=T.tagLine+' · '+(i+1)+'/'+SCN.lines.length;
  function score(s){const colored=colorWords(L.en);if(s>=PASS){chime();frame(T.gotit,'grn','<div class="sent">'+colored+'</div>','',null,I.check,'c-green',()=>{},'',null);setTimeout(adv,1000);}else{tries++;if(tries>=MAXTRY){frame(T.effort,'amb','<div class="sent">'+colored+'</div>','',null,I.arrow,'c-black',adv,'',null);}else{frame(T.almost,'amb','<div class="sent">'+colored+'</div>',I.rot+T.hear,()=>doHear(),I.mic,'c-black',speak,I.arrow+T.cont,adv);}}}
  listen();}
 /* vocabulário */
+function vocabAudio(W){
+ try{var a=new Audio(TRAVEL.vocab_base+W.img.replace('.jpg','.mp3'));
+  a.onerror=function(){tts(W.en);};a.play().catch(function(){tts(W.en);});}
+ catch(e){tts(W.en);}}
 function rVocab(W,i){st.tag='VOCABULÁRIO · '+(i+1)+'/'+SCN.vocab.length;
- var nx=SCN.vocab[i+1]; if(nx){var pf=new Image();pf.src=TRAVEL.vocab_base+nx.img;}
- const body='<img src="'+TRAVEL.vocab_base+W.img+'" alt="" style="width:100%;max-width:250px;aspect-ratio:1;object-fit:cover;border-radius:14px;display:block;margin:0 auto" onerror="this.style.display=\'none\'">'+
+ var nx=SCN.vocab[i+1]; if(nx){var pf=new Image();pf.src=TRAVEL.vocab_base+nx.img;
+  var pa=new Audio();pa.preload='auto';pa.src=TRAVEL.vocab_base+nx.img.replace('.jpg','.mp3');}
+ const body='<img src="'+TRAVEL.vocab_base+W.img+'" alt="" style="width:100%;max-width:230px;aspect-ratio:1;object-fit:cover;border-radius:14px;display:block;margin:0 auto" onerror="this.style.display=\'none\'">'+
   '<div class="sent" style="margin-top:12px">'+W.en+'</div>'+
   '<div style="font-size:14px;color:#8a8073;margin-top:2px">'+W.pt+'</div>';
- frame('Ouça e memorize','gold',body,I.rot+'',()=>tts(W.en),I.arrow,'c-green',adv,'',null);
- setTimeout(()=>tts(W.en),350);}
+ function speak(){recBegin(W.en,score);frame(T.listening,'red',body,'',null,I.stop,'c-red',submit,'',null);}
+ function submit(){frame(T.checking,'gry',body,'',null,'<span class="spin"></span>','c-busy',()=>{},'',null);recSubmit();}
+ function score(s){if(s>=PASS){chime();frame(T.gotit,'grn',body,'',null,I.check,'c-green',()=>{},'',null);setTimeout(adv,900);}
+  else{tries++;if(tries>=2){frame(T.effort,'amb',body,'',null,I.arrow,'c-black',adv,'',null);}
+  else{frame(T.almost,'amb',body,I.rot+T.hear,()=>vocabAudio(W),I.mic,'c-black',speak,I.arrow+T.cont,adv);}}}
+ frame('Ouça e repita','gold',body,I.rot+T.hear,()=>vocabAudio(W),I.mic,'c-black',speak,I.arrow+T.skip,adv);
+ setTimeout(()=>vocabAudio(W),350);}
 /* frase-chave */
 function rKey(K){st.tag='FRASE-CHAVE';
  const L=SCN.lines[K.li], target=K.say||L.en;
