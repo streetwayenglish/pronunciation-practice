@@ -296,7 +296,7 @@ function rKey(K){st.tag='FRASE-CHAVE';
   '<div style="background:#FAF6EA;border-left:3px solid #E6B31E;padding:9px 12px;margin-top:12px;text-align:left"><span style="font-size:13px;color:#5F5E5A;line-height:1.55">'+K.insight+'</span></div>'+
   ((K.variants&&K.variants.length)?'<div style="font-size:10px;font-weight:700;letter-spacing:.14em;color:#9a9a96;margin-top:12px">'+varLabel+'</div>'+K.variants.map(v=>'<div style="font-size:14px;color:#444441;font-style:italic;margin-top:3px">'+v+'</div>').join(''):'');
  if(K.kind==='hear'){
-  frame('Ouça de novo','gold',body,I.rot+T.hear,()=>playSeg(SCN.file,L,null),I.arrow+T.cont,'c-green',adv,'',null);
+  frame('Ouça de novo','gold',body,I.rot+T.hear,()=>playSeg(SCN.file,L,null),I.arrow,'c-green',adv,'',null);
   playSeg(SCN.file,L,null);
   } else {
   function speak(){recBegin(target,score);frame(T.listening,'red',body,'',null,I.stop,'c-red',submit,'',null);}
@@ -396,7 +396,7 @@ if(REV){showCover(false);showSheet(false);runReview();}
 else{buildSteps();si=0;
  vid.pause();showSheet(false);showCover(false);tag('');
  hero.className='hero-ov show atbottom';
- hero.innerHTML='<div class="hscrim"></div><div class="hbody" style="padding-bottom:9.5vh"><div><div class="hero-eye">Situações de Viagem · '+String(SCN.n).padStart(2,'0')+'</div><div class="hero-title" style="margin-top:6px">'+SCN.title+'</div></div><button class="hero-btn" id="hgo">Começar →</button></div>';
+ hero.innerHTML='<div class="hscrim"></div><div class="hbody" style="padding-bottom:1.5vh"><div><div class="hero-eye">Situações de Viagem · '+String(SCN.n).padStart(2,'0')+'</div><div class="hero-title" style="margin-top:6px">'+SCN.title+'</div></div><button class="hero-btn" id="hgo">Começar →</button></div>';
  $('hgo').onclick=()=>{hero.className='hero-ov';render();};
  showThumbT();
  (SCN.vocab||[]).forEach(function(w){var im=new Image();im.src=TRAVEL.vocab_base+w.img;
