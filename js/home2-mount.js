@@ -1071,8 +1071,7 @@ function _summariesLibrary(cfg){
   }
 
   // ── Book list ──
-  function prefetchPosters(){try{(D.scenes||[]).forEach(function(s){var im=new Image();im.src=D.video_base+s.file.replace('.mp4','.jpg');});}catch(e){}}
-  function openList(){prefetchPosters();
+  function openList(){
     load(function(){
       var sc=screen(cfg.idPrefix+'ListScreen');
       sc.appendChild(header(cfg.listTitle, function(){ sc.remove(); }));
@@ -1482,6 +1481,23 @@ _summariesLibrary({
   meta:function(b, esc){ return esc(b.pt)+' \u00b7 '+esc(b.t); }
 });
 
+/* ── Livros para Ser Contratado (Job Interview) ──────────────────────────── */
+_summariesLibrary({
+  pathSlug:'job-interview',
+  cardClass:'job-sum-card',
+  cardTitle:'Livros para Ser Contratado',
+  cardSub:'10 best-sellers essenciais sobre entrevistas de emprego, resumidos em \u00e1udio.',
+  dataUrl:'job-summaries.json',
+  idPrefix:'jobbooks',
+  listTitle:'Livros para Ser Contratado',
+  store:'jobbooks',
+  accent:'#E8963C',
+  hl:'rgba(232,150,60,.10)',
+  chipWord:'#f0b269',
+  groups:function(books){ return [{label:'', books:books}]; },
+  meta:function(b, esc){ return esc(b.pt)+' \u00b7 '+esc(b.a); }
+});
+
 
 /* ═══════════ Situações de Viagem — lista + player (arquitetura beginner) ═══
    A lista vive aqui; o fluxo roda em travel-player.html (clone exato da
@@ -1526,20 +1542,23 @@ _summariesLibrary({
     var ds=document.querySelector('#h2root .detail-screen[data-path="travel-english"]'); if(!ds) return;
     if(ds.querySelector('.travel-sit-card')) return;
     var pc=ds.querySelector('.path-card'); if(!pc) return;
-    var dom=0; try{var p=prog();Object.keys(p).forEach(function(k){if((p[k].dom||[]).length>=2)dom++;});}catch(e){}
+    var p=prog(), prat=0; Object.keys(p).forEach(function(k){ if(p[k].prat) prat++; });
+    var doneAll=(prat>=17);
     var card=document.createElement('div');
     card.className='travel-sit-card';
     card.style.cssText='margin:14px 16px 2px;';
     card.innerHTML=
-      '<div style="background:#F7F3E8;border:2px solid #E8963C;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;">'+
-        '<div style="width:40px;height:40px;border-radius:10px;background:#FAEEDA;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+
-          '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#854F0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>'+
+      '<div style="background:#fff;border-radius:18px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;box-shadow:0 1px 0 rgba(0,0,0,.03);">'+
+        '<div style="width:44px;height:44px;border-radius:50%;background:#E6B31E;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+
+          '<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>'+
         '</div>'+
         '<div style="flex:1;min-width:0;">'+
-          '<p style="margin:0;font-size:14px;font-weight:600;color:#2C2C2A;">Situa\u00e7\u00f5es de Viagem</p>'+
-          '<p style="margin:2px 0 0;font-size:12px;color:#5F5E5A;line-height:1.4;">17 v\u00eddeos reais \u2014 assista, repita e domine cada situa\u00e7\u00e3o.'+(dom?' \u00b7 '+dom+'/17 dominadas':'')+'</p>'+
+          '<p style="margin:0;font-size:17px;font-weight:800;color:#2C2C2A;">Situa\u00e7\u00f5es de Viagem</p>'+
+          '<p style="margin:2px 0 0;font-size:13px;color:#8a8073;">17 v\u00eddeos reais \u2014 assista e repita</p>'+
         '</div>'+
-        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888780" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>'+
+        (doneAll?'':'<span style="font-size:12px;font-weight:800;letter-spacing:.06em;color:#C08A12;">NOW</span>')+
+        '<span style="font-size:14px;font-weight:800;color:'+(doneAll?'#5BA84D':'#C08A12')+';">'+prat+'/17</span>'+
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9C2AF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>'+
       '</div>';
     card.firstChild.addEventListener('click', function(){ load(openList); });
     pc.insertAdjacentElement('afterend', card);
@@ -1550,6 +1569,7 @@ _summariesLibrary({
   var GROUPS=[['NO AEROPORTO',[1,2,12,11,3,10]],['PELA CIDADE',[4,7,8,16,9]],['NO HOTEL',[5,14]],['COMIDA & CAF\u00c9',[6,15,13,17]]];
   function openList(){
     if(!DATA) return;
+    try{DATA.scenes.forEach(function(s){var im=new Image();im.src=DATA.video_base+s.file.replace('.mp4','.jpg');});}catch(e){}
     var old=document.getElementById('travelListScreen'); if(old) old.remove();
     var sc=document.createElement('div');
     sc.id='travelListScreen';
