@@ -1060,15 +1060,18 @@ function _summariesLibrary(cfg){
       '</div>';
     card.firstChild.addEventListener('click', openList);
     pc.insertAdjacentElement('afterend', card);
-    setTimeout(function(){
-      var h2=sampleHero();
-      if(h2 && h2!==hero){
-        var box=card.firstChild;
-        box.style.borderColor=h2;
-        var tile=box.firstChild; tile.style.background='color-mix(in srgb, '+h2+' 13%, #fff)';
-        var ic=tile.querySelector('svg'); if(ic) ic.setAttribute('stroke',h2);
-      }
-    },450);
+    function applyHero(h2){
+      var box=card.firstChild;
+      box.style.borderColor=h2;
+      var tile=box.firstChild; tile.style.background='color-mix(in srgb, '+h2+' 13%, #fff)';
+      var ic=tile.querySelector('svg'); if(ic) ic.setAttribute('stroke',h2);
+    }
+    [450,1200,2600].forEach(function(ms){
+      setTimeout(function(){
+        var h2=sampleHero();
+        if(h2 && h2!==hero){ hero=h2; applyHero(h2); }
+      },ms);
+    });
   }
 
   function load(cb){
@@ -1110,7 +1113,7 @@ function _summariesLibrary(cfg){
             '<div style="width:26px;font-size:12px;font-weight:700;color:#c2b49a;font-variant-numeric:tabular-nums;flex-shrink:0;">'+b.n+'</div>'+
             '<div style="flex:1;min-width:0;">'+
               '<div style="font-size:15px;font-weight:600;color:#0a0a0a;">'+esc(b.en)+'</div>'+
-              '<div style="font-size:12px;color:#8a8073;margin-top:1px;">'+esc(b.pt)+'</div>'+
+              '<div style="font-size:12px;color:#8a8073;margin-top:1px;">'+esc(b.pt)+(b.lvl?' \u00b7 '+({A1:'Beginner',A2:'Beginner',B1:'Intermediate',B2:'Intermediate',C1:'Advanced'}[b.lvl]||''):'')+'</div>'+
             '</div>'+
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c9c3b5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>';
           row.addEventListener('click', function(){ openBook(b); });
