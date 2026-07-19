@@ -1604,7 +1604,7 @@ _summariesLibrary({
     card.style.cssText='margin:20px 16px 22px;';
     card.innerHTML=
       '<div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:#A89F84;margin:2px 4px 8px;">COMECE POR AQUI</div>'+
-      '<div style="background:#fff;border:1px solid #ece6d8;border-radius:18px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;box-shadow:0 1px 0 rgba(0,0,0,.03);">'+
+      '<div style="background:#fff;border:1.5px solid #e7dfca;border-radius:18px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;box-shadow:0 6px 16px -6px rgba(0,0,0,.10);">'+
 '<div style="width:42px;height:42px;border-radius:50%;background:#E6B31E;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+
           '<span id="tvPlane" style="font-size:40px;width:1em;height:1em;line-height:1em;text-align:center;color:#fff;display:block;">\u2708\uFE0E</span>'+
         '</div>'+
