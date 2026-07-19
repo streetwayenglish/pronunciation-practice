@@ -1544,16 +1544,16 @@ _summariesLibrary({
     var pc=ds.querySelector('.path-card'); if(!pc) return;
     var card=document.createElement('div');
     card.className='travel-sit-card';
-    card.style.cssText='margin:14px 16px 2px;';
+    card.style.cssText='margin:14px 16px 22px;';
     card.innerHTML=
       '<div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:#A89F84;margin:2px 4px 8px;">COMECE POR AQUI</div>'+
       '<div style="background:#fff;border-radius:18px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;box-shadow:0 1px 0 rgba(0,0,0,.03);">'+
-        '<div style="width:44px;height:44px;border-radius:50%;background:#E6B31E;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+
-          '<span style="font-size:22px;line-height:1;color:#fff;transform:translateY(-1px);">\u2708\uFE0E</span>'+
+        '<div style="width:42px;height:42px;border-radius:50%;background:#E6B31E;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+
+          '<svg width="30" height="27" viewBox="0 0 576 512" fill="#fff" style="display:block;"><path d="M482.3 192c34.2 0 93.7 29 93.7 64c0 36-59.5 64-93.7 64l-116.6 0L265.2 495.9c-5.7 10-16.3 16.1-27.8 16.1l-56.2 0c-10.6 0-18.3-10.2-15.4-20.4l49-171.6L112 320 68.8 377.6c-3 4-7.8 6.4-12.8 6.4l-42 0c-7.8 0-14-6.3-14-14c0-1.3 .2-2.6 .5-3.9L32 256 .5 145.9c-.4-1.3-.5-2.6-.5-3.9c0-7.8 6.3-14 14-14l42 0c5 0 9.8 2.4 12.8 6.4L112 192l102.9 0-49-171.6C162.9 10.2 170.6 0 181.2 0l56.2 0c11.5 0 22.1 6.2 27.8 16.1L381.7 192l100.6 0z"/></svg>'+
         '</div>'+
         '<div style="flex:1;min-width:0;">'+
           '<p style="margin:0;font-size:17px;font-weight:800;color:#2C2C2A;">Viagem na Pr\u00e1tica</p>'+
-          '<p style="margin:2px 0 0;font-size:13px;color:#8a8073;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Assista e pratique situa\u00e7\u00f5es reais da sua viagem.</p>'+
+          '<p style="margin:2px 0 0;font-size:13px;color:#8a8073;line-height:1.35;">Assista e pratique situa\u00e7\u00f5es reais da sua viagem.</p>'+
         '</div>'+
         '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9C2AF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>'+
       '</div>';
