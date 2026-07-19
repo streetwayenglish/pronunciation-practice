@@ -1561,7 +1561,7 @@ _summariesLibrary({
       '<div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:#A89F84;margin:2px 4px 8px;">COMECE POR AQUI</div>'+
       '<div style="background:#fff;border-radius:18px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;box-shadow:0 1px 0 rgba(0,0,0,.03);">'+
 '<div style="width:42px;height:42px;border-radius:50%;background:#E6B31E;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+
-          '<span style="font-size:40px;width:1em;height:1em;line-height:1em;text-align:center;color:#fff;display:block;">\u2708\uFE0E</span>'+
+          '<svg width="30" height="30" viewBox="0 0 24 24" fill="#fff" style="display:block;transform:rotate(45deg);"><path d="M21 16v-2l-8-5V3.5C13 2.67 12.33 2 11.5 2S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>'+
         '</div>'+
         '<div style="flex:1;min-width:0;">'+
           '<p style="margin:0;font-size:17px;font-weight:800;color:#2C2C2A;">Viagem na Pr\u00e1tica</p>'+
