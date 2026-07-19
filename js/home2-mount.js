@@ -1029,18 +1029,22 @@ function _summariesLibrary(cfg){
     var ds=document.querySelector('#h2root .detail-screen[data-path="'+cfg.pathSlug+'"]'); if(!ds) return;
     if(ds.querySelector('.'+cfg.cardClass)) return;
     var pc=ds.querySelector('.path-card'); if(!pc) return;
-    var hero='#E8963C';
-    try{
-      var cands=[pc].concat(Array.prototype.slice.call(pc.querySelectorAll('*'),0,20));
-      for(var ci=0;ci<cands.length;ci++){
-        var cs=getComputedStyle(cands[ci]);
-        var bg=cs.backgroundColor;
-        if(bg && bg!=='rgba(0, 0, 0, 0)' && bg!=='transparent'){ hero=bg; break; }
-        var bi=cs.backgroundImage||'';
-        var m=bi.match(/rgba?\([^)]+\)|#[0-9a-fA-F]{3,8}/);
-        if(m){ hero=m[0]; break; }
-      }
-    }catch(e){}
+    function sampleHero(){
+      var h='';
+      try{
+        var cands=[pc].concat(Array.prototype.slice.call(pc.querySelectorAll('*'),0,20));
+        for(var ci=0;ci<cands.length;ci++){
+          var cs=getComputedStyle(cands[ci]);
+          var bg=cs.backgroundColor;
+          if(bg && bg!=='rgba(0, 0, 0, 0)' && bg!=='transparent'){ h=bg; break; }
+          var bi=cs.backgroundImage||'';
+          var m=bi.match(/rgba?\([^)]+\)|#[0-9a-fA-F]{3,8}/);
+          if(m){ h=m[0]; break; }
+        }
+      }catch(e){}
+      return h;
+    }
+    var hero=sampleHero()||'#E8963C';
     var card=el('div','margin:14px 16px 22px;');
     card.className=cfg.cardClass;
     card.innerHTML=
@@ -1056,6 +1060,15 @@ function _summariesLibrary(cfg){
       '</div>';
     card.firstChild.addEventListener('click', openList);
     pc.insertAdjacentElement('afterend', card);
+    setTimeout(function(){
+      var h2=sampleHero();
+      if(h2 && h2!==hero){
+        var box=card.firstChild;
+        box.style.borderColor=h2;
+        var tile=box.firstChild; tile.style.background='color-mix(in srgb, '+h2+' 13%, #fff)';
+        var ic=tile.querySelector('svg'); if(ic) ic.setAttribute('stroke',h2);
+      }
+    },450);
   }
 
   function load(cb){
@@ -1592,8 +1605,8 @@ _summariesLibrary({
           if(Math.abs(d[mid]-d[mid+1])>40||Math.abs(d[mid+1]-d[mid+2])>40) return;
           var oc=document.createElement('canvas'); oc.width=w; oc.height=h;
           oc.getContext('2d').drawImage(cv,x0,y0,w,h,0,0,w,h);
-          var target=29; // approved visual size (px of the plane's larger side)
-          var dw,dh; if(w>=h){dw=target;dh=Math.round(h/w*target);}else{dh=target;dw=Math.round(w/h*target);}
+          var scale=36/S; // natural 40px-font size reduced 10% per Lucas
+          var dw=Math.round(w*scale*10)/10, dh=Math.round(h*scale*10)/10;
           var img=new Image();
           img.onload=function(){ img.style.cssText='display:block;width:'+dw+'px;height:'+dh+'px;'; sp.replaceWith(img); };
           img.src=oc.toDataURL('image/png');
