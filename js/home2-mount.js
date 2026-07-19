@@ -1605,7 +1605,7 @@ _summariesLibrary({
           if(Math.abs(d[mid]-d[mid+1])>40||Math.abs(d[mid+1]-d[mid+2])>40) return;
           var oc=document.createElement('canvas'); oc.width=w; oc.height=h;
           oc.getContext('2d').drawImage(cv,x0,y0,w,h,0,0,w,h);
-          var scale=36/S; // natural 40px-font size reduced 10% per Lucas
+          var scale=38.9/S; // 36px +8% per Lucas
           var dw=Math.round(w*scale*10)/10, dh=Math.round(h*scale*10)/10;
           var img=new Image();
           img.onload=function(){ img.style.cssText='display:block;width:'+dw+'px;height:'+dh+'px;'; sp.replaceWith(img); };
