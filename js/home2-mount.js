@@ -1561,7 +1561,7 @@ _summariesLibrary({
       '<div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:#A89F84;margin:2px 4px 8px;">COMECE POR AQUI</div>'+
       '<div style="background:#fff;border-radius:18px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;box-shadow:0 1px 0 rgba(0,0,0,.03);">'+
 '<div style="width:42px;height:42px;border-radius:50%;background:#E6B31E;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+
-          '<svg width="30" height="30" viewBox="0 0 24 24" fill="#fff" style="display:block;transform:rotate(45deg);"><path d="M21 16v-2l-8-5V3.5C13 2.67 12.33 2 11.5 2S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>'+
+          '<span id="tvPlane" style="font-size:40px;width:1em;height:1em;line-height:1em;text-align:center;color:#fff;display:block;">\u2708\uFE0E</span>'+
         '</div>'+
         '<div style="flex:1;min-width:0;">'+
           '<p style="margin:0;font-size:17px;font-weight:800;color:#2C2C2A;">Viagem na Pr\u00e1tica</p>'+
@@ -1569,6 +1569,38 @@ _summariesLibrary({
         '</div>'+
         '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9C2AF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>'+
       '</div>';
+    (function(){
+      var sp=card.querySelector('#tvPlane'); if(!sp) return;
+      function upgrade(){
+        try{
+          var S=160, cv=document.createElement('canvas'); cv.width=S*2; cv.height=S*2;
+          var cx=cv.getContext('2d');
+          cx.fillStyle='#ffffff';
+          cx.font=S+'px '+getComputedStyle(sp).fontFamily;
+          cx.textAlign='center'; cx.textBaseline='middle';
+          cx.fillText('\u2708\uFE0E', S, S);
+          var im=cx.getImageData(0,0,S*2,S*2), d=im.data;
+          var x0=S*2,x1=-1,y0=S*2,y1=-1;
+          for(var y=0;y<S*2;y++)for(var x=0;x<S*2;x++){
+            if(d[(y*S*2+x)*4+3]>16){ if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y; }
+          }
+          if(x1<0) return;
+          var w=x1-x0+1, h=y1-y0+1;
+          if(w<S*0.3||w>S*1.4||h<S*0.3||h>S*1.4) return;
+          // must be monochrome white (text presentation), not color emoji
+          var mid=(((y0+y1)>>1)*S*2+((x0+x1)>>1))*4;
+          if(Math.abs(d[mid]-d[mid+1])>40||Math.abs(d[mid+1]-d[mid+2])>40) return;
+          var oc=document.createElement('canvas'); oc.width=w; oc.height=h;
+          oc.getContext('2d').drawImage(cv,x0,y0,w,h,0,0,w,h);
+          var target=29; // approved visual size (px of the plane's larger side)
+          var dw,dh; if(w>=h){dw=target;dh=Math.round(h/w*target);}else{dh=target;dw=Math.round(w/h*target);}
+          var img=new Image();
+          img.onload=function(){ img.style.cssText='display:block;width:'+dw+'px;height:'+dh+'px;'; sp.replaceWith(img); };
+          img.src=oc.toDataURL('image/png');
+        }catch(e){}
+      }
+      if(document.fonts&&document.fonts.ready){ document.fonts.ready.then(upgrade); } else { upgrade(); }
+    })();
     card.lastChild.addEventListener('click', function(){ load(openList); });
     pc.insertAdjacentElement('afterend', card);
   }
