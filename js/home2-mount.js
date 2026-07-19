@@ -1523,6 +1523,34 @@ _summariesLibrary({
   meta:function(b, esc){ return esc(b.pt)+' \u00b7 '+esc(b.a); }
 });
 
+/* ── English Book Club (Conversation) ──────────────────────────────────── */
+_summariesLibrary({
+  pathSlug:'conversation',
+  cardClass:'conv-sum-card',
+  cardTitle:'English Book Club',
+  cardSub:'Cl\u00e1ssicos e best-sellers para ler e ouvir.',
+  dataUrl:'conversation-summaries.json',
+  idPrefix:'convbooks',
+  listTitle:'English Book Club',
+  store:'convbooks',
+  accent:'#E8963C',
+  hl:'rgba(232,150,60,.10)',
+  chipWord:'#f0b269',
+  groups:function(books){
+    var lvlOrder={'A1':1,'A2':2,'B1':3,'B2':4,'C1':5};
+    var cls=books.filter(function(b){return b.cat==='classic';}).sort(function(a,b){return (lvlOrder[a.lvl]||9)-(lvlOrder[b.lvl]||9)||a.n-b.n;});
+    var comm=books.filter(function(b){return b.cat==='comm';});
+    var g=[];
+    if(cls.length) g.push({label:'CL\u00c1SSICOS POR N\u00cdVEL', books:cls});
+    if(comm.length) g.push({label:'BEST-SELLERS SOBRE COMUNICA\u00c7\u00c3O', books:comm});
+    return g;
+  },
+  meta:function(b, esc){
+    if(b.cat==='classic'){var L={'A1':'Beginner','A2':'Beginner','B1':'Intermediate','B2':'Intermediate','C1':'Advanced'};return esc(b.pt)+' \u00b7 '+(L[b.lvl]||'');}
+    return esc(b.pt)+' \u00b7 '+esc(b.a);
+  }
+});
+
 
 /* ═══════════ Situações de Viagem — lista + player (arquitetura beginner) ═══
    A lista vive aqui; o fluxo roda em travel-player.html (clone exato da
