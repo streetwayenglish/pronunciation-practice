@@ -1029,12 +1029,17 @@ function _summariesLibrary(cfg){
     var ds=document.querySelector('#h2root .detail-screen[data-path="'+cfg.pathSlug+'"]'); if(!ds) return;
     if(ds.querySelector('.'+cfg.cardClass)) return;
     var pc=ds.querySelector('.path-card'); if(!pc) return;
-    var card=el('div','margin:14px 16px 2px;');
+    var hero='#E8963C';
+    try{
+      var bg=getComputedStyle(pc).backgroundColor;
+      if(bg && bg!=='rgba(0, 0, 0, 0)' && bg!=='transparent') hero=bg;
+    }catch(e){}
+    var card=el('div','margin:14px 16px 22px;');
     card.className=cfg.cardClass;
     card.innerHTML=
-      '<div style="background:#F7F3E8;border:2px solid #E8963C;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;">'+
-        '<div style="width:40px;height:40px;border-radius:10px;background:#FAEEDA;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+
-          '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#854F0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>'+
+      '<div style="background:#fff;border:2px solid '+hero+';border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;">'+
+        '<div style="width:40px;height:40px;border-radius:10px;background:color-mix(in srgb, '+hero+' 13%, #fff);display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+
+          '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="'+hero+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>'+
         '</div>'+
         '<div style="flex:1;min-width:0;">'+
           '<p style="margin:0;font-size:14px;font-weight:600;color:#2C2C2A;">'+cfg.cardTitle+'</p>'+
@@ -1549,7 +1554,7 @@ _summariesLibrary({
       '<div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:#A89F84;margin:2px 4px 8px;">COMECE POR AQUI</div>'+
       '<div style="background:#fff;border-radius:18px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;box-shadow:0 1px 0 rgba(0,0,0,.03);">'+
 '<div style="width:42px;height:42px;border-radius:50%;background:#E6B31E;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+
-          '<span style="font-size:40px;line-height:1;color:#fff;transform:translateY(-3px);">\u2708\uFE0E</span>'+
+          '<svg width="28.9" height="27.5" viewBox="120 -1450 1481.0 1406" fill="#fff" style="display:block;"><g transform="scale(1,-1)"><path d="M148 727Q148 727 148 767Q148 767 184 772Q184 772 120 990Q120 990 220 990Q220 990 366 789Q512 802 798 812Q745 1088 574 1450Q574 1450 697 1450Q697 1450 812 1300Q812 1300 960 1300Q960 1300 960 1220Q960 1220 874 1220Q874 1220 974 1090Q974 1090 1128 1090Q1128 1090 1128 1010Q1128 1010 1035 1010Q1035 1010 1187 812Q1187 812 1451 812Q1521 812 1569 786Q1601 769 1601.0 747.0Q1601 725 1569 708Q1521 682 1451 682Q1451 682 1187 682Q1187 682 1035 484Q1035 484 1128 484Q1128 484 1128 404Q1128 404 974 404Q974 404 874 274Q874 274 960 274Q960 274 960 194Q960 194 812 194Q812 194 697 44Q697 44 574 44Q745 396 798 682Q512 693 366 705Q366 705 220 504Q220 504 120 504Q120 504 184 722Q184 722 148 727Z"/></g></svg>'+
         '</div>'+
         '<div style="flex:1;min-width:0;">'+
           '<p style="margin:0;font-size:17px;font-weight:800;color:#2C2C2A;">Viagem na Pr\u00e1tica</p>'+
