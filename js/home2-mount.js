@@ -1542,25 +1542,22 @@ _summariesLibrary({
     var ds=document.querySelector('#h2root .detail-screen[data-path="travel-english"]'); if(!ds) return;
     if(ds.querySelector('.travel-sit-card')) return;
     var pc=ds.querySelector('.path-card'); if(!pc) return;
-    var p=prog(), prat=0; Object.keys(p).forEach(function(k){ if(p[k].prat) prat++; });
-    var doneAll=(prat>=17);
     var card=document.createElement('div');
     card.className='travel-sit-card';
     card.style.cssText='margin:14px 16px 2px;';
     card.innerHTML=
+      '<div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:#A89F84;margin:2px 4px 8px;">COMECE POR AQUI</div>'+
       '<div style="background:#fff;border-radius:18px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;box-shadow:0 1px 0 rgba(0,0,0,.03);">'+
         '<div style="width:44px;height:44px;border-radius:50%;background:#E6B31E;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+
-          '<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>'+
+          '<span style="font-size:22px;line-height:1;color:#fff;transform:translateY(-1px);">\u2708\uFE0E</span>'+
         '</div>'+
         '<div style="flex:1;min-width:0;">'+
-          '<p style="margin:0;font-size:17px;font-weight:800;color:#2C2C2A;">Situa\u00e7\u00f5es de Viagem</p>'+
-          '<p style="margin:2px 0 0;font-size:13px;color:#8a8073;">17 v\u00eddeos reais \u2014 assista e repita</p>'+
+          '<p style="margin:0;font-size:17px;font-weight:800;color:#2C2C2A;">Viagem na Pr\u00e1tica</p>'+
+          '<p style="margin:2px 0 0;font-size:13px;color:#8a8073;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Assista e pratique situa\u00e7\u00f5es reais da sua viagem.</p>'+
         '</div>'+
-        (doneAll?'':'<span style="font-size:12px;font-weight:800;letter-spacing:.06em;color:#C08A12;">NOW</span>')+
-        '<span style="font-size:14px;font-weight:800;color:'+(doneAll?'#5BA84D':'#C08A12')+';">'+prat+'/17</span>'+
         '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9C2AF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>'+
       '</div>';
-    card.firstChild.addEventListener('click', function(){ load(openList); });
+    card.lastChild.addEventListener('click', function(){ load(openList); });
     pc.insertAdjacentElement('afterend', card);
   }
 
