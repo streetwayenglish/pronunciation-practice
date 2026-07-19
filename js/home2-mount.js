@@ -1561,7 +1561,7 @@ _summariesLibrary({
       '<div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:#A89F84;margin:2px 4px 8px;">COMECE POR AQUI</div>'+
       '<div style="background:#fff;border-radius:18px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;box-shadow:0 1px 0 rgba(0,0,0,.03);">'+
 '<div style="width:42px;height:42px;border-radius:50%;background:#E6B31E;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+
-          '<span id="tvPlane" style="font-size:40px;line-height:1;color:#fff;display:block;">\u2708\uFE0E</span>'+
+          '<span style="font-size:40px;width:1em;height:1em;line-height:1em;text-align:center;color:#fff;display:block;">\u2708\uFE0E</span>'+
         '</div>'+
         '<div style="flex:1;min-width:0;">'+
           '<p style="margin:0;font-size:17px;font-weight:800;color:#2C2C2A;">Viagem na Pr\u00e1tica</p>'+
@@ -1569,22 +1569,6 @@ _summariesLibrary({
         '</div>'+
         '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9C2AF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>'+
       '</div>';
-    try{
-      var sp=card.querySelector('#tvPlane');
-      var cv=document.createElement('canvas');cv.width=120;cv.height=120;
-      var cx=cv.getContext('2d');
-      cx.font='40px -apple-system, system-ui, sans-serif';
-      cx.textBaseline='middle';cx.textAlign='center';
-      cx.fillText('\u2708\uFE0E',60,60);
-      var im=cx.getImageData(0,0,120,120).data,x0=120,x1=0,y0=120,y1=0,found=false;
-      for(var y=0;y<120;y++)for(var x=0;x<120;x++){
-        if(im[(y*120+x)*4+3]>16){found=true;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}
-      }
-      if(found){
-        var dx=60-(x0+x1)/2, dy=60-(y0+y1)/2;
-        sp.style.transform='translate('+dx.toFixed(1)+'px,'+dy.toFixed(1)+'px)';
-      }
-    }catch(e){}
     card.lastChild.addEventListener('click', function(){ load(openList); });
     pc.insertAdjacentElement('afterend', card);
   }
