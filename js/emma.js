@@ -398,6 +398,7 @@ function _emmaFetchTTS(text){
 // Plays an ordered array of blob promises through the unlocked audio element.
 // turnId guards make any newer speak/interrupt cancel this sequence cleanly.
 function _emmaPlayChunks(blobPromises,turnId){
+  window._emmaAudioPlaying=false;
   if(_emmaAudio){
     _emmaAudio.onended=null;
     _emmaAudio.onerror=null;
@@ -754,21 +755,12 @@ function _emmaEnsureDotsCSS(){
 }
 function _emmaRevealPending(){
   document.querySelectorAll('.emma-bubble.emma[data-pending]').forEach(function(d){
-    d.innerHTML=d.getAttribute('data-pending');
-    d.removeAttribute('data-pending');
+    if(d._reveal)d._reveal();
   });
 }
 function emmaAddBubble(who,text){
   var wrap=document.getElementById('emmaBubbles');if(!wrap)return;
   var div=document.createElement('div');div.className='emma-bubble '+who;div.innerHTML=text;
-  if(who==='emma'&&!window._emmaAudioPlaying){
-    _emmaEnsureDotsCSS();
-    div.setAttribute('data-pending',text);
-    div.innerHTML='<div class="emma-tdots"><span></span><span></span><span></span></div>';
-    setTimeout(function(){
-      if(div.hasAttribute('data-pending')){div.innerHTML=div.getAttribute('data-pending');div.removeAttribute('data-pending');}
-    },4000);
-  }
   if(who==='student'){
     var pid=window._pendingPronId||null;window._pendingPronId=null;
     // Graphite bubble: text above, one faint-gray info icon below (inside the
@@ -850,6 +842,29 @@ function emmaAddBubble(who,text){
     }).catch(function(){tBtn._loading=false;tBtn.style.opacity='.65';});
   };
   div.appendChild(tBtn);
+  if(!window._emmaAudioPlaying){
+    _emmaEnsureDotsCSS();
+    var _rw=document.createElement('div');
+    while(div.firstChild)_rw.appendChild(div.firstChild);
+    _rw.style.display='none';
+    var _dt=document.createElement('div');_dt.className='emma-tdots';
+    _dt.innerHTML='<span></span><span></span><span></span>';
+    div.appendChild(_dt);div.appendChild(_rw);
+    div.setAttribute('data-pending','1');
+    var _added=Date.now();
+    div._reveal=function(){
+      if(!div.hasAttribute('data-pending'))return;
+      var wait=Math.max(0,450-(Date.now()-_added));
+      setTimeout(function(){
+        if(!div.hasAttribute('data-pending'))return;
+        div.removeAttribute('data-pending');
+        _dt.remove();_rw.style.display='';
+        var w2=document.getElementById('emmaBubbles');
+        if(w2)w2.scrollTop=w2.scrollHeight;
+      },wait);
+    };
+    setTimeout(function(){if(div._reveal)div._reveal();},4000);
+  }
   wrap.appendChild(div);
   wrap.scrollTop=wrap.scrollHeight;
 }
