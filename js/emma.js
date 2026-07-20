@@ -750,7 +750,8 @@ function _emmaEnsureDotsCSS(){
   st.textContent='.emma-tdots{display:inline-flex;gap:5px;padding:5px 2px 3px}'+
   '.emma-tdots span{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.65);animation:emmaTb 1.15s infinite ease-in-out}'+
   '.emma-tdots span:nth-child(2){animation-delay:.15s}.emma-tdots span:nth-child(3){animation-delay:.3s}'+
-  '@keyframes emmaTb{0%,60%,100%{transform:translateY(0);opacity:.35}30%{transform:translateY(-5px);opacity:.95}}';
+  '@keyframes emmaTb{0%,60%,100%{transform:translateY(0);opacity:.35}30%{transform:translateY(-5px);opacity:.95}}'+
+  '.emma-bubble.emma.typing{padding:12px 16px !important;max-width:none !important;width:-moz-fit-content;width:fit-content;}';
   document.head.appendChild(st);
 }
 function _emmaRevealPending(){
@@ -836,7 +837,7 @@ function emmaAddBubble(who,text){
       var el=document.createElement('div');el.className='emma-translation';
       // No font-size set — inherits from the parent bubble (17px on mobile, 14px on desktop)
       el.style.cssText='color:rgba(232,184,75,.85);line-height:1.5;padding-top:8px;margin-top:6px;border-top:1px solid rgba(255,255,255,.1);font-style:italic;';
-      el.textContent=t;div.insertBefore(el,tBtn);
+      el.textContent=t;tBtn.parentNode.insertBefore(el,tBtn);
       tBtn.style.opacity='1';tImg.style.backgroundColor=COLOR_ACTIVE;tBtn._translated=true;
       wrap.scrollTop=wrap.scrollHeight;
     }).catch(function(){tBtn._loading=false;tBtn.style.opacity='.65';});
@@ -850,6 +851,7 @@ function emmaAddBubble(who,text){
     var _dt=document.createElement('div');_dt.className='emma-tdots';
     _dt.innerHTML='<span></span><span></span><span></span>';
     div.appendChild(_dt);div.appendChild(_rw);
+    div.classList.add('typing');
     div.setAttribute('data-pending','1');
     var _added=Date.now();
     div._reveal=function(){
@@ -858,6 +860,7 @@ function emmaAddBubble(who,text){
       setTimeout(function(){
         if(!div.hasAttribute('data-pending'))return;
         div.removeAttribute('data-pending');
+        div.classList.remove('typing');
         _dt.remove();_rw.style.display='';
         var w2=document.getElementById('emmaBubbles');
         if(w2)w2.scrollTop=w2.scrollHeight;
