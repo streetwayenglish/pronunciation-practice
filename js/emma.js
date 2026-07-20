@@ -409,6 +409,8 @@ function _emmaPlayChunks(blobPromises,turnId){
   var _t0=Date.now(),firstLogged=false;
   function onDone(){
     if(turnId!==_emmaSpeakId)return;
+    window._emmaAudioPlaying=false;
+    _emmaRevealPending();
     _emmaAudio=null;
     emmaStateIdle();
     var s=document.getElementById('emmaStatus');if(s)s.textContent='Your turn — tap to speak';
@@ -428,6 +430,8 @@ function _emmaPlayChunks(blobPromises,turnId){
       audio.onerror=function(){URL.revokeObjectURL(url);playAt(i+1);};
       audio.src=url;
       var p=audio.play();
+      window._emmaAudioPlaying=true;
+      _emmaRevealPending();
       if(p&&p.catch)p.catch(function(){URL.revokeObjectURL(url);onDone();});
     }).catch(function(){onDone();});
   }
@@ -738,9 +742,33 @@ function showSuggestionOnboarding(){
   setTimeout(function(){hb.classList.remove('glow-white');},3500);
 }
 
+var _emmaDotsCSS=false;
+function _emmaEnsureDotsCSS(){
+  if(_emmaDotsCSS)return;_emmaDotsCSS=true;
+  var st=document.createElement('style');
+  st.textContent='.emma-tdots{display:inline-flex;gap:5px;padding:5px 2px 3px}'+
+  '.emma-tdots span{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.65);animation:emmaTb 1.15s infinite ease-in-out}'+
+  '.emma-tdots span:nth-child(2){animation-delay:.15s}.emma-tdots span:nth-child(3){animation-delay:.3s}'+
+  '@keyframes emmaTb{0%,60%,100%{transform:translateY(0);opacity:.35}30%{transform:translateY(-5px);opacity:.95}}';
+  document.head.appendChild(st);
+}
+function _emmaRevealPending(){
+  document.querySelectorAll('.emma-bubble.emma[data-pending]').forEach(function(d){
+    d.innerHTML=d.getAttribute('data-pending');
+    d.removeAttribute('data-pending');
+  });
+}
 function emmaAddBubble(who,text){
   var wrap=document.getElementById('emmaBubbles');if(!wrap)return;
   var div=document.createElement('div');div.className='emma-bubble '+who;div.innerHTML=text;
+  if(who==='emma'&&!window._emmaAudioPlaying){
+    _emmaEnsureDotsCSS();
+    div.setAttribute('data-pending',text);
+    div.innerHTML='<div class="emma-tdots"><span></span><span></span><span></span></div>';
+    setTimeout(function(){
+      if(div.hasAttribute('data-pending')){div.innerHTML=div.getAttribute('data-pending');div.removeAttribute('data-pending');}
+    },4000);
+  }
   if(who==='student'){
     var pid=window._pendingPronId||null;window._pendingPronId=null;
     // Graphite bubble: text above, one faint-gray info icon below (inside the
