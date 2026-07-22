@@ -247,14 +247,36 @@
     if(splash.classList.contains('off')) return;
     splash.classList.add('off');
     onb.classList.add('on');
+    paintDoc('#FAF6EE');
     onb.querySelector('.em-rise-wrap').classList.add('em-rise');
     setTimeout(function(){ if(splash.parentNode) splash.parentNode.removeChild(splash); }, 800);
   }
   splash.addEventListener('click', toOnboarding);
 
+  // Tint the page itself while the intro is up — iOS paints safe areas and
+  // overscroll with the DOCUMENT background, not the overlay's.
+  var prevBg = null;
+  function paintDoc(color){
+    if(prevBg === null){
+      prevBg = { html: document.documentElement.style.background,
+                 body: document.body.style.background };
+    }
+    document.documentElement.style.background = color;
+    document.body.style.background = color;
+    var m = document.querySelector('meta[name="theme-color"]');
+    if(!m){ m = document.createElement('meta'); m.name = 'theme-color'; document.head.appendChild(m); }
+    m.content = color;
+  }
+  function unpaintDoc(){
+    if(prevBg === null) return;
+    document.documentElement.style.background = prevBg.html;
+    document.body.style.background = prevBg.body;
+  }
+
   function mount(){
     document.head.appendChild(style);
     document.body.appendChild(root);
+    paintDoc('#F1EFE6');
     onb.querySelectorAll('.em-tile img').forEach(applySlot);
     playSplashSound();
     splashTimer = setTimeout(toOnboarding, 4200);
@@ -282,6 +304,7 @@
   });
 
   function closeOverlay(){
+    unpaintDoc();
     root.classList.add('intro-out');
     setTimeout(function(){
       if(root.parentNode) root.parentNode.removeChild(root);
