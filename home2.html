@@ -785,9 +785,9 @@ body::before{display:none !important;}
   padding-bottom:calc(105px + env(safe-area-inset-bottom,0px)) !important;
   -webkit-overflow-scrolling:touch;}
 /* Pin the EmmaSpeak header so it stays put while content scrolls */
-.screen > .topbar{
-  padding-top:calc(env(safe-area-inset-top,0px) + 18px) !important;
-  padding-bottom:8px !important;}
+.screen > .topbar{position:sticky;top:0;z-index:60;background:#F3F0E8;
+  padding-top:calc(env(safe-area-inset-top,0px) + 10px) !important;
+  padding-bottom:6px !important;}
 .tabbar{bottom:calc(18px + env(safe-area-inset-bottom,0px)) !important;}
 .detail-screen{border-radius:0 !important;}
 </style>
