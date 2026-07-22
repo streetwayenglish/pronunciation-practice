@@ -1,0 +1,26 @@
+{
+ "goal-tile-zero": {
+  "s": 1.2310339123497342,
+  "x": -2.937121031527405,
+  "y": 0.11379771985973264,
+  "file": "goal-tile-zero.webp"
+ },
+ "goal-tile-viagem": {
+  "s": 1.119022106936133,
+  "x": -2.1228514455783185,
+  "y": -8.940821362271848,
+  "file": "goal-tile-viagem.webp"
+ },
+ "goal-tile-trabalho": {
+  "s": 1.149083154225666,
+  "x": -1.5574743834630096,
+  "y": -8.320222950070097,
+  "file": "goal-tile-trabalho.webp"
+ },
+ "goal-tile-conversa": {
+  "s": 1.2086744989270037,
+  "x": -2.193956628181482,
+  "y": -9.019218486421927,
+  "file": "goal-tile-conversa.webp"
+ }
+}
