@@ -821,7 +821,7 @@ body::before{display:none !important;}
         </div>
 
         <!-- HELLO + HEADLINE -->
-        <div class="hello">Hello Emma,</div>
+        <div class="hello hello-name">Hello,</div>
         <h1 class="headline">Continue learning</h1>
 
         <!-- CONTINUE HERO -->
@@ -880,7 +880,7 @@ body::before{display:none !important;}
         </div>
 
         <!-- HERO -->
-        <div class="hello">Hello Emma,</div>
+        <div class="hello hello-name">Hello,</div>
         <div class="headline-row">
           <h1 class="headline">Choose a topic</h1>
           <div class="view-toggle">
@@ -1016,7 +1016,7 @@ body::before{display:none !important;}
         <div class="logo"><img src="intro-assets/emmaspeak-logo.png" alt="EmmaSpeak" style="height:25.2px;width:auto;display:block;margin:0 auto"></div>
         <div style="width:40px;"></div>
       </div>
-      <div class="hello">Hello Emma,</div>
+      <div class="hello hello-name">Hello,</div>
       <h1 class="headline">Your activity</h1>
 
       <!-- WEEKLY CARD: rings + bars combined -->
@@ -1518,6 +1518,14 @@ document.querySelectorAll('.tabbar .tab').forEach(tab => {
   });
 });
 
+
+// Personalized greeting — name captured on the opening screen
+(function(){
+  var n=''; try{ n=(localStorage.getItem('streetway_user_name')||'').trim().split(/\s+/)[0]; }catch(e){}
+  document.querySelectorAll('.hello-name').forEach(function(el){
+    el.textContent = n ? ('Hello, ' + n + ',') : 'Hello,';
+  });
+})();
 </script>
 </body>
 </html>
