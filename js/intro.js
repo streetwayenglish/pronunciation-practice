@@ -12,7 +12,7 @@
 //   3 progress dashes (gold center), emmaspeak logo, "Pra começar, me conta:",
 //   serif headline, 4 goal rows (Viagem pre-selected, cream #FCF3DC + gold
 //   border when selected), name field with person icon, gold "Continuar →"
-//   (#EDB111 with name, #F0C550 without), "Pular por enquanto" below.
+//   solid #EDB111, "Pular por enquanto" below.
 //
 // Production wiring (not in the design export):
 //   name → streetway_user_name · goal → streetway_goal · done flag →
@@ -53,7 +53,7 @@
   (function fonts(){
     var l = document.createElement('link');
     l.rel = 'stylesheet';
-    l.href = 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Source+Serif+4:opsz,wght@8..60,700&display=swap';
+    l.href = 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,700&display=swap';
     document.head.appendChild(l);
   })();
 
@@ -69,7 +69,7 @@
   + '@keyframes em-rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}'
 
   + '#introRoot{position:fixed;inset:0;z-index:9999;background:#FAF6EE;'
-  +   'font-family:"Bricolage Grotesque",system-ui,sans-serif;color:#2B2620;'
+  +   'font-family:"Plus Jakarta Sans",system-ui,sans-serif;color:#2B2620;'
   +   '-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;}'
   + '#introRoot,#introRoot *{box-sizing:border-box;}'
   + '#introRoot.intro-out{transition:opacity .45s ease;opacity:0;pointer-events:none;}'
@@ -107,10 +107,7 @@
   + '#introRoot .em-onb.on{opacity:1;}'
   + '#introRoot .em-onb-inner{max-width:430px;width:100%;margin:0 auto;display:flex;flex-direction:column;'
   +   'min-height:100%;}'
-  + '#introRoot .em-dashes{display:flex;gap:10px;justify-content:center;padding:8px 0 0;}'
-  + '#introRoot .em-dash{width:26px;height:4px;border-radius:99px;background:#E4DCCB;}'
-  + '#introRoot .em-dash.on{width:34px;background:#EDB111;}'
-  + '#introRoot .em-logo{display:flex;justify-content:center;margin-top:20px;}'
+  + '#introRoot .em-logo{display:flex;justify-content:center;margin-top:12px;}'
   + '#introRoot .em-logo img{height:26px;width:auto;display:block;}'
   + '#introRoot .em-rise{animation:em-rise 0.7s cubic-bezier(0.22,1,0.36,1) 0.2s both;}'
   + '#introRoot .em-lead{margin:26px 0 0;font-size:16px;color:rgba(43,38,32,.6);}'
@@ -138,13 +135,12 @@
   + '#introRoot .em-name-row{display:flex;align-items:center;background:#fff;border:1.5px solid #E9E1CF;'
   +   'border-radius:16px;padding:0 16px;}'
   + '#introRoot .em-name-row input{border:none;background:transparent;padding:15px 0;font-size:17px;'
-  +   'font-weight:600;outline:none;color:#2B2620;flex:1;font-family:"Bricolage Grotesque",system-ui,sans-serif;min-width:0;}'
+  +   'font-weight:600;outline:none;color:#2B2620;flex:1;font-family:"Plus Jakarta Sans",system-ui,sans-serif;min-width:0;}'
   + '#introRoot .em-name-row input::placeholder{color:#C0B8A6;}'
-  + '#introRoot .em-cta{background:#F0C550;color:#3A3006;border:0;border-radius:999px;padding:17px 0;'
+  + '#introRoot .em-cta{background:#EDB111;color:#3A3006;border:0;border-radius:999px;padding:17px 0;'
   +   'text-align:center;font-weight:700;font-size:17px;cursor:pointer;margin-top:16px;'
   +   'box-shadow:0 4px 12px rgba(237,177,17,.35);transition:background .2s;'
   +   'font-family:inherit;width:100%;}'
-  + '#introRoot .em-cta.ready{background:#EDB111;}'
   + '#introRoot .em-cta:active{transform:scale(.98);}'
   + '#introRoot .em-skip{text-align:center;font-size:13.5px;color:rgba(43,38,32,.5);margin-top:12px;'
   +   'cursor:pointer;background:none;border:0;font-family:inherit;width:100%;padding:4px 0;}'
@@ -172,7 +168,6 @@
 
   var onb = h(
     '<div class="em-onb"><div class="em-onb-inner">'
-    + '<div class="em-dashes"><span class="em-dash"></span><span class="em-dash on"></span><span class="em-dash"></span></div>'
     + '<div class="em-logo"><img src="' + ASSETS + 'emmaspeak-logo.png" alt="emmaspeak"></div>'
     + '<div class="em-rise-wrap">'
     +   '<p class="em-lead">Pra come\u00e7ar, me conta:</p>'
@@ -282,9 +277,6 @@
     });
   });
 
-  nameInput.addEventListener('input', function(){
-    cta.classList.toggle('ready', !!nameInput.value.trim());
-  });
   nameInput.addEventListener('keydown', function(e){
     if(e.key === 'Enter'){ nameInput.blur(); cta.click(); }
   });
