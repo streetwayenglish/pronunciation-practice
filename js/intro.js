@@ -8,7 +8,7 @@
 //   shrinks while it travels right as the "emma speak" wordmark reveals
 //   left-to-right beneath it; the dot lands as the final period and gives a
 //   settle bounce with a soft two-partial marimba note at 2.05s.
-// Onboarding (bg #FAF6EE):
+// Onboarding (bg #F3F0E8 — the app background, so Safari chrome matches):
 //   3 progress dashes (gold center), emmaspeak logo, "Pra começar, me conta:",
 //   serif headline, 4 goal rows (Viagem pre-selected, cream #FCF3DC + gold
 //   border when selected), name field with person icon, gold "Continuar →"
@@ -68,7 +68,7 @@
   + '@keyframes es-drift2{from{transform:translate(60px,0) scale(1.1)}to{transform:translate(-340px,-60px) scale(0.9)}}'
   + '@keyframes em-rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}'
 
-  + '#introRoot{position:fixed;inset:0;z-index:9999;background:#FAF6EE;'
+  + '#introRoot{position:fixed;inset:0;z-index:9999;background:#F3F0E8;'
   +   'font-family:"Plus Jakarta Sans",system-ui,sans-serif;color:#2B2620;'
   +   '-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;}'
   + '#introRoot,#introRoot *{box-sizing:border-box;}'
@@ -100,7 +100,7 @@
   +   'es-settle 0.45s cubic-bezier(0.34,1.56,0.64,1) 2.05s forwards;}'
 
   /* ---------- ONBOARDING ---------- */
-  + '#introRoot .em-onb{position:absolute;inset:0;display:flex;flex-direction:column;background:#FAF6EE;'
+  + '#introRoot .em-onb{position:absolute;inset:0;display:flex;flex-direction:column;background:#F3F0E8;'
   +   'padding:calc(16px + env(safe-area-inset-top)) 26px calc(20px + env(safe-area-inset-bottom));'
   +   'opacity:0;transition:opacity .6s ease .15s;overflow-y:auto;'
   +   '-webkit-overflow-scrolling:touch;overscroll-behavior:none;}'
@@ -145,22 +145,6 @@
   + '#introRoot .em-skip{text-align:center;font-size:13.5px;color:rgba(43,38,32,.5);margin-top:12px;'
   +   'cursor:pointer;background:none;border:0;font-family:inherit;width:100%;padding:4px 0;}'
   
-  + '@media (max-height:820px){'
-  +   '#introRoot .em-onb{padding-top:calc(12px + env(safe-area-inset-top));}'
-  +   '#introRoot .em-logo{margin-top:6px;}'
-  +   '#introRoot .em-logo img{height:23px;}'
-  +   '#introRoot .em-lead{margin-top:14px;font-size:15px;}'
-  +   '#introRoot .em-h1{font-size:27px;}'
-  +   '#introRoot .em-goals{margin-top:14px;gap:10px;}'
-  +   '#introRoot .em-goal{padding:12px 14px;border-radius:18px;}'
-  +   '#introRoot .em-tile{width:52px;height:52px;border-radius:14px;}'
-  +   '#introRoot .em-goal-lb{font-size:16px;}'
-  +   '#introRoot .em-goal-hint{font-size:12.5px;}'
-  +   '#introRoot .em-spacer{min-height:10px;}'
-  +   '#introRoot .em-name-row input{padding:13px 0;font-size:16px;}'
-  +   '#introRoot .em-cta{padding:15px 0;margin-top:12px;}'
-  +   '#introRoot .em-skip{margin-top:8px;}'
-  + '}'
   ;
 
   // ---- DOM ------------------------------------------------------------------
@@ -264,14 +248,15 @@
     if(splash.classList.contains('off')) return;
     splash.classList.add('off');
     onb.classList.add('on');
-    paintDoc('#FAF6EE');
+    paintDoc('#F3F0E8');
     onb.querySelector('.em-rise-wrap').classList.add('em-rise');
     setTimeout(function(){ if(splash.parentNode) splash.parentNode.removeChild(splash); }, 800);
   }
   splash.addEventListener('click', toOnboarding);
 
   // Tint the page itself while the intro is up — iOS paints safe areas and
-  // overscroll with the DOCUMENT background, not the overlay's.
+  // overscroll with the DOCUMENT background, not the overlay's. No theme-color
+  // meta: Safari samples the page bg directly and matches better on its own.
   var prevBg = null;
   function paintDoc(color){
     if(prevBg === null){
@@ -280,9 +265,6 @@
     }
     document.documentElement.style.background = color;
     document.body.style.background = color;
-    var m = document.querySelector('meta[name="theme-color"]');
-    if(!m){ m = document.createElement('meta'); m.name = 'theme-color'; document.head.appendChild(m); }
-    m.content = color;
   }
   function unpaintDoc(){
     if(prevBg === null) return;
