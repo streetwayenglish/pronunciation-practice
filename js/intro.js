@@ -321,16 +321,31 @@
       }catch(e){}
     }
     closeOverlay();
+    // Push the just-saved name into the app's greetings — home2 rendered them
+    // before the intro finished, so they were painted with no name.
+    function applyName(){
+      var n=''; try{ n=(localStorage.getItem('streetway_user_name')||'').trim().split(/\s+/)[0]; }catch(e){}
+      if(!n) return true;
+      var els = document.querySelectorAll('.hello-name');
+      els.forEach(function(el){ el.textContent = 'Hello, ' + n + ','; });
+      var yh = document.getElementById('you-hello');
+      if(yh) yh.textContent = 'Hello, ' + n;
+      return els.length > 0;
+    }
     // Route: open the chosen path on mobile once home2 is ready.
     if(window.innerWidth < 1024){
       var key = selected.path, tries = 0;
       (function attempt(){
+        var named = applyName();
         if(typeof window.openPathDetail === 'function'){
           try{ window.openPathDetail(key); }catch(e){}
+          if(!named) setTimeout(applyName, 800); // greetings not built yet — one late pass
           return;
         }
         if(++tries < 30) setTimeout(attempt, 250);
       })();
+    } else {
+      applyName();
     }
   });
 
