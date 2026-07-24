@@ -101,11 +101,19 @@
 .wu-coach{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;justify-content:flex-end;}
 .wu-coach-scrim{position:absolute;inset:0;background:rgba(15,18,22,.58);opacity:0;transition:opacity .3s ease;}
 .wu-coach.wu-coach-in .wu-coach-scrim{opacity:1;}
-.wu-coach-sheet{position:relative;background:#faf9f7;border-radius:24px 24px 0 0;padding:20px 22px calc(env(safe-area-inset-bottom,0px) + 26px);transform:translateY(100%);transition:transform .34s cubic-bezier(.22,.8,.3,1);box-shadow:0 -8px 40px rgba(0,0,0,.18);}
+.wu-coach-sheet{position:relative;background:#FCFBF9;border-radius:28px 28px 0 0;padding:14px 24px calc(env(safe-area-inset-bottom,0px) + 24px);transform:translateY(100%);transition:transform .34s cubic-bezier(.22,.8,.3,1);box-shadow:0 -14px 40px rgba(0,0,0,.3);}
 .wu-coach.wu-coach-in .wu-coach-sheet{transform:translateY(0);}
-.wu-coach-handle{width:40px;height:5px;border-radius:2.5px;background:rgba(0,0,0,.14);margin:0 auto 18px;}
-.wu-coach-eyebrow{font-size:12px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#e8b84b;margin-bottom:9px;}
-.wu-coach-title{font-size:23px;font-weight:700;color:#0a0a0a;letter-spacing:-.01em;margin-bottom:12px;}
-.wu-coach-body{font-size:15px;line-height:1.5;color:rgba(0,0,0,.55);margin-bottom:22px;}
-.wu-coach-cta{width:100%;padding:16px;border:none;border-radius:16px;background:#0a0a0a;color:#fff;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.wu-coach-handle{width:48px;height:5px;border-radius:99px;background:#D8D5CF;margin:0 auto 18px;}
+.wu-coach-badge-row{display:flex;align-items:center;justify-content:space-between;}
+.wu-coach-badge{display:inline-flex;align-items:center;gap:7px;border:1.5px solid #F2CE7E;border-radius:999px;padding:7px 14px;color:#E8A80C;font-size:12px;font-weight:700;letter-spacing:.2em;background:#fff;}
+.wu-coach-badge svg{width:12px;height:12px;flex:none;}
+.wu-coach-skip{background:#fff;border:1.5px solid #E4E1DA;border-radius:999px;font-family:inherit;font-size:13.5px;font-weight:700;color:#8B867C;cursor:pointer;padding:7px 16px;-webkit-tap-highlight-color:transparent;}
+.wu-coach-title{margin-top:16px;font-size:30px;line-height:1.08;font-weight:800;color:#191919;letter-spacing:-.02em;}
+.wu-coach-title em{font-style:normal;color:#F6B51E;}
+.wu-coach-body{margin-top:13px;font-size:15px;line-height:1.5;color:#6E6A63;font-weight:500;}
+.wu-coach-body em{font-style:normal;color:#E8A80C;font-weight:600;}
+.wu-coach-cta{margin-top:22px;width:100%;background:#1A1A1C;border:0;border-radius:17px;height:56px;position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:inherit;box-shadow:0 10px 24px rgba(20,20,22,.32);-webkit-tap-highlight-color:transparent;}
+.wu-coach-cta span:first-child{font-size:16.5px;font-weight:800;color:#fff;}
+.wu-coach-arr{position:absolute;right:9px;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:#F6B51E;display:flex;align-items:center;justify-content:center;}
+.wu-coach-arr svg{width:16px;height:16px;}
 .wu-coach-cta:active{opacity:.9;}
