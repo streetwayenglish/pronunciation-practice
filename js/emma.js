@@ -934,6 +934,33 @@ function emmaStartRec(){
     emmaMr.ondataavailable=function(e){if(e.data&&e.data.size>0)emmaChunks.push(e.data);};
     emmaMr.start(250);
     emmaRec=true;
+    // ── Silence gate telemetry ──────────────────────────────────────────────
+    // Track when recording started and the loudest voice energy seen. If the
+    // analyser can't run (old Safari, autoplay policy), peak stays 1 so the
+    // gate never wrongly blocks a real recording.
+    window._emmaRecT0=Date.now();
+    window._emmaRecPeak=1;
+    try{
+      var AC=window.AudioContext||window.webkitAudioContext;
+      var ctx=new AC();
+      if(ctx.state==='suspended'){ctx.resume().catch(function(){});}
+      var src=ctx.createMediaStreamSource(stream);
+      var an=ctx.createAnalyser();
+      an.fftSize=1024;
+      src.connect(an);
+      var buf=new Float32Array(an.fftSize);
+      window._emmaRecPeak=0;
+      window._emmaRecMeter=setInterval(function(){
+        try{
+          an.getFloatTimeDomainData(buf);
+          var sum=0;
+          for(var i=0;i<buf.length;i++)sum+=buf[i]*buf[i];
+          var rms=Math.sqrt(sum/buf.length);
+          if(rms>window._emmaRecPeak)window._emmaRecPeak=rms;
+        }catch(e){window._emmaRecPeak=1;}
+      },80);
+      window._emmaRecCtx=ctx;
+    }catch(e){window._emmaRecPeak=1;}
     if(btn){btn.classList.add('rec');btn.innerHTML='<span class="stop-sq"></span> Stop speaking';}
     if(status)status.textContent='Listening... tap stop when done';
   }).catch(function(e){if(status)status.textContent='Mic error: '+e.message;});
@@ -952,9 +979,18 @@ function emmaStopRec(){
   if(status)status.textContent='Transcribing...';
   emmaMr.onstop=function(){
     try{emmaMr.stream.getTracks().forEach(function(t){t.stop();});}catch(e){}
+    // ── Silence gate ────────────────────────────────────────────────────────
+    // Standard voice-app behavior: a recording that's too short (<500ms) or
+    // never contained voice-level energy is discarded on the client — no
+    // network call, no Whisper hallucination possible, instant retry hint.
+    try{clearInterval(window._emmaRecMeter);}catch(e){}
+    try{if(window._emmaRecCtx){window._emmaRecCtx.close();window._emmaRecCtx=null;}}catch(e){}
+    var _recMs=Date.now()-(window._emmaRecT0||0);
+    var _recPeak=(typeof window._emmaRecPeak==='number')?window._emmaRecPeak:1;
     var mt2=emmaMr.mimeType||'audio/webm';
     var blob=new Blob(emmaChunks,{type:mt2});
-    if(blob.size<1000){
+    if(blob.size<1000 || _recMs<500 || _recPeak<0.02){
+      console.log('[mic] discarded: '+_recMs+'ms, peak '+_recPeak.toFixed(4)+', '+blob.size+'B');
       if(btn){btn.disabled=false;btn.style.opacity='1';}
       if(status)status.textContent='Could not hear you. Tap to try again.';
       return;
@@ -995,7 +1031,20 @@ function emmaStopRec(){
             /^\s*see you in the next video/i,
             /do(es)? not correct (my |the )?grammar/i,
             /don['’]t correct (my |the )?grammar/i,
-            /please (do(es)? not|don['’]t) correct/i
+            /please (do(es)? not|don['’]t) correct/i,
+            // grammar-less prompt-echo variants ("Do not correct.", "Don't correct me.")
+            /^\s*(please\s+)?do (not|n['’]t) correct\b/i,
+            /^\s*don['’]t correct\b/i,
+            // classic Whisper silence artifacts — exact matches only, so real
+            // short answers ("Yes", "No", "Okay") still pass through
+            /^\s*i['’]?m sorry[.!]?\s*$/i,
+            /^\s*thank you[.!]?\s*$/i,
+            /^\s*thanks[.!]?\s*$/i,
+            /^\s*bye[.!]?\s*$/i,
+            /^\s*you[.!]?\s*$/i,
+            /^\s*obrigad[oa][.!]?\s*$/i,
+            /^\s*tchau[.!]?\s*$/i,
+            /^[\s.,!?-]*$/
           ];
           var isHallucination = whisperHallucinations.some(function(p){ return p.test(transcript); });
           if(!transcript || isHallucination){
