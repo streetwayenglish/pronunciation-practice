@@ -19,8 +19,7 @@ function renderEmma(){
           '</div>'+
           '<div class="emma-identity">'+
             '<div class="emma-name-row">'+
-              '<div class="emma-name">Emma</div>'+
-              '<div class="emma-live"><div class="emma-live-dot"></div><div class="emma-live-txt">LIVE</div></div>'+
+                            '<div class="emma-live"><div class="emma-live-dot"></div><div class="emma-live-txt">LIVE</div></div>'+
             '</div>'+
           '</div>'+
           '<button class="emma-end emma-end-top" onclick="emmaEnd()">End</button>'+
