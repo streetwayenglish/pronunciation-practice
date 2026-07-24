@@ -248,10 +248,18 @@ function _wuMaybeCoach(topic){
     '<div class="wu-coach-scrim"></div>'+
     '<div class="wu-coach-sheet">'+
       '<div class="wu-coach-handle"></div>'+
-      '<div class="wu-coach-eyebrow">AQUECIMENTO</div>'+
-      '<div class="wu-coach-title">5 frases para praticar</div>'+
-      '<div class="wu-coach-body">Antes de conversar com a Emma, vamos praticar 5 frases úteis para você entrar na conversa com mais confiança.</div>'+
-      '<button class="wu-coach-cta" id="wuCoachCta" type="button">Começar aquecimento</button>'+
+      '<div class="wu-coach-badge-row">'+
+        '<div class="wu-coach-badge">'+
+          '<svg viewBox="0 0 24 24" fill="#F6B51E"><path d="M13.5 0.7c.3 3.2-.9 5.2-2.6 7-1.5 1.6-3.2 3.3-3.2 6a5.8 5.8 0 0 0 11.6.2c0-1.6-.6-3-1.4-4.3-.4.9-1 1.6-1.9 2.1.4-3.6-.6-8.2-2.5-11z"/></svg>'+
+          'AQUECIMENTO'+
+        '</div>'+
+        '<button class="wu-coach-skip" id="wuCoachSkip" type="button">Pular</button>'+
+      '</div>'+
+      '<div class="wu-coach-title">5 frases para<br><em>praticar</em></div>'+
+      '<div class="wu-coach-body">Antes de conversar com a Emma, vamos praticar 5 frases úteis para você entrar na conversa com <em>mais confiança.</em></div>'+
+      '<button class="wu-coach-cta" id="wuCoachCta" type="button"><span>Começar aquecimento</span>'+
+        '<span class="wu-coach-arr"><svg viewBox="0 0 24 24" fill="none" stroke="#241D07" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>'+
+      '</button>'+
     '</div>';
   document.body.appendChild(c);
   function dismiss(){
@@ -261,6 +269,10 @@ function _wuMaybeCoach(topic){
   }
   var cta=c.querySelector('#wuCoachCta'); if(cta) cta.onclick=dismiss;
   var scr=c.querySelector('.wu-coach-scrim'); if(scr) scr.onclick=dismiss;
+  // Pular = skip the warm-up entirely and go straight to the chat with Emma
+  // (distinct from Começar/scrim, which dismiss the card into the warm-up).
+  var sk=c.querySelector('#wuCoachSkip');
+  if(sk) sk.onclick=function(){ dismiss(); try{ if(typeof window.wuClose==='function') window.wuClose(); }catch(e){} };
   requestAnimationFrame(function(){ requestAnimationFrame(function(){ c.classList.add('wu-coach-in'); }); });
 }
 
