@@ -6,6 +6,25 @@ function renderEmma(){
   var pf=document.getElementById('pf');var pl=document.getElementById('pl');
   if(pf)pf.style.width='0%';if(pl)pl.textContent='';
   emmaTopic=window._emmaTopic||'general English conversation';
+  // ── Free-chat 5-minute limit ──────────────────────────────────────────────
+  // Sessions launched from the "Chat with Emma" card set _emmaFreeChat. Path
+  // lessons never do, so they are unlimited. The timer ends the session
+  // gracefully: it waits for Emma to finish speaking, and does nothing if the
+  // chat was already ended manually.
+  try{clearTimeout(window._emmaFreeTimer);window._emmaFreeTimer=null;}catch(e){}
+  if(window._emmaFreeChat){
+    window._emmaFreeChat=false; // consume: applies to this session only
+    window._emmaFreeTimer=setTimeout(function(){
+      if(!document.getElementById('emmaBubbles'))return; // chat already closed
+      var st=document.getElementById('emmaStatus');
+      if(st)st.textContent='5 minutos completos — great job! Até amanhã.';
+      (function waitQuiet(n){
+        if(window._emmaAudioPlaying && n<24){setTimeout(function(){waitQuiet(n+1);},500);return;}
+        if(!document.getElementById('emmaBubbles'))return;
+        try{emmaEnd();}catch(e){}
+      })(0);
+    },5*60*1000);
+  }
   area.innerHTML=renderModeTabs()+
     '<div class="emma-card">'+
       '<div class="emma-card-bg"></div>'+
