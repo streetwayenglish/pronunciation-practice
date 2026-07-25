@@ -1473,20 +1473,67 @@ function setView(v) {
 (function(){
   var fc = document.querySelector('.t-focus');
   if(!fc) return;
-  fc.addEventListener('click', function(){
-    window._emmaTopic = 'Conversation';
-    try{ window.emmaTopic = 'Conversation'; }catch(e){}
-    window._lastTopic = 'Conversation';
-    window._emmaFreeChat = true; // emma.js starts the 5-minute session timer
-    var hl = document.getElementById('home2Layer'); if(hl) hl.style.display = 'none';
-    document.body.classList.remove('show-topics');
-    ['topicPage','mobileHome','swDesktop'].forEach(function(id){
-      var e = document.getElementById(id); if(e) e.style.display = 'none';
-    });
-    var hdr  = document.querySelector('.hdr');  if(hdr)  hdr.style.display  = '';
-    var main = document.querySelector('.main'); if(main) main.style.display = '';
-    try{ if(typeof window.switchMode === 'function') return switchMode('emma'); }catch(e){}
-    console.warn('[home2] no emma launcher for free chat');
+  fc.addEventListener('click', function(ev){
+    // Stop sibling/ancestor handlers, then launch on the next tick so nothing
+    // in the same click dispatch can undo the visibility changes.
+    ev.stopPropagation();
+    setTimeout(function(){
+      // Empty topic -> emma.js falls back to 'general English conversation'
+      // (a real free chat; 'Conversation' would load that path's scripted unit).
+      window._emmaTopic = '';
+      try{ window.emmaTopic = ''; }catch(e){}
+      window._emmaFreeChat = true; // emma.js starts the 5-minute session timer
+      var hl = document.getElementById('home2Layer'); if(hl) hl.style.display = 'none';
+      document.body.classList.remove('show-topics');
+      ['topicPage','mobileHome','swDesktop'].forEach(function(id){
+        var e = document.getElementById(id); if(e) e.style.display = 'none';
+      });
+      var hdr  = document.querySelector('.hdr');  if(hdr)  hdr.style.display  = '';
+      var main = document.querySelector('.main'); if(main) main.style.display = 'block';
+      // home.js's mobile-home "safety net" force-hides .main after this
+      // handler runs. Win at the CSS level instead of racing it: a session
+      // class + !important rule (injected into <head> directly, so the
+      // mount's CSS scoper can't rewrite it).
+      if(!document.getElementById('freeChatCSS')){
+        var fcs = document.createElement('style');
+        fcs.id = 'freeChatCSS';
+        fcs.textContent = 'body.free-chat-live .main{display:block !important;}'
+                        + 'body.free-chat-live .hdr{display:none !important;}';
+        document.head.appendChild(fcs);
+      }
+      document.body.classList.add('free-chat-live');
+      // Keeper: other code occasionally rewrites body.className wholesale,
+      // wiping our class. Hold it while the chat session is on screen; when
+      // the student returns home (home2Layer visible again), remove it and
+      // stop — so the rule never leaks into normal navigation.
+      try{ clearInterval(window._freeChatKeeper); }catch(e){}
+      window._freeChatKeeper = setInterval(function(){
+        var hl = document.getElementById('home2Layer');
+        var inChat = hl && hl.style.display === 'none' && window._emmaFreeTimer;
+        if(inChat){
+          if(!document.body.classList.contains('free-chat-live')){
+            document.body.classList.add('free-chat-live');
+          }
+        } else {
+          document.body.classList.remove('free-chat-live');
+          clearInterval(window._freeChatKeeper);
+          window._freeChatKeeper = null;
+        }
+      }, 300);
+      // Enter through the app's canonical session route. warmup.js documents
+      // _wuGo as the replacement for bare switchMode('emma') at every entry
+      // point — bare switchMode is exactly what left the chat invisible.
+      // The warmup itself is skipped immediately; its onDone lands in the chat
+      // through the same transition the (working) path lessons use.
+      if(typeof window._wuGo === 'function' && typeof window.wuClose === 'function'){
+        try{ localStorage.setItem('wu_coach_Conversation','1'); }catch(e){}
+        try{ window._wuGo(); }catch(e){}
+        setTimeout(function(){ try{ window.wuClose(); }catch(e){} }, 80);
+        return;
+      }
+      try{ if(typeof window.switchMode === 'function') return switchMode('emma'); }catch(e){}
+      console.warn('[home2] no emma launcher for free chat');
+    }, 0);
   });
 })();
 
