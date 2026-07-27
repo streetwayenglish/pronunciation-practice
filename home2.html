@@ -1520,17 +1520,11 @@ function setView(v) {
           window._freeChatKeeper = null;
         }
       }, 300);
-      // Enter through the app's canonical session route. warmup.js documents
-      // _wuGo as the replacement for bare switchMode('emma') at every entry
-      // point — bare switchMode is exactly what left the chat invisible.
-      // The warmup itself is skipped immediately; its onDone lands in the chat
-      // through the same transition the (working) path lessons use.
-      if(typeof window._wuGo === 'function' && typeof window.wuClose === 'function'){
-        try{ localStorage.setItem('wu_coach_Conversation','1'); }catch(e){}
-        try{ window._wuGo(); }catch(e){}
-        setTimeout(function(){ try{ window.wuClose(); }catch(e){} }, 80);
-        return;
-      }
+      // Direct launch. On-device evidence: this route starts the session
+      // correctly (v1 had voice + rendered chat DOM); its visibility problem
+      // is solved by the free-chat-live !important rule held by the keeper
+      // above. The warmup-gate detour is intentionally NOT used here — closing
+      // the warmup mid-startup wedges its dark modal (the black-screen bug).
       try{ if(typeof window.switchMode === 'function') return switchMode('emma'); }catch(e){}
       console.warn('[home2] no emma launcher for free chat');
     }, 0);
