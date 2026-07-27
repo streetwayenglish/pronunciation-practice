@@ -74,7 +74,7 @@
     if(building) return building;
     var host = layerEl();
     if(!host) return Promise.reject(new Error('home2Layer missing'));
-    building = fetch(FILE).then(function(r){ return r.text(); }).then(function(txt){
+    building = fetch(FILE, {cache:'no-cache'}).then(function(r){ return r.text(); }).then(function(txt){
       var doc = new DOMParser().parseFromString(txt, 'text/html');
 
       doc.querySelectorAll('link[rel="stylesheet"]').forEach(function(l){
