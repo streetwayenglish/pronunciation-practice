@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Emma — Avatar Test</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{background:#F6F1E7;}
+  body{font-family:"Plus Jakarta Sans",system-ui,sans-serif;color:#23201A;
+    -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:430px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;
+    padding:calc(10px + env(safe-area-inset-top)) 16px calc(14px + env(safe-area-inset-bottom));}
+
+  .top{display:grid;grid-template-columns:40px 1fr 40px;align-items:center;padding:2px 4px 10px;}
+  .logo{grid-column:2;display:flex;justify-content:center;}
+  .logo img{height:24px;width:auto;display:block;}
+
+  /* hero: the Simli avatar stream */
+  .hero{position:relative;border-radius:26px;overflow:hidden;aspect-ratio:1/1.02;
+    background:#F7F3EA;box-shadow:0 10px 30px rgba(60,50,20,.10);}
+  .hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#F7F3EA;}
+  .hero .fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:10px;color:#B8AF9C;font-weight:700;font-size:15px;
+    background:radial-gradient(circle at 50% 35%, #FBF7EC 0%, #F1EBDD 100%);}
+  .hero .fallback .mono{width:84px;height:84px;border-radius:50%;background:#F0B428;color:#2E2606;
+    display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;}
+  .live{position:absolute;top:14px;right:14px;background:#FBF7EC;border-radius:999px;
+    padding:8px 16px;display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;
+    color:#3A362C;box-shadow:0 2px 8px rgba(0,0,0,.12);z-index:2;}
+  .live i{width:9px;height:9px;border-radius:50%;background:#C9C2B2;display:block;}
+  .live.on i{background:#2FA85C;}
+
+  .msgs{flex:1;padding:16px 2px 10px;display:flex;flex-direction:column;gap:12px;
+    overflow-y:auto;min-height:120px;}
+  .bub{max-width:78%;padding:13px 17px;font-size:16px;line-height:1.4;font-weight:600;}
+  .bub.emma{background:#FFFFFF;border-radius:22px 22px 22px 6px;color:#26231C;
+    box-shadow:0 1px 3px rgba(60,50,20,.06);align-self:flex-start;}
+  .bub.me{background:#F4E4B7;border-radius:22px 22px 6px 22px;color:#3B3320;align-self:flex-end;}
+
+  .status{text-align:center;font-size:13px;color:#9B9484;font-weight:600;min-height:20px;
+    padding:0 8px 8px;}
+  .dbg{text-align:center;font-size:11px;color:#C5BEAD;font-weight:600;padding-bottom:6px;}
+
+  .bar{background:#FFFFFF;border-radius:26px;padding:12px 16px;
+    box-shadow:0 6px 24px rgba(60,50,20,.10);}
+  .actions{display:flex;align-items:center;justify-content:space-between;}
+  .chip{width:52px;height:52px;border-radius:50%;background:#FFFFFF;border:1.5px solid #EDE7D8;
+    display:flex;align-items:center;justify-content:center;color:#6B655A;cursor:pointer;
+    font-family:inherit;font-size:21px;font-weight:800;line-height:1;padding-bottom:3px;}
+  .chip:disabled{opacity:.4;}
+  .chip-end{width:auto;min-width:64px;padding:0 18px;border-radius:999px;font-size:15px;
+    font-weight:700;color:#C2543A;border-color:#EBD9CE;padding-bottom:0;line-height:normal;}
+  .mic{width:68px;height:68px;border-radius:50%;background:#F0B428;border:0;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 0 8px rgba(240,180,40,.22), 0 8px 20px rgba(240,180,40,.45);}
+  .mic.rec{background:#C2543A;box-shadow:0 0 0 8px rgba(194,84,58,.2), 0 8px 20px rgba(194,84,58,.4);}
+  .mic:disabled{opacity:.45;}
+  .mic svg{width:26px;height:26px;}
+  .mic .stopsq{width:20px;height:20px;border-radius:5px;background:#fff;display:none;}
+  .mic.rec svg{display:none;}
+  .mic.rec .stopsq{display:block;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="logo"><img src="intro-assets/emmaspeak-logo.png" alt="emmaspeak"></div>
+  </div>
+
+  <div class="hero">
+    <div class="fallback" id="heroFallback"><div class="mono">E</div>Emma</div>
+    <video id="simliVideo" autoplay playsinline></video>
+    <audio id="simliAudio" autoplay></audio>
+    <div class="live" id="livePill"><i></i><span>Live</span></div>
+  </div>
+
+  <div class="msgs" id="msgs"></div>
+
+  <div class="status" id="status">Toque no microfone para come&ccedil;ar</div>
+  <div class="dbg" id="dbg">avatar: connecting&hellip;</div>
+
+  <div class="bar">
+    <div class="actions">
+      <button class="chip" id="btnHint" disabled>?</button>
+      <button class="mic" id="btnMic" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#2E2606" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7"/></svg>
+        <span class="stopsq"></span>
+      </button>
+      <button class="chip chip-end" id="btnEnd">End</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+// ═══════════════════════════════════════════════════════════════════════════
+// EMMA AVATAR TEST — standalone lab. Same Worker pipeline as the app
+// (Whisper → Claude → Inworld/Sarah), with the voice streamed to a Simli
+// real-time avatar instead of played through a hidden audio element.
+// Completely separate from the app: nothing here touches emma.js or home2.
+//
+// Fallback by design: if the avatar fails to connect (or crashes mid-way),
+// the chat continues with normal local audio playback — a session can never
+// be lost to the avatar.
+// ═══════════════════════════════════════════════════════════════════════════
+var W = 'https://billowing-sunset-c961.lucaswassup.workers.dev';
+var FREE_PROMPT =
+  'You are Emma, an English coach having a FREE conversation - no curriculum, no scenario, no script. '+
+  'BREVITY - TOP PRIORITY: you are a VOICE agent; the student LISTENS to every word. HARD LIMIT: 25 words per response. Ideal: 10-20 words. Short sentences. One idea, one question. '+
+  'This is casual English practice with a Brazilian student. Chat naturally about everyday life - pick a light, random opener yourself. '+
+  'Follow the student\'s lead COMPLETELY: any subject they raise is welcome. Never redirect, never mention units or lessons. '+
+  'End every one of your turns with one simple question. '+
+  'When the student makes a clear error, recast it naturally in your reply without lecturing. '+
+  'Speak naturally - warm, real. No bullet points, no asterisks, no stage directions. Just speak. '+
+  'Opening: greeting + ONE simple question, 12 words MAXIMUM total.';
+
+var $ = function(id){ return document.getElementById(id); };
+var statusEl = $('status'), dbgEl = $('dbg'), micBtn = $('btnMic'), hintBtn = $('btnHint');
+function setStatus(t){ statusEl.textContent = t; }
+function setDbg(t){ dbgEl.textContent = t; }
+function addBubble(who, text){
+  var d = document.createElement('div');
+  d.className = 'bub ' + who; d.textContent = text;
+  $('msgs').appendChild(d); $('msgs').scrollTop = $('msgs').scrollHeight;
+}
+
+// ── Simli connection ────────────────────────────────────────────────────────
+var simli = null;          // SimliClient instance, or null in fallback mode
+var avatarMode = false;    // true once the stream is live
+var sessionEnded = false;
+
+async function connectAvatar(){
+  try{
+    var mod = await import('https://esm.sh/simli-client');
+    var SimliClient = mod.SimliClient;
+    var LogLevel = mod.LogLevel || {};
+    var res = await fetch(W + '/simli-session');
+    var data = await res.json();
+    if(!data.session_token) throw new Error(data.error || 'no session_token');
+    simli = new SimliClient(
+      data.session_token,
+      $('simliVideo'),
+      $('simliAudio'),
+      null,                              // no ICE config needed for livekit
+      (LogLevel.INFO !== undefined ? LogLevel.INFO : 1),
+      'livekit'                          // Trinity avatars stream via livekit
+    );
+    simli.on && simli.on('start', function(){
+      avatarMode = true;
+      $('livePill').classList.add('on');
+      $('heroFallback').style.display = 'none';
+      setDbg('avatar: connected');
+    });
+    simli.on && simli.on('error', function(e){
+      console.warn('[simli] error', e);
+      if(!avatarMode) enterFallback('connect error');
+    });
+    simli.on && simli.on('startup_error', function(m){
+      console.warn('[simli] startup_error', m);
+      enterFallback('startup: ' + m);
+    });
+    await simli.start();
+    // safety: if 'start' never fires, fall back
+    setTimeout(function(){ if(!avatarMode && !sessionEnded) enterFallback('timeout'); }, 10000);
+  }catch(e){
+    console.warn('[simli] init failed', e);
+    enterFallback(String(e && e.message || e));
+  }
+}
+function enterFallback(why){
+  avatarMode = false;
+  try{ if(simli && simli.stop) simli.stop(); }catch(e){}
+  simli = null;
+  setDbg('avatar: fallback (audio only) — ' + why);
+}
+
+// ── Audio: decode Sarah's mp3 and feed the avatar (or play locally) ────────
+var actx = null;
+function getACtx(){
+  if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+  if(actx.state === 'suspended') actx.resume().catch(function(){});
+  return actx;
+}
+// Linear-resample a Float32 mono buffer to 16 kHz Int16 bytes (Simli's format)
+function toPCM16k(audioBuf){
+  var src = audioBuf.getChannelData(0);
+  var srcRate = audioBuf.sampleRate;
+  var ratio = srcRate / 16000;
+  var outLen = Math.floor(src.length / ratio);
+  var out = new Int16Array(outLen);
+  for(var i = 0; i < outLen; i++){
+    var pos = i * ratio;
+    var i0 = Math.floor(pos), i1 = Math.min(i0 + 1, src.length - 1);
+    var frac = pos - i0;
+    var s = src[i0] * (1 - frac) + src[i1] * frac;
+    s = Math.max(-1, Math.min(1, s));
+    out[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+  }
+  return new Uint8Array(out.buffer);
+}
+
+var speakId = 0;
+var localSrc = null;
+var turnTimer = null;
+
+function emmaSpeak(text){
+  var turn = ++speakId;
+  setStatus('Emma is speaking...');
+  micBtn.disabled = false; // allow interrupting by tapping mic
+  fetch(W + '/emma-speak', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ text: text })
+  })
+  .then(function(r){ if(!r.ok) throw new Error('TTS ' + r.status); return r.arrayBuffer(); })
+  .then(function(ab){ return getACtx().decodeAudioData(ab); })
+  .then(function(buf){
+    if(turn !== speakId || sessionEnded) return;
+    var durMs = Math.ceil(buf.duration * 1000);
+    if(avatarMode && simli){
+      // stream to the avatar in ~6 KB chunks; Simli plays the synced audio
+      try{ simli.ClearBuffer && simli.ClearBuffer(); }catch(e){}
+      var pcm = toPCM16k(buf);
+      var CHUNK = 6000;
+      for(var off = 0; off < pcm.length; off += CHUNK){
+        simli.sendAudioData(pcm.subarray(off, Math.min(off + CHUNK, pcm.length)));
+      }
+    }else{
+      // fallback: play locally
+      var ctx = getACtx();
+      localSrc = ctx.createBufferSource();
+      localSrc.buffer = buf;
+      localSrc.connect(ctx.destination);
+      localSrc.start();
+    }
+    clearTimeout(turnTimer);
+    turnTimer = setTimeout(function(){
+      if(turn !== speakId || sessionEnded) return;
+      setStatus('Your turn — tap to speak');
+    }, durMs + 600);
+  })
+  .catch(function(e){
+    console.warn('[tts]', e);
+    if(turn !== speakId) return;
+    setStatus('Your turn — tap to speak');
+  });
+}
+function stopSpeaking(){
+  speakId++;
+  clearTimeout(turnTimer);
+  try{ if(localSrc){ localSrc.stop(); localSrc = null; } }catch(e){}
+  try{ if(avatarMode && simli && simli.ClearBuffer) simli.ClearBuffer(); }catch(e){}
+}
+
+// ── Conversation (same Worker endpoints as the app) ────────────────────────
+var history = [];
+function callClaude(cb){
+  fetch(W + '/emma-chat', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ system: FREE_PROMPT, messages: history, topic: 'Conversation', max_tokens: 150 })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){ if(d.error) throw new Error(d.error); cb(d.text); })
+  .catch(function(e){ setStatus('Error: ' + e.message); });
+}
+function startConvo(){
+  setStatus('Emma is preparing...');
+  history = [{ role:'user', content:'[Start: greet the student and ask one simple question. 12 words maximum.]' }];
+  callClaude(function(text){
+    history.push({ role:'assistant', content:text });
+    addBubble('emma', text);
+    emmaSpeak(text);
+  });
+}
+function submit(transcript){
+  addBubble('me', transcript);
+  history.push({ role:'user', content: transcript });
+  setStatus('Emma is thinking...');
+  micBtn.disabled = true;
+  callClaude(function(text){
+    history.push({ role:'assistant', content:text });
+    addBubble('emma', text);
+    emmaSpeak(text);
+  });
+}
+
+// ── Mic (with the app's silence gate) ──────────────────────────────────────
+var rec = false, mr = null, chunks = [], recT0 = 0, recPeak = 1, recMeter = null, recCtx = null;
+function supportedMime(){
+  var t = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4'];
+  for(var i = 0; i < t.length; i++) if(MediaRecorder.isTypeSupported(t[i])) return t[i];
+  return '';
+}
+function startRec(){
+  stopSpeaking(); // tapping mic while Emma talks = interrupt
+  navigator.mediaDevices.getUserMedia({ audio:true }).then(function(stream){
+    chunks = [];
+    var mt = supportedMime();
+    mr = new MediaRecorder(stream, mt ? { mimeType: mt } : {});
+    mr.ondataavailable = function(e){ if(e.data && e.data.size > 0) chunks.push(e.data); };
+    mr.onstop = onRecStop;
+    mr.start(250); rec = true;
+    recT0 = Date.now(); recPeak = 1;
+    try{
+      recCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if(recCtx.state === 'suspended') recCtx.resume().catch(function(){});
+      var src = recCtx.createMediaStreamSource(stream);
+      var an = recCtx.createAnalyser(); an.fftSize = 1024; src.connect(an);
+      var buf = new Float32Array(an.fftSize);
+      recPeak = 0;
+      recMeter = setInterval(function(){
+        try{
+          an.getFloatTimeDomainData(buf);
+          var s = 0; for(var i = 0; i < buf.length; i++) s += buf[i] * buf[i];
+          var rms = Math.sqrt(s / buf.length);
+          if(rms > recPeak) recPeak = rms;
+        }catch(e){ recPeak = 1; }
+      }, 80);
+    }catch(e){ recPeak = 1; }
+    micBtn.classList.add('rec');
+    setStatus('Listening... tap to stop');
+  }).catch(function(e){ setStatus('Mic error: ' + e.message); });
+}
+function stopRec(){
+  if(!mr || !rec) return;
+  rec = false;
+  micBtn.classList.remove('rec');
+  micBtn.disabled = true;
+  setStatus('Transcribing...');
+  mr.stop();
+  try{ mr.stream.getTracks().forEach(function(t){ t.stop(); }); }catch(e){}
+}
+function onRecStop(){
+  try{ clearInterval(recMeter); }catch(e){}
+  try{ if(recCtx){ recCtx.close(); recCtx = null; } }catch(e){}
+  var ms = Date.now() - recT0;
+  var mt = mr.mimeType || 'audio/webm';
+  var blob = new Blob(chunks, { type: mt });
+  if(blob.size < 1000 || ms < 500 || recPeak < 0.02){
+    micBtn.disabled = false;
+    setStatus('Could not hear you. Tap to try again.');
+    return;
+  }
+  var reader = new FileReader();
+  reader.onloadend = function(){
+    var b64 = reader.result.split(',')[1];
+    fetch(W + '/transcribe', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ audio: b64, mimeType: mt, skipPron: true, noEcho: true })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var t = (d.text || '').trim();
+      if(!t){
+        micBtn.disabled = false;
+        setStatus('Could not hear you. Tap to try again.');
+        return;
+      }
+      submit(t);
+    })
+    .catch(function(){
+      micBtn.disabled = false;
+      setStatus('Error. Tap to try again.');
+    });
+  };
+  reader.readAsDataURL(blob);
+}
+
+// ── Hint (?) — two suggested replies, same as the app's helper ─────────────
+function showHint(){
+  hintBtn.disabled = true;
+  fetch(W + '/emma-chat', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      system: FREE_PROMPT + ' Give 2 short natural English responses the student could say. Return ONLY a JSON array of 2 strings.',
+      messages: history.concat([{ role:'user', content:'Suggest 2 responses.' }]),
+      max_tokens: 100
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    hintBtn.disabled = false;
+    try{
+      var arr = JSON.parse(String(d.text).replace(/```json|```/g, '').trim());
+      setStatus('Try: "' + arr[0] + '" or "' + arr[1] + '"');
+    }catch(e){ setStatus('Try answering in a full sentence!'); }
+  })
+  .catch(function(){ hintBtn.disabled = false; });
+}
+
+// ── Session control ─────────────────────────────────────────────────────────
+var LIMIT_MS = 5 * 60 * 1000;
+var limitTimer = null;
+function endSession(msg){
+  if(sessionEnded) return;
+  sessionEnded = true;
+  stopSpeaking();
+  if(rec) stopRec();
+  clearTimeout(limitTimer);
+  try{ if(simli && simli.stop) simli.stop(); }catch(e){}
+  $('livePill').classList.remove('on');
+  micBtn.disabled = true; hintBtn.disabled = true;
+  setStatus(msg || 'Session ended. Reload to start again.');
+}
+$('btnEnd').addEventListener('click', function(){ endSession(); });
+$('btnHint').addEventListener('click', showHint);
+micBtn.addEventListener('click', function(){ rec ? stopRec() : startRec(); });
+
+// ── Boot: first tap unlocks audio, connects the avatar, starts the convo ───
+var booted = false;
+micBtn.disabled = false;
+function boot(){
+  if(booted) return; booted = true;
+  getACtx();                      // unlock audio within the gesture
+  $('simliAudio').play().catch(function(){});
+  connectAvatar();
+  startConvo();
+  hintBtn.disabled = false;
+  limitTimer = setTimeout(function(){
+    endSession('5 minutos completos — great job! Até amanhã.');
+  }, LIMIT_MS);
+}
+document.body.addEventListener('click', function first(ev){
+  document.body.removeEventListener('click', first);
+  boot();
+}, { once:true });
+</script>
+</body>
+</html>
