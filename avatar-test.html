@@ -130,14 +130,37 @@ var simli = null;          // SimliClient instance, or null in fallback mode
 var avatarMode = false;    // true once the stream is live
 var sessionEnded = false;
 
+async function loadSimliSDK(){
+  // iOS Safari is picky about CDN module builds — try several sources.
+  var sources = [
+    'https://cdn.jsdelivr.net/npm/simli-client/+esm',
+    'https://esm.sh/simli-client?bundle',
+    'https://esm.sh/simli-client'
+  ];
+  var lastErr = null;
+  for(var i = 0; i < sources.length; i++){
+    setDbg('avatar: importing SDK (' + (i + 1) + '/' + sources.length + ')…');
+    try{
+      var mod = await import(sources[i]);
+      if(mod && (mod.SimliClient || (mod.default && mod.default.SimliClient))){
+        return mod.SimliClient ? mod : mod.default;
+      }
+      lastErr = new Error('no SimliClient export');
+    }catch(e){ lastErr = e; }
+  }
+  throw lastErr || new Error('all SDK sources failed');
+}
+
 async function connectAvatar(){
   try{
-    var mod = await import('https://esm.sh/simli-client');
+    var mod = await loadSimliSDK();
     var SimliClient = mod.SimliClient;
     var LogLevel = mod.LogLevel || {};
+    setDbg('avatar: minting session…');
     var res = await fetch(W + '/simli-session');
     var data = await res.json();
     if(!data.session_token) throw new Error(data.error || 'no session_token');
+    setDbg('avatar: connecting stream…');
     simli = new SimliClient(
       data.session_token,
       $('simliVideo'),
