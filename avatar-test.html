@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Emma — Avatar Test</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap">
+<script src="avatar-simli-sdk.js"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{background:#F6F1E7;}
@@ -131,7 +132,13 @@ var avatarMode = false;    // true once the stream is live
 var sessionEnded = false;
 
 async function loadSimliSDK(){
-  // iOS Safari is picky about CDN module builds — try several sources.
+  // Primary: our self-hosted bundle (avatar-simli-sdk.js, compiled for
+  // Safari 15 — the npm package's own build is broken by a Client/client
+  // filename-case typo, which is why every CDN build failed to evaluate).
+  if(window.SimliSDK && typeof window.SimliSDK.SimliClient === 'function'){
+    return window.SimliSDK;
+  }
+  // Last resort: CDN module builds.
   var sources = [
     'https://cdn.jsdelivr.net/npm/simli-client/+esm',
     'https://esm.sh/simli-client?bundle',
@@ -249,12 +256,18 @@ function emmaSpeak(text){
         simli.sendAudioData(pcm.subarray(off, Math.min(off + CHUNK, pcm.length)));
       }
     }else{
-      // fallback: play locally
+      // fallback: play locally. iOS suspends the audio engine between turns;
+      // resume it (and wait for the resume) before starting playback, or the
+      // audio silently doesn't come out — the "sometimes no audio" bug.
       var ctx = getACtx();
-      localSrc = ctx.createBufferSource();
-      localSrc.buffer = buf;
-      localSrc.connect(ctx.destination);
-      localSrc.start();
+      var ready = (ctx.state === 'running') ? Promise.resolve() : ctx.resume();
+      ready.then(function(){
+        if(turn !== speakId || sessionEnded) return;
+        localSrc = ctx.createBufferSource();
+        localSrc.buffer = buf;
+        localSrc.connect(ctx.destination);
+        localSrc.start();
+      }).catch(function(){});
     }
     clearTimeout(turnTimer);
     turnTimer = setTimeout(function(){
@@ -427,7 +440,10 @@ function endSession(msg){
 }
 $('btnEnd').addEventListener('click', function(){ endSession(); });
 $('btnHint').addEventListener('click', showHint);
-micBtn.addEventListener('click', function(){ rec ? stopRec() : startRec(); });
+micBtn.addEventListener('click', function(){
+  try{ getACtx(); }catch(e){} // gesture: revive the audio engine if iOS napped it
+  rec ? stopRec() : startRec();
+});
 
 // ── Boot: first tap unlocks audio, connects the avatar, starts the convo ───
 var booted = false;
