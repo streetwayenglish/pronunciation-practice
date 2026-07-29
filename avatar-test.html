@@ -121,13 +121,13 @@
 
   <div class="msgs" id="msgs"></div>
 
-  <div class="status" id="status">Toque no microfone para come&ccedil;ar</div>
-  <div class="dbg" id="dbg">page v6 &middot; avatar: connecting&hellip;</div>
+  <div class="status" id="status"></div>
+  <div class="dbg" id="dbg" style="display:none"></div>
 
   <div class="bar">
     <div class="actions">
       <button class="chip" id="btnHint" disabled>?</button>
-      <button class="mic" id="btnMic" disabled></button>
+      <button class="mic" id="btnMic" disabled style="opacity:.5"></button>
       <button class="chip chip-end" id="btnEnd">End</button>
     </div>
   </div>
@@ -158,7 +158,11 @@ var FREE_PROMPT =
 var $ = function(id){ return document.getElementById(id); };
 var statusEl = $('status'), dbgEl = $('dbg'), micBtn = $('btnMic'), hintBtn = $('btnHint');
 function setStatus(t){ statusEl.textContent = t; }
-function setDbg(t){ dbgEl.textContent = t; }
+// Progress is logged, not displayed: the loader already tells the student what
+// is happening. The line only becomes visible if the avatar fails, so a broken
+// session still explains itself.
+function setDbg(t){ dbgEl.textContent = t; console.log('[avatar]', t); }
+function showDbg(t){ setDbg(t); dbgEl.style.display = 'block'; }
 // Translate icon — same data-URI Apple glyph the module chat embeds, same
 // double-tap guard, refusal filter, and toggle-off behavior. Colors adapted
 // for the light bubbles here (the module chat's white-on-dark icon would be
@@ -279,6 +283,7 @@ async function connectAvatar(){
       $('heroFallback').style.display = 'none';
       hideLoading(true); // crossfade: loader fades while the stream appears
       setDbg('avatar: connected');
+      beginConversation(); // Emma greets only once her face is live
     });
     simli.on && simli.on('error', function(e){
       console.warn('[simli] error', e);
@@ -315,7 +320,8 @@ function enterFallback(why){
   hideLoading(false); // never leave the loader spinning over the fallback
   try{ if(simli && simli.stop) simli.stop(); }catch(e){}
   simli = null;
-  setDbg('avatar: fallback (audio only) — ' + why);
+  showDbg('avatar: fallback (audio only) — ' + why);
+  beginConversation(); // audio-only session still gets its greeting
 }
 
 // ── Audio: decode Sarah's mp3 and feed the avatar (or play locally) ────────
@@ -564,25 +570,48 @@ micBtn.addEventListener('click', function(){
   rec ? stopRec() : startRec();
 });
 
-// ── Boot: first tap unlocks audio, connects the avatar, starts the convo ───
+// ── Boot: the session opens itself; no tap needed ─────────────────────────
+// The avatar starts connecting the moment the page loads. Emma's first line is
+// held back by beginConversation() until the stream is live (or until the
+// fallback is decided), so the greeting never arrives before her face.
 var booted = false;
-micBtn.disabled = false;
-function boot(){
-  if(booted) return; booted = true;
-  getACtx();                      // unlock audio within the gesture
-  $('simliAudio').play().catch(function(){});
-  showLoading();                  // loader holds until the stream's start event
-  connectAvatar();
-  startConvo();
+var convoStarted = false;
+function beginConversation(){
+  if(convoStarted || sessionEnded) return;
+  convoStarted = true;
+  micBtn.disabled = false;
+  micBtn.style.opacity = '1';
   hintBtn.disabled = false;
+  startConvo();
+  clearTimeout(limitTimer);
   limitTimer = setTimeout(function(){
     endSession('5 minutos completos — great job! Até amanhã.');
   }, LIMIT_MS);
 }
-document.body.addEventListener('click', function first(ev){
-  document.body.removeEventListener('click', first);
+function boot(){
+  if(booted) return; booted = true;
+  showLoading();
+  try{ getACtx(); }catch(e){}
+  $('simliAudio').play().catch(function(){});
+  connectAvatar();
+}
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', boot);
+}else{
   boot();
-}, { once:true });
+}
+// iOS blocks audio until the page has been touched. If Safari suspended the
+// engine, the first touch anywhere revives it — invisible when autoplay is
+// allowed, and the student's first mic tap covers it either way.
+function unlockAudio(){
+  try{
+    var c = getACtx();
+    if(c.state === 'suspended') c.resume().catch(function(){});
+  }catch(e){}
+  $('simliAudio').play().catch(function(){});
+}
+document.addEventListener('touchstart', unlockAudio, { once:true, passive:true });
+document.addEventListener('click', unlockAudio, { once:true });
 
 // test hook (used by the verification rig; harmless in production)
 window._lab = { addBubble: addBubble };
