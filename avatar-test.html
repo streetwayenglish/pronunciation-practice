@@ -74,6 +74,12 @@ window._simliSessionPromise = fetch('https://billowing-sunset-c961.lucaswassup.w
 
   .status{text-align:center;font-size:13px;color:#9B9484;font-weight:600;min-height:20px;
     padding:0 8px 8px;}
+  /* iOS won't let a page play sound until it has been touched. When that's the
+     only thing standing between the student and Emma's voice, say so clearly
+     instead of letting her mouth move in silence. */
+  .status.tap{font-size:15.5px;font-weight:800;color:#B8891C;
+    animation:tapPulse 1.6s ease-in-out infinite;}
+  @keyframes tapPulse{0%,100%{opacity:1}50%{opacity:.55}}
 
   /* Suggested answers — chips in the conversation flow, on the student's side,
      so two long options have room to breathe instead of cramming the status
@@ -308,7 +314,8 @@ async function connectAvatar(){
       $('heroFallback').style.display = 'none';
       hideLoading(true); // crossfade: loader fades while the stream appears
       setDbg('avatar: connected');
-      beginConversation(); // Emma greets only once her face is live
+      streamReady = true;
+      if(audioUnlocked) maybeBegin(); else promptForTap();
     });
     simli.on && simli.on('error', function(e){
       console.warn('[simli] error', e);
@@ -346,7 +353,8 @@ function enterFallback(why){
   try{ if(simli && simli.stop) simli.stop(); }catch(e){}
   simli = null;
   showDbg('avatar: fallback (audio only) — ' + why);
-  beginConversation(); // audio-only session still gets its greeting
+  streamReady = true;
+  if(audioUnlocked) maybeBegin(); else promptForTap();
 }
 
 // ── Audio: decode Sarah's mp3 and feed the avatar (or play locally) ────────
@@ -685,6 +693,26 @@ micBtn.addEventListener('click', function(){
 // fallback is decided), so the greeting never arrives before her face.
 var booted = false;
 var convoStarted = false;
+// Emma's first line is released only when BOTH are true: her stream (or the
+// audio-only fallback) is ready, AND the browser will actually let us make
+// sound. Otherwise the greeting plays into a muted output — lips moving, no
+// voice — which is exactly what iOS does before the page has been touched.
+var streamReady = false;
+var audioUnlocked = false;
+function maybeBegin(){
+  if(streamReady && audioUnlocked) beginConversation();
+}
+function promptForTap(){
+  if(convoStarted || sessionEnded) return;
+  var st = $('status');
+  st.classList.add('tap');
+  st.textContent = 'Toque na tela para ouvir Emma';
+}
+function clearTapPrompt(){
+  var st = $('status');
+  st.classList.remove('tap');
+  if(st.textContent.indexOf('Toque na tela') === 0) st.textContent = '';
+}
 function beginConversation(){
   if(convoStarted || sessionEnded) return;
   convoStarted = true;
@@ -709,7 +737,11 @@ function beginConversation(){
 function boot(){
   if(booted) return; booted = true;
   showLoading();
-  try{ getACtx(); }catch(e){}
+  try{
+    var c0 = getACtx();
+    if(c0.state === 'running') audioUnlocked = true; // no gesture needed here
+    else c0.resume().then(function(){ if(c0.state === 'running') markUnlocked(); }).catch(function(){});
+  }catch(e){}
   $('simliAudio').play().catch(function(){});
   prefetchGreeting();   // greeting + voice ready before the stream is
   connectAvatar();
@@ -722,15 +754,29 @@ if(document.readyState === 'loading'){
 // iOS blocks audio until the page has been touched. If Safari suspended the
 // engine, the first touch anywhere revives it — invisible when autoplay is
 // allowed, and the student's first mic tap covers it either way.
+function markUnlocked(){
+  if(audioUnlocked) return;
+  audioUnlocked = true;
+  clearTapPrompt();
+  document.removeEventListener('touchstart', unlockAudio);
+  document.removeEventListener('click', unlockAudio);
+  maybeBegin();
+}
 function unlockAudio(){
+  // Must call play()/resume() inside the gesture handler for iOS to honour it.
+  var ok = false;
   try{
     var c = getACtx();
-    if(c.state === 'suspended') c.resume().catch(function(){});
+    if(c.state === 'running'){ ok = true; }
+    else c.resume().then(function(){ if(c.state === 'running') markUnlocked(); }).catch(function(){});
   }catch(e){}
-  $('simliAudio').play().catch(function(){});
+  try{ $('simliAudio').play().catch(function(){}); }catch(e){}
+  if(ok) markUnlocked();
 }
-document.addEventListener('touchstart', unlockAudio, { once:true, passive:true });
-document.addEventListener('click', unlockAudio, { once:true });
+// Listeners stay attached until sound is genuinely available, so a tap that
+// fails to unlock doesn't burn the one chance to try.
+document.addEventListener('touchstart', unlockAudio, { passive:true });
+document.addEventListener('click', unlockAudio);
 
 // test hook (used by the verification rig; harmless in production)
 window._lab = { addBubble: addBubble };
