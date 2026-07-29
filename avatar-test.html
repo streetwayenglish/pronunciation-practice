@@ -4,9 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Emma — Avatar Test</title>
+<link rel="preconnect" href="https://billowing-sunset-c961.lucaswassup.workers.dev" crossorigin>
+<link rel="preconnect" href="https://api.simli.ai" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap">
-<script src="js/avatar-simli-sdk.js?v=1"></script>
+<script>
+// Kick the session request off immediately — before the SDK is even parsed —
+// so the Worker/Simli round-trip overlaps script loading instead of following
+// it. connectAvatar() awaits this promise rather than starting a fresh fetch.
+window._simliSessionPromise = fetch('https://billowing-sunset-c961.lucaswassup.workers.dev/simli-session')
+  .then(function(r){ return r.json(); })
+  .catch(function(e){ return { error: String(e && e.message || e) }; });
+</script>
+<script src="js/avatar-simli-sdk.js?v=1" defer></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{background:#F6F1E7;}
@@ -64,6 +74,20 @@
 
   .status{text-align:center;font-size:13px;color:#9B9484;font-weight:600;min-height:20px;
     padding:0 8px 8px;}
+
+  /* Suggested answers — chips in the conversation flow, on the student's side,
+     so two long options have room to breathe instead of cramming the status
+     line. Tapping one dismisses it (this is speaking practice: the student
+     says it out loud, the chip doesn't send it for them). */
+  .sugg{align-self:flex-end;display:flex;flex-direction:column;align-items:stretch;
+    gap:8px;max-width:88%;}
+  .sugg-lbl{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+    color:#B0A891;text-align:right;padding-right:4px;}
+  .sugg-chip{background:#FFFDF7;border:1.5px solid #EFDFAE;border-radius:18px;
+    padding:11px 15px;font-family:inherit;font-size:15px;font-weight:600;line-height:1.35;
+    color:#3B3320;text-align:left;cursor:pointer;transition:transform .12s, background .2s;
+    box-shadow:0 1px 2px rgba(60,50,20,.05);}
+  .sugg-chip:active{transform:scale(.985);background:#FBF4E2;}
   .dbg{text-align:center;font-size:11px;color:#C5BEAD;font-weight:600;padding-bottom:6px;}
 
   .bar{background:#FFFFFF;border-radius:26px;padding:12px 16px;
@@ -265,8 +289,9 @@ async function connectAvatar(){
     var SimliClient = mod.SimliClient;
     var LogLevel = mod.LogLevel || {};
     setDbg('avatar: minting session…');
-    var res = await fetch(W + '/simli-session');
-    var data = await res.json();
+    var data = window._simliSessionPromise
+      ? await window._simliSessionPromise
+      : await (await fetch(W + '/simli-session')).json();
     if(!data.session_token) throw new Error(data.error || 'no session_token');
     setDbg('avatar: connecting stream…');
     simli = new SimliClient(
@@ -353,6 +378,65 @@ var speakId = 0;
 var localSrc = null;
 var turnTimer = null;
 
+// Plays an already-decoded buffer — used by the prefetched greeting so Emma
+// speaks the instant her face appears instead of waiting for two round-trips.
+function playBuffer(buf){
+  var turn = ++speakId;
+  setStatus('Emma is speaking...');
+  micBtn.disabled = false; micBtn.style.opacity = '1';
+  var durMs = Math.ceil(buf.duration * 1000);
+  if(avatarMode && simli){
+    try{ simli.ClearBuffer && simli.ClearBuffer(); }catch(e){}
+    var pcm = toPCM16k(buf);
+    var CHUNK = 6000;
+    for(var off = 0; off < pcm.length; off += CHUNK){
+      simli.sendAudioData(pcm.subarray(off, Math.min(off + CHUNK, pcm.length)));
+    }
+  }else{
+    var ctx = getACtx();
+    var ready = (ctx.state === 'running') ? Promise.resolve() : ctx.resume();
+    ready.then(function(){
+      if(turn !== speakId || sessionEnded) return;
+      localSrc = ctx.createBufferSource();
+      localSrc.buffer = buf;
+      localSrc.connect(ctx.destination);
+      localSrc.start();
+    }).catch(function(){});
+  }
+  clearTimeout(turnTimer);
+  turnTimer = setTimeout(function(){
+    if(turn !== speakId || sessionEnded) return;
+    setStatus('Your turn — tap to speak');
+    micBtn.disabled = false; micBtn.style.opacity = '1';
+  }, durMs + 600);
+}
+
+// The greeting is generated AND voiced while the stream is still connecting.
+// Nothing is shown or played until beginConversation() releases it, so the
+// bubble still never precedes her face — the waiting just happens in parallel.
+var greetingPrefetch = null;
+function prefetchGreeting(){
+  history = [{ role:'user', content:'[Start: greet the student and ask one simple question. 12 words maximum.]' }];
+  greetingPrefetch = fetch(W + '/emma-chat', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ system: FREE_PROMPT, messages: history, topic: 'Conversation', max_tokens: 150 })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(d.error || !d.text) throw new Error(d.error || 'no text');
+    var text = d.text;
+    return fetch(W + '/emma-speak', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ text: text })
+    })
+    .then(function(r){ if(!r.ok) throw new Error('TTS ' + r.status); return r.arrayBuffer(); })
+    .then(function(ab){ return getACtx().decodeAudioData(ab); })
+    .then(function(buf){ return { text: text, buf: buf }; })
+    .catch(function(){ return { text: text, buf: null }; }); // text still usable
+  });
+  return greetingPrefetch;
+}
+
 function emmaSpeak(text){
   var turn = ++speakId;
   setStatus('Emma is speaking...');
@@ -430,6 +514,7 @@ function startConvo(){
   });
 }
 function submit(transcript){
+  clearSuggestions();
   addBubble('me', transcript);
   history.push({ role:'user', content: transcript });
   setStatus('Emma is thinking...');
@@ -542,10 +627,34 @@ function showHint(){
     hintBtn.disabled = false;
     try{
       var arr = JSON.parse(String(d.text).replace(/```json|```/g, '').trim());
-      setStatus('Try: "' + arr[0] + '" or "' + arr[1] + '"');
+      renderSuggestions(arr);
     }catch(e){ setStatus('Try answering in a full sentence!'); }
   })
   .catch(function(){ hintBtn.disabled = false; });
+}
+
+function clearSuggestions(){
+  var old = $('msgs').querySelectorAll('.sugg');
+  for(var i = 0; i < old.length; i++) old[i].remove();
+}
+function renderSuggestions(arr){
+  clearSuggestions();
+  if(!arr || !arr.length) return;
+  var box = document.createElement('div');
+  box.className = 'sugg';
+  var lbl = document.createElement('div');
+  lbl.className = 'sugg-lbl';
+  lbl.textContent = 'Sugest\u00f5es';
+  box.appendChild(lbl);
+  for(var i = 0; i < Math.min(arr.length, 2); i++){
+    var c = document.createElement('button');
+    c.className = 'sugg-chip';
+    c.textContent = String(arr[i]);
+    c.onclick = function(){ box.remove(); };
+    box.appendChild(c);
+  }
+  $('msgs').appendChild(box);
+  $('msgs').scrollTop = $('msgs').scrollHeight;
 }
 
 // ── Session control ─────────────────────────────────────────────────────────
@@ -582,17 +691,27 @@ function beginConversation(){
   micBtn.disabled = false;
   micBtn.style.opacity = '1';
   hintBtn.disabled = false;
-  startConvo();
   clearTimeout(limitTimer);
   limitTimer = setTimeout(function(){
     endSession('5 minutos completos — great job! Até amanhã.');
   }, LIMIT_MS);
+  if(greetingPrefetch){
+    greetingPrefetch.then(function(g){
+      if(sessionEnded) return;
+      history.push({ role:'assistant', content: g.text });
+      addBubble('emma', g.text);
+      if(g.buf) playBuffer(g.buf); else emmaSpeak(g.text);
+    }).catch(function(){ startConvo(); });
+  }else{
+    startConvo();
+  }
 }
 function boot(){
   if(booted) return; booted = true;
   showLoading();
   try{ getACtx(); }catch(e){}
   $('simliAudio').play().catch(function(){});
+  prefetchGreeting();   // greeting + voice ready before the stream is
   connectAvatar();
 }
 if(document.readyState === 'loading'){
