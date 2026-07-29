@@ -5,14 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Emma — Avatar Test</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap">
 <script src="js/avatar-simli-sdk.js?v=1"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{background:#F6F1E7;}
   body{font-family:"Plus Jakarta Sans",system-ui,sans-serif;color:#23201A;
     -webkit-font-smoothing:antialiased;}
-  .wrap{max-width:430px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;
+  .wrap{max-width:430px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;
+    overflow:hidden;
     padding:calc(10px + env(safe-area-inset-top)) 16px calc(14px + env(safe-area-inset-bottom));}
+  .top,.hero,.status,.dbg,.bar{flex:none;}
 
   .top{display:grid;grid-template-columns:40px 1fr 40px;align-items:center;padding:2px 4px 10px;}
   .logo{grid-column:2;display:flex;justify-content:center;}
@@ -27,6 +30,25 @@
     background:radial-gradient(circle at 50% 35%, #FBF7EC 0%, #F1EBDD 100%);}
   .hero .fallback .mono{width:84px;height:84px;border-radius:50%;background:#F0B428;color:#2E2606;
     display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;}
+  /* ── Connecting loader — ported 1:1 from Lucas's Claude Design export
+     ("Emma Connecting Loader Final", variant 1d: arc spinner + status pill) */
+  .loadwrap{position:absolute;inset:0;z-index:2;display:none;flex-direction:column;
+    align-items:center;justify-content:center;gap:26px;background:#f2efe4;
+    font-family:'Nunito',system-ui,sans-serif;transition:opacity .6s ease;}
+  .loadwrap.on{display:flex;}
+  .loadwrap.fade{opacity:0;pointer-events:none;}
+  .loadwrap .ldspin{animation:ldspin 1.1s linear infinite;display:block;}
+  @keyframes ldspin{to{transform:rotate(360deg);}}
+  .loadwrap .ldtxt{display:flex;flex-direction:column;align-items:center;gap:12px;}
+  .loadwrap .ldh{font-size:19px;font-weight:700;color:#2b2a26;}
+  .loadwrap .ldpill{display:flex;align-items:center;gap:8px;background:#faf7ec;
+    border:1px solid rgba(0,0,0,.06);border-radius:999px;padding:7px 16px;
+    box-shadow:0 1px 2px rgba(0,0,0,.05);}
+  .loadwrap .lddot{width:8px;height:8px;border-radius:50%;background:#e8b73a;
+    animation:ldpulse 1.4s ease-in-out infinite;}
+  @keyframes ldpulse{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.12);opacity:1}}
+  .loadwrap .lds{font-size:13px;font-weight:700;color:#8a8168;}
+
   .live{position:absolute;top:14px;right:14px;background:#FBF7EC;border-radius:999px;
     padding:8px 16px;display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;
     color:#3A362C;box-shadow:0 2px 8px rgba(0,0,0,.12);z-index:2;}
@@ -34,7 +56,7 @@
   .live.on i{background:#2FA85C;}
 
   .msgs{flex:1;padding:16px 2px 10px;display:flex;flex-direction:column;gap:12px;
-    overflow-y:auto;min-height:120px;}
+    overflow-y:auto;min-height:0;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
   .bub{max-width:78%;padding:13px 17px;font-size:16px;line-height:1.4;font-weight:600;}
   .bub.emma{background:#FFFFFF;border-radius:22px 22px 22px 6px;color:#26231C;
     box-shadow:0 1px 3px rgba(60,50,20,.06);align-self:flex-start;}
@@ -53,15 +75,25 @@
   .chip:disabled{opacity:.4;}
   .chip-end{width:auto;min-width:64px;padding:0 18px;border-radius:999px;font-size:15px;
     font-weight:700;color:#C2543A;border-color:#EBD9CE;padding-bottom:0;line-height:normal;}
-  .mic{width:68px;height:68px;border-radius:50%;background:#F0B428;border:0;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;
-    box-shadow:0 0 0 8px rgba(240,180,40,.22), 0 8px 20px rgba(240,180,40,.45);}
-  .mic.rec{background:#C2543A;box-shadow:0 0 0 8px rgba(194,84,58,.2), 0 8px 20px rgba(194,84,58,.4);}
-  .mic:disabled{opacity:.45;}
-  .mic svg{width:26px;height:26px;}
-  .mic .stopsq{width:20px;height:20px;border-radius:5px;background:#fff;display:none;}
-  .mic.rec svg{display:none;}
-  .mic.rec .stopsq{display:block;}
+  /* Mic — ported 1:1 from the module chat (conversation.css .emma-mic):
+     flat solid gold circle, black glyph via mask, press-shrink, black stop
+     square + breathing gold pulse while listening. */
+  .mic{flex:0 0 auto;width:80px;height:80px;padding:0;border-radius:50%;font-size:0;
+    background:#E6B31E;position:relative;overflow:hidden;border:0;cursor:pointer;
+    transition:transform .15s;}
+  .mic:active{transform:scale(.94);}
+  .mic::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:32px;height:32px;background-color:#0a0a0a;
+    -webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 14a3 3 0 003-3V6a3 3 0 00-6 0v5a3 3 0 003 3z'/><path d='M19 11a1 1 0 10-2 0 5 5 0 01-10 0 1 1 0 10-2 0 7 7 0 006 6.92V20H8a1 1 0 100 2h8a1 1 0 100-2h-3v-2.08A7 7 0 0019 11z'/></svg>") center/contain no-repeat;
+    mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 14a3 3 0 003-3V6a3 3 0 00-6 0v5a3 3 0 003 3z'/><path d='M19 11a1 1 0 10-2 0 5 5 0 01-10 0 1 1 0 10-2 0 7 7 0 006 6.92V20H8a1 1 0 100 2h8a1 1 0 100-2h-3v-2.08A7 7 0 0019 11z'/></svg>") center/contain no-repeat;}
+  .mic.rec::after{display:none;}
+  .mic.rec .stop-sq{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:22px;height:22px;background:#0a0a0a;border-radius:3px;}
+  @keyframes emmaMicListenPulse{
+    0%{box-shadow:0 0 0 0 rgba(230,179,30,.55);}
+    70%{box-shadow:0 0 0 22px rgba(230,179,30,0);}
+    100%{box-shadow:0 0 0 0 rgba(230,179,30,0);}}
+  .mic.rec{animation:emmaMicListenPulse 1.6s ease-out infinite;}
 </style>
 </head>
 <body>
@@ -74,21 +106,28 @@
     <div class="fallback" id="heroFallback"><div class="mono">E</div>Emma</div>
     <video id="simliVideo" autoplay playsinline></video>
     <audio id="simliAudio" autoplay></audio>
+    <div class="loadwrap" id="heroLoading">
+      <svg class="ldspin" width="74" height="74" viewBox="0 0 74 74">
+        <circle cx="37" cy="37" r="32" fill="none" stroke="rgba(232,183,58,.2)" stroke-width="6"></circle>
+        <circle cx="37" cy="37" r="32" fill="none" stroke="#e8b73a" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 141"></circle>
+      </svg>
+      <div class="ldtxt">
+        <div class="ldh">Connecting to Emma&hellip;</div>
+        <div class="ldpill"><span class="lddot"></span><span class="lds">Starting live avatar</span></div>
+      </div>
+    </div>
     <div class="live" id="livePill"><i></i><span>Live</span></div>
   </div>
 
   <div class="msgs" id="msgs"></div>
 
   <div class="status" id="status">Toque no microfone para come&ccedil;ar</div>
-  <div class="dbg" id="dbg">page v4 &middot; avatar: connecting&hellip;</div>
+  <div class="dbg" id="dbg">page v6 &middot; avatar: connecting&hellip;</div>
 
   <div class="bar">
     <div class="actions">
       <button class="chip" id="btnHint" disabled>?</button>
-      <button class="mic" id="btnMic" disabled>
-        <svg viewBox="0 0 24 24" fill="none" stroke="#2E2606" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7"/></svg>
-        <span class="stopsq"></span>
-      </button>
+      <button class="mic" id="btnMic" disabled></button>
       <button class="chip chip-end" id="btnEnd">End</button>
     </div>
   </div>
@@ -120,9 +159,67 @@ var $ = function(id){ return document.getElementById(id); };
 var statusEl = $('status'), dbgEl = $('dbg'), micBtn = $('btnMic'), hintBtn = $('btnHint');
 function setStatus(t){ statusEl.textContent = t; }
 function setDbg(t){ dbgEl.textContent = t; }
+// Translate icon — same data-URI Apple glyph the module chat embeds, same
+// double-tap guard, refusal filter, and toggle-off behavior. Colors adapted
+// for the light bubbles here (the module chat's white-on-dark icon would be
+// invisible on white); gold active state kept in the same family.
+var T_ICON = 'data:image/png;base64,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';
+var T_IDLE = 'rgba(35,32,26,.55)';
+var T_ACTIVE = 'rgb(200,144,26)';
+function attachTranslate(div, text){
+  div.style.position = 'relative';
+  div.style.paddingRight = '40px';
+  var tBtn = document.createElement('button');
+  tBtn.style.cssText = 'background:none;border:none;cursor:pointer;padding:0;position:absolute;bottom:8px;right:10px;opacity:.4;transition:opacity .2s;';
+  var tImg = document.createElement('div');
+  tImg.style.cssText = 'width:22px;height:22px;background-color:'+T_IDLE+';-webkit-mask:url("'+T_ICON+'") center/contain no-repeat;mask:url("'+T_ICON+'") center/contain no-repeat;';
+  tBtn.appendChild(tImg);
+  tBtn._translated = false;
+  tBtn._loading = false;
+  tBtn.onclick = function(){
+    if(tBtn._loading) return; // guard against rapid double-tap
+    if(tBtn._translated){
+      var ex = div.querySelectorAll('.emma-translation');
+      for(var i = 0; i < ex.length; i++) ex[i].remove();
+      tBtn.style.opacity = '.65'; tImg.style.backgroundColor = T_IDLE; tBtn._translated = false; return;
+    }
+    var leftover = div.querySelectorAll('.emma-translation');
+    for(var i2 = 0; i2 < leftover.length; i2++) leftover[i2].remove();
+    tBtn._loading = true;
+    tBtn.style.opacity = '.35';
+    fetch(W + '/emma-chat', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ system:'You are a translation tool. Your only job is to translate English to Brazilian Portuguese. Output ONLY the translated text. No explanations, no notes, no other text whatsoever.', messages:[{role:'user',content:text}], topic:'translation_'+Date.now(), max_tokens:300 })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      tBtn._loading = false;
+      var t = d.text ? d.text.trim() : '';
+      if(!t){ tBtn.style.opacity = '.65'; return; }
+      var refusalPatterns = [
+        /^(i'?m sorry|i cannot|i can'?t|sorry,|i apologize|unfortunately|my apologies)/i,
+        /^as an? (ai|assistant|language model)/i,
+        /^i'?m an? (ai|assistant)/i,
+        /i'?m not able to/i,
+        /i don'?t (translate|provide|do)/i,
+        /^(here'?s|here is) the translation/i,
+        /^translation:/i
+      ];
+      if(refusalPatterns.some(function(p){ return p.test(t); })){
+        tBtn.style.opacity = '.65'; return;
+      }
+      var dup = div.querySelectorAll('.emma-translation');
+      for(var k = 0; k < dup.length; k++) dup[k].remove();
+      var el = document.createElement('div'); el.className = 'emma-translation';
+      el.style.cssText = 'color:'+T_ACTIVE+';line-height:1.5;padding-top:8px;margin-top:6px;border-top:1px solid rgba(0,0,0,.08);font-style:italic;';
+      el.textContent = t; tBtn.parentNode.insertBefore(el, tBtn);
+      tBtn.style.opacity = '1'; tImg.style.backgroundColor = T_ACTIVE; tBtn._translated = true;
+      $('msgs').scrollTop = $('msgs').scrollHeight;
+    }).catch(function(){ tBtn._loading = false; tBtn.style.opacity = '.65'; });
+  };
+  div.appendChild(tBtn);
+}
 function addBubble(who, text){
   var d = document.createElement('div');
   d.className = 'bub ' + who; d.textContent = text;
+  if(who === 'emma') attachTranslate(d, text);
   $('msgs').appendChild(d); $('msgs').scrollTop = $('msgs').scrollHeight;
 }
 
@@ -180,6 +277,7 @@ async function connectAvatar(){
       avatarMode = true;
       $('livePill').classList.add('on');
       $('heroFallback').style.display = 'none';
+      hideLoading(true); // crossfade: loader fades while the stream appears
       setDbg('avatar: connected');
     });
     simli.on && simli.on('error', function(e){
@@ -198,8 +296,23 @@ async function connectAvatar(){
     enterFallback(String(e && e.message || e));
   }
 }
+function showLoading(){
+  var l = $('heroLoading');
+  l.classList.remove('fade');
+  l.classList.add('on');
+}
+function hideLoading(fade){
+  var l = $('heroLoading');
+  if(fade){
+    l.classList.add('fade');
+    setTimeout(function(){ l.classList.remove('on','fade'); }, 650);
+  } else {
+    l.classList.remove('on','fade');
+  }
+}
 function enterFallback(why){
   avatarMode = false;
+  hideLoading(false); // never leave the loader spinning over the fallback
   try{ if(simli && simli.stop) simli.stop(); }catch(e){}
   simli = null;
   setDbg('avatar: fallback (audio only) — ' + why);
@@ -273,12 +386,14 @@ function emmaSpeak(text){
     turnTimer = setTimeout(function(){
       if(turn !== speakId || sessionEnded) return;
       setStatus('Your turn — tap to speak');
+      micBtn.disabled = false; micBtn.style.opacity = '1';
     }, durMs + 600);
   })
   .catch(function(e){
     console.warn('[tts]', e);
     if(turn !== speakId) return;
     setStatus('Your turn — tap to speak');
+    micBtn.disabled = false; micBtn.style.opacity = '1';
   });
 }
 function stopSpeaking(){
@@ -354,6 +469,7 @@ function startRec(){
       }, 80);
     }catch(e){ recPeak = 1; }
     micBtn.classList.add('rec');
+    micBtn.innerHTML = '<span class="stop-sq"></span>';
     setStatus('Listening... tap to stop');
   }).catch(function(e){ setStatus('Mic error: ' + e.message); });
 }
@@ -361,7 +477,9 @@ function stopRec(){
   if(!mr || !rec) return;
   rec = false;
   micBtn.classList.remove('rec');
+  micBtn.innerHTML = '';
   micBtn.disabled = true;
+  micBtn.style.opacity = '0.5';
   setStatus('Transcribing...');
   mr.stop();
   try{ mr.stream.getTracks().forEach(function(t){ t.stop(); }); }catch(e){}
@@ -373,7 +491,7 @@ function onRecStop(){
   var mt = mr.mimeType || 'audio/webm';
   var blob = new Blob(chunks, { type: mt });
   if(blob.size < 1000 || ms < 500 || recPeak < 0.02){
-    micBtn.disabled = false;
+    micBtn.disabled = false; micBtn.style.opacity = '1';
     setStatus('Could not hear you. Tap to try again.');
     return;
   }
@@ -388,14 +506,14 @@ function onRecStop(){
     .then(function(d){
       var t = (d.text || '').trim();
       if(!t){
-        micBtn.disabled = false;
+        micBtn.disabled = false; micBtn.style.opacity = '1';
         setStatus('Could not hear you. Tap to try again.');
         return;
       }
       submit(t);
     })
     .catch(function(){
-      micBtn.disabled = false;
+      micBtn.disabled = false; micBtn.style.opacity = '1';
       setStatus('Error. Tap to try again.');
     });
   };
@@ -434,6 +552,7 @@ function endSession(msg){
   if(rec) stopRec();
   clearTimeout(limitTimer);
   try{ if(simli && simli.stop) simli.stop(); }catch(e){}
+  hideLoading(false);
   $('livePill').classList.remove('on');
   micBtn.disabled = true; hintBtn.disabled = true;
   setStatus(msg || 'Session ended. Reload to start again.');
@@ -452,6 +571,7 @@ function boot(){
   if(booted) return; booted = true;
   getACtx();                      // unlock audio within the gesture
   $('simliAudio').play().catch(function(){});
+  showLoading();                  // loader holds until the stream's start event
   connectAvatar();
   startConvo();
   hintBtn.disabled = false;
@@ -463,6 +583,9 @@ document.body.addEventListener('click', function first(ev){
   document.body.removeEventListener('click', first);
   boot();
 }, { once:true });
+
+// test hook (used by the verification rig; harmless in production)
+window._lab = { addBubble: addBubble };
 </script>
 </body>
 </html>
