@@ -74,7 +74,7 @@ window._startMint = function(coachId){
     padding:24px 18px calc(24px + env(safe-area-inset-bottom));}
   .picker.on{display:flex;}
   .picker .plogo{margin-bottom:20px;}
-  .picker .plogo img{height:23.1px;display:block;}   /* 22px +5% */
+  .picker .plogo img{height:24.72px;display:block;}   /* 22px +5% then +7% */
   .pcard{width:100%;max-width:400px;background:#fff;border-radius:24px;padding:18px 16px 16px;
     box-shadow:0 6px 20px rgba(60,50,20,.08);}
   .pcard h2{font-size:19px;font-weight:800;text-align:center;margin-bottom:3px;color:#23201A;}
@@ -142,9 +142,14 @@ window._startMint = function(coachId){
   .sugg-chip:active{transform:scale(.985);background:#FBF4E2;}
   .dbg{text-align:center;font-size:11px;color:#C5BEAD;font-weight:600;padding-bottom:6px;}
 
-  .bar{background:#FFFFFF;border-radius:26px;padding:12px 16px;
-    box-shadow:0 6px 24px rgba(60,50,20,.10);}
-  .actions{display:flex;align-items:center;justify-content:space-between;}
+  .bar{position:relative;background:#FFFFFF;border-radius:26px;padding:12px 16px;
+    min-height:104px;box-shadow:0 6px 24px rgba(60,50,20,.10);}
+  .actions{display:flex;align-items:center;justify-content:space-between;min-height:80px;}
+  /* The mic is the visual anchor of the screen, so it sits on the true centre
+     line regardless of how wide its neighbours are. (End is 18px wider than the
+     "?" chip, which used to drag the mic 9px off axis.) The differing shapes are
+     deliberate: End is the one irreversible control on the bar. */
+
   .chip{width:52px;height:52px;border-radius:50%;background:#FFFFFF;border:1.5px solid #EDE7D8;
     display:flex;align-items:center;justify-content:center;color:#6B655A;cursor:pointer;
     font-family:inherit;font-size:21px;font-weight:800;line-height:1;padding-bottom:3px;}
@@ -155,9 +160,14 @@ window._startMint = function(coachId){
      flat solid gold circle, black glyph via mask, press-shrink, black stop
      square + breathing gold pulse while listening. */
   .mic{flex:0 0 auto;width:80px;height:80px;padding:0;border-radius:50%;font-size:0;
-    background:#E6B31E;position:relative;overflow:hidden;border:0;cursor:pointer;
-    transition:transform .15s;}
-  .mic:active{transform:scale(.94);}
+    background:#E6B31E;overflow:hidden;border:0;cursor:pointer;transition:transform .15s;
+    /* Anchored to the bar's true centre line: End is wider than the "?" chip,
+       which used to drag the mic 9px off axis. The differing shapes stay —
+       End is the one irreversible control here and should look unlike its
+       neighbour. */
+    position:absolute;left:50%;transform:translateX(-50%);}
+  .mic:active{transform:translateX(-50%) scale(.94);}
+
   .mic::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
     width:32px;height:32px;background-color:#0a0a0a;
     -webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 14a3 3 0 003-3V6a3 3 0 00-6 0v5a3 3 0 003 3z'/><path d='M19 11a1 1 0 10-2 0 5 5 0 01-10 0 1 1 0 10-2 0 7 7 0 006 6.92V20H8a1 1 0 100 2h8a1 1 0 100-2h-3v-2.08A7 7 0 0019 11z'/></svg>") center/contain no-repeat;
