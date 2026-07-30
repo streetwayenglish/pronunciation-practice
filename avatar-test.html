@@ -19,7 +19,7 @@ window._simliSessionPromise = fetch('https://billowing-sunset-c961.lucaswassup.w
 <script src="js/avatar-simli-sdk.js?v=1" defer></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-  html,body{background:#FAF7EF;}
+  html,body{background:#F2EEE4;}
   body{font-family:"Plus Jakarta Sans",system-ui,sans-serif;color:#23201A;
     -webkit-font-smoothing:antialiased;}
   .wrap{max-width:430px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;
@@ -33,9 +33,9 @@ window._simliSessionPromise = fetch('https://billowing-sunset-c961.lucaswassup.w
 
   /* hero: the Simli avatar stream */
   .hero{position:relative;border-radius:26px;overflow:hidden;aspect-ratio:1/1.02;
-    background:#F4F0E5;box-shadow:0 8px 24px rgba(60,50,20,.10);}
+    background:#F2EEE4;box-shadow:0 10px 30px rgba(60,50,20,.10);}
   .hero video,.hero canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-    background:#F4F0E5;}
+    background:#F2EEE4;}
   .hero canvas{opacity:0;transition:opacity .25s ease;}
   .hero .fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
     justify-content:center;gap:10px;color:#B8AF9C;font-weight:700;font-size:15px;
@@ -267,10 +267,10 @@ function addBubble(who, text){
 // of the video. The background colour is SAMPLED from the first frame's corners
 // rather than hard-coded, so changing SIMLI_FACE_ID doesn't break it.
 //   ?key=off  → disable entirely (raw video)
-//   ?bg=%23FAF7EF → choose the replacement colour (default = page cream)
+//   ?bg=%23F2EEE4 → choose the replacement colour (default = page = her own bg)
 var _q = new URLSearchParams(location.search);
 var KEY_ON = _q.get('key') !== 'off';
-var KEY_BG = _q.get('bg') || '#FAF7EF';
+var KEY_BG = _q.get('bg') || '#F2EEE4';
 var KEY_TOL = 26;   // colour distance counted as "background"
 var KEY_SOFT = 22;  // soft band above it, blended to avoid hard cut-outs
 var keyRAF = null, keySample = null, keySlowFrames = 0;
