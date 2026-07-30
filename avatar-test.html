@@ -34,9 +34,8 @@ window._simliSessionPromise = fetch('https://billowing-sunset-c961.lucaswassup.w
   /* hero: the Simli avatar stream */
   .hero{position:relative;border-radius:26px;overflow:hidden;aspect-ratio:1/1.02;
     background:#F2EEE4;box-shadow:0 10px 30px rgba(60,50,20,.10);}
-  .hero video,.hero canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  .hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
     background:#F2EEE4;}
-  .hero canvas{opacity:0;transition:opacity .25s ease;}
   .hero .fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
     justify-content:center;gap:10px;color:#B8AF9C;font-weight:700;font-size:15px;
     background:radial-gradient(circle at 50% 35%, #FBF7EC 0%, #F1EBDD 100%);}
@@ -137,7 +136,6 @@ window._simliSessionPromise = fetch('https://billowing-sunset-c961.lucaswassup.w
   <div class="hero">
     <div class="fallback" id="heroFallback"><div class="mono">E</div>Emma</div>
     <video id="simliVideo" autoplay playsinline></video>
-    <canvas id="simliCanvas"></canvas>
     <audio id="simliAudio" autoplay></audio>
     <div class="loadwrap" id="heroLoading">
       <svg class="ldspin" width="74" height="74" viewBox="0 0 74 74">
@@ -260,91 +258,6 @@ function addBubble(who, text){
   $('msgs').appendChild(d); $('msgs').scrollTop = $('msgs').scrollHeight;
 }
 
-// ── Background replacement (chroma key) ─────────────────────────────────────
-// Simli bakes the background into the video and offers no setting for it, so
-// the swap happens here: every frame is drawn to a canvas, pixels matching the
-// avatar's own background colour are repainted, and the canvas is shown instead
-// of the video. The background colour is SAMPLED from the first frame's corners
-// rather than hard-coded, so changing SIMLI_FACE_ID doesn't break it.
-//   ?key=off  → disable entirely (raw video)
-//   ?bg=%23F2EEE4 → choose the replacement colour (default = page = her own bg)
-var _q = new URLSearchParams(location.search);
-var KEY_ON = _q.get('key') !== 'off';
-var KEY_BG = _q.get('bg') || '#F2EEE4';
-var KEY_TOL = 26;   // colour distance counted as "background"
-var KEY_SOFT = 22;  // soft band above it, blended to avoid hard cut-outs
-var keyRAF = null, keySample = null, keySlowFrames = 0;
-
-function hexToRgb(h){
-  h = String(h).replace('#','');
-  if(h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
-  return [parseInt(h.substr(0,2),16), parseInt(h.substr(2,2),16), parseInt(h.substr(4,2),16)];
-}
-function sampleBackground(p, w, h){
-  // average a few pixels from the four corners — the areas a portrait never uses
-  var pts = [[4,4],[w-5,4],[4,h-5],[w-5,h-5],[10,10],[w-11,10]];
-  var r = 0, g = 0, b = 0;
-  for(var i = 0; i < pts.length; i++){
-    var idx = (pts[i][1]*w + pts[i][0]) * 4;
-    r += p[idx]; g += p[idx+1]; b += p[idx+2];
-  }
-  return [Math.round(r/pts.length), Math.round(g/pts.length), Math.round(b/pts.length)];
-}
-function stopChromaKey(revert){
-  if(keyRAF){ cancelAnimationFrame(keyRAF); keyRAF = null; }
-  if(revert){
-    $('simliCanvas').style.opacity = '0';
-    $('simliVideo').style.opacity = '1';
-  }
-}
-function startChromaKey(){
-  if(!KEY_ON) return;
-  var v = $('simliVideo'), cv = $('simliCanvas');
-  var ctx = cv.getContext('2d', { willReadFrequently: true });
-  if(!ctx) return;
-  var tgt = hexToRgb(KEY_BG);
-  var tol2 = KEY_TOL * KEY_TOL, outer = KEY_TOL + KEY_SOFT, outer2 = outer * outer;
-  function frame(){
-    if(sessionEnded){ stopChromaKey(true); return; }
-    var t0 = performance.now();
-    var w = v.videoWidth, h = v.videoHeight;
-    if(w && h){
-      if(cv.width !== w){ cv.width = w; cv.height = h; }
-      ctx.drawImage(v, 0, 0, w, h);
-      var d, p;
-      try{ d = ctx.getImageData(0, 0, w, h); p = d.data; }
-      catch(e){ stopChromaKey(true); return; } // tainted canvas: bail to raw video
-      if(!keySample) keySample = sampleBackground(p, w, h);
-      var br = keySample[0], bg2 = keySample[1], bb = keySample[2];
-      for(var i = 0; i < p.length; i += 4){
-        var dr = p[i]-br, dg = p[i+1]-bg2, db = p[i+2]-bb;
-        var dist2 = dr*dr + dg*dg + db*db;          // squared: no sqrt in the hot path
-        if(dist2 < tol2){
-          p[i] = tgt[0]; p[i+1] = tgt[1]; p[i+2] = tgt[2];
-        } else if(dist2 < outer2){
-          var t = (Math.sqrt(dist2) - KEY_TOL) / KEY_SOFT;   // only near edges
-          p[i]   = tgt[0]*(1-t) + p[i]*t;
-          p[i+1] = tgt[1]*(1-t) + p[i+1]*t;
-          p[i+2] = tgt[2]*(1-t) + p[i+2]*t;
-        }
-      }
-      ctx.putImageData(d, 0, 0);
-      if(cv.style.opacity !== '1'){ cv.style.opacity = '1'; v.style.opacity = '0'; }
-      // Honesty guard: if the phone can't keep up, give the student a smooth
-      // avatar instead of a stuttering recoloured one.
-      if(performance.now() - t0 > 34){
-        if(++keySlowFrames > 45){
-          setDbg('chroma key off: too slow on this device');
-          stopChromaKey(true);
-          return;
-        }
-      } else if(keySlowFrames > 0){ keySlowFrames--; }
-    }
-    keyRAF = requestAnimationFrame(frame);
-  }
-  keyRAF = requestAnimationFrame(frame);
-}
-
 // ── Simli connection ────────────────────────────────────────────────────────
 var simli = null;          // SimliClient instance, or null in fallback mode
 var avatarMode = false;    // true once the stream is live
@@ -403,7 +316,6 @@ async function connectAvatar(){
       hideLoading(true); // crossfade: loader fades while the stream appears
       setDbg('avatar: connected');
       streamReady = true;
-      startChromaKey();
       if(audioUnlocked) maybeBegin(); else promptForTap();
     });
     simli.on && simli.on('error', function(e){
@@ -764,7 +676,6 @@ function endSession(msg){
   if(rec) stopRec();
   clearTimeout(limitTimer);
   try{ if(simli && simli.stop) simli.stop(); }catch(e){}
-  stopChromaKey(true);
   hideLoading(false);
   $('livePill').classList.remove('on');
   micBtn.disabled = true; hintBtn.disabled = true;
@@ -869,7 +780,7 @@ document.addEventListener('touchstart', unlockAudio, { passive:true });
 document.addEventListener('click', unlockAudio);
 
 // test hook (used by the verification rig; harmless in production)
-window._lab = { addBubble: addBubble, startChromaKey: startChromaKey, sampleBackground: sampleBackground };
+window._lab = { addBubble: addBubble };
 </script>
 </body>
 </html>
