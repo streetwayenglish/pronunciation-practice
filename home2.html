@@ -1469,65 +1469,19 @@ function setView(v) {
   }
 
 
-// ===== "Chat with Emma" card -> free conversation (no path, no warmup) =====
+// ===== "Chat with Emma" card -> live avatar chat =====
+// The card now opens the avatar page (avatar-test.html), where the student
+// picks a coach and talks to a live Simli avatar. The old in-app free chat
+// (switchMode('emma') with the free-chat-live visibility keeper) is replaced
+// by this navigation; nothing else on the Today page changes.
 (function(){
   var fc = document.querySelector('.t-focus');
   if(!fc) return;
   fc.addEventListener('click', function(ev){
-    // Stop sibling/ancestor handlers, then launch on the next tick so nothing
-    // in the same click dispatch can undo the visibility changes.
     ev.stopPropagation();
-    setTimeout(function(){
-      // Empty topic -> emma.js falls back to 'general English conversation'
-      // (a real free chat; 'Conversation' would load that path's scripted unit).
-      window._emmaTopic = '';
-      try{ window.emmaTopic = ''; }catch(e){}
-      window._emmaFreeChat = true; // emma.js starts the 5-minute session timer
-      var hl = document.getElementById('home2Layer'); if(hl) hl.style.display = 'none';
-      document.body.classList.remove('show-topics');
-      ['topicPage','mobileHome','swDesktop'].forEach(function(id){
-        var e = document.getElementById(id); if(e) e.style.display = 'none';
-      });
-      var hdr  = document.querySelector('.hdr');  if(hdr)  hdr.style.display  = '';
-      var main = document.querySelector('.main'); if(main) main.style.display = 'block';
-      // home.js's mobile-home "safety net" force-hides .main after this
-      // handler runs. Win at the CSS level instead of racing it: a session
-      // class + !important rule (injected into <head> directly, so the
-      // mount's CSS scoper can't rewrite it).
-      if(!document.getElementById('freeChatCSS')){
-        var fcs = document.createElement('style');
-        fcs.id = 'freeChatCSS';
-        fcs.textContent = 'body.free-chat-live .main{display:block !important;}'
-                        + 'body.free-chat-live .hdr{display:none !important;}';
-        document.head.appendChild(fcs);
-      }
-      document.body.classList.add('free-chat-live');
-      // Keeper: other code occasionally rewrites body.className wholesale,
-      // wiping our class. Hold it while the chat session is on screen; when
-      // the student returns home (home2Layer visible again), remove it and
-      // stop — so the rule never leaks into normal navigation.
-      try{ clearInterval(window._freeChatKeeper); }catch(e){}
-      window._freeChatKeeper = setInterval(function(){
-        var hl = document.getElementById('home2Layer');
-        var inChat = hl && hl.style.display === 'none' && window._emmaFreeTimer;
-        if(inChat){
-          if(!document.body.classList.contains('free-chat-live')){
-            document.body.classList.add('free-chat-live');
-          }
-        } else {
-          document.body.classList.remove('free-chat-live');
-          clearInterval(window._freeChatKeeper);
-          window._freeChatKeeper = null;
-        }
-      }, 300);
-      // Direct launch. On-device evidence: this route starts the session
-      // correctly (v1 had voice + rendered chat DOM); its visibility problem
-      // is solved by the free-chat-live !important rule held by the keeper
-      // above. The warmup-gate detour is intentionally NOT used here — closing
-      // the warmup mid-startup wedges its dark modal (the black-screen bug).
-      try{ if(typeof window.switchMode === 'function') return switchMode('emma'); }catch(e){}
-      console.warn('[home2] no emma launcher for free chat');
-    }, 0);
+    // Same folder as index.html, so this works on the custom domain and on
+    // the github.io path alike.
+    window.location.href = 'avatar-test.html';
   });
 })();
 
