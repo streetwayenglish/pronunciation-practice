@@ -119,20 +119,38 @@
      images/ (home2.html is re-fetched every app open, so nothing heavy is
      embedded here). */
   .t-coaches{margin:22px 24px 0;}
-  .t-coaches-hd{display:flex;align-items:center;justify-content:space-between;margin:0 2px 11px;}
-  .t-coaches-hd b{font-size:16px;font-weight:800;color:#0a0a0a;letter-spacing:-.015em;}
-  .t-live{display:flex;align-items:center;gap:5px;background:#fff;border-radius:999px;
-    padding:5px 10px;box-shadow:0 2px 8px -4px rgba(0,0,0,.16);}
-  .t-live i{width:6px;height:6px;border-radius:50%;background:#2FA85C;display:block;}
-  .t-live span{font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#5b564c;}
+  /* Title + subtitle, no status pill: the pill said "ao vivo" a second time,
+     which is what made the section read as an advert. The subtitle now adds
+     information instead of volume. */
+  /* Gold bar rather than a bigger title: it marks the section without taking
+     any vertical space, and reuses the Continue button's gold. */
+  .t-coaches-hd{margin:0 2px 12px;padding-left:12px;border-left:3px solid #E6B31E;}
+  .t-coaches-hd b{font-size:18px;font-weight:800;color:#0a0a0a;letter-spacing:-.02em;
+    display:block;line-height:1.2;}
+  .t-coaches-hd span{font-size:12.5px;font-weight:600;color:#9a9082;letter-spacing:-.005em;
+    display:block;margin-top:2px;}
   .t-coaches-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;}
   .t-coach{position:relative;aspect-ratio:3/4;border-radius:16px;overflow:hidden;padding:0;border:0;
     background-size:cover;background-position:center top;background-color:#efece4;
-    box-shadow:0 6px 16px -9px rgba(0,0,0,.45);cursor:pointer;font-family:inherit;
+    /* The inset hairline is what stops a pale portrait (Emma's background is
+       near-white) from dissolving into the cream page — it draws the tile's
+       own edge without adding a real border, so nothing shifts. */
+    box-shadow:0 6px 16px -9px rgba(0,0,0,.45),inset 0 0 0 1px rgba(60,50,30,.10);
+    cursor:pointer;font-family:inherit;
     transition:transform .15s,box-shadow .15s;}
-  .t-coach:active{transform:scale(.97);box-shadow:0 10px 22px -10px rgba(0,0,0,.5);}
+  .t-coach:active{transform:scale(.97);
+    box-shadow:0 10px 22px -10px rgba(0,0,0,.5),inset 0 0 0 1px rgba(60,50,30,.10);}
   .t-coach::after{content:'';position:absolute;left:0;right:0;bottom:0;height:52%;
     background:linear-gradient(to top,rgba(0,0,0,.74),rgba(0,0,0,0));}
+  /* Per-coach status, the messaging-app convention: not "this section is
+     live" but "Emma is available". The drop shadow (not a white ring) is what
+     holds it against both a pale portrait and a dark one. */
+  .t-coach-dot{position:absolute;top:8px;right:8px;z-index:3;width:6px;height:6px;
+    border-radius:50%;background:#2FA85C;box-shadow:0 1px 3px rgba(0,0,0,.4);
+    animation:t-coach-pulse 2.4s ease-in-out infinite;}
+  @keyframes t-coach-pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.18);}}
+  @media (prefers-reduced-motion:reduce){.t-coach-dot{animation:none;}}
+
   .t-coach-name{position:absolute;left:9px;bottom:8px;z-index:2;color:#fff;font-size:12.5px;
     font-weight:800;letter-spacing:-.01em;text-shadow:0 1px 4px rgba(0,0,0,.45);}
 
@@ -860,7 +878,7 @@ body::before{display:none !important;}
         <h1 class="headline">Continue learning</h1>
 
         <!-- CONTINUE HERO -->
-        <div class="t-hero" data-path="travel-english">
+        <div class="t-hero">
           <div class="t-hero-body">
             <div class="t-eyebrow"><span class="g">TRAVEL ENGLISH</span><span class="w"> &middot; LESSON 12</span></div>
             <div class="t-title">Ordering at a caf&eacute;</div>
@@ -884,11 +902,11 @@ body::before{display:none !important;}
 
         <!-- CHAT WITH EMMA (free conversation — different mode from structured lesson) -->
         <div class="t-coaches">
-          <div class="t-coaches-hd"><b>Fale ao vivo</b><div class="t-live"><i></i><span>ao vivo</span></div></div>
+          <div class="t-coaches-hd"><b>Fale ao vivo</b><span>Selecione um tutor e fale sem roteiro.</span></div>
           <div class="t-coaches-grid">
-            <button class="t-coach" type="button" data-coach="emma"><span class="t-coach-name">Emma</span></button>
-            <button class="t-coach" type="button" data-coach="kate"><span class="t-coach-name">Kate</span></button>
-            <button class="t-coach" type="button" data-coach="mark"><span class="t-coach-name">Mark</span></button>
+            <button class="t-coach" type="button" data-coach="emma"><span class="t-coach-dot"></span><span class="t-coach-name">Emma</span></button>
+            <button class="t-coach" type="button" data-coach="kate"><span class="t-coach-dot"></span><span class="t-coach-name">Kate</span></button>
+            <button class="t-coach" type="button" data-coach="mark"><span class="t-coach-dot"></span><span class="t-coach-name">Mark</span></button>
           </div>
         </div>
 
@@ -1500,32 +1518,6 @@ var EMMA_IMG_DIR = 'imagesyou/';
   document.querySelectorAll('.t-coach').forEach(function(t){
     t.style.backgroundImage = "url('" + EMMA_IMG_DIR + "coach-" + t.getAttribute('data-coach') + ".jpg')";
   });
-})();
-
-// ===== Hero cover follows the lesson's path =====
-// Change the .t-hero data-path attribute and the artwork changes with it;
-// the files live in images/ so the browser caches them between opens.
-(function(){
-  var COVERS = {
-    'starter':'starter.jpg', 'business-english':'business.jpg',
-    'bible':'bible.jpg', 'travel-english':'travel.jpg',
-    'conversation':'conversation.jpg', 'job-interview':'interview.jpg'
-  };
-  var hero = document.querySelector('.t-hero');
-  if(!hero) return;
-  var file = COVERS[hero.getAttribute('data-path')];
-  if(file) hero.style.backgroundImage = "url('" + EMMA_IMG_DIR + file + "')";
-  // Only for browsers without aspect-ratio (older iOS Safari). Running it
-  // anyway is harmful: an explicit height makes aspect-ratio drive the WIDTH,
-  // which stretches the card past its own margins.
-  var hasAspect = !!(window.CSS && CSS.supports && CSS.supports('aspect-ratio','16 / 9'));
-  if(!hasAspect){
-    var fit = function(){
-      hero.style.height = Math.round(hero.offsetWidth * 9 / 16) + 'px';
-    };
-    fit();
-    window.addEventListener('resize', fit);
-  }
 })();
 
 // The card now opens the avatar page (avatar-test.html), where the student

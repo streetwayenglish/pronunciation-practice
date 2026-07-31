@@ -249,6 +249,11 @@
   #avatarLayer.on{display:block;}
   #avatarFrame{position:absolute;left:0;top:0;display:block;width:100%;
     height:calc(100% - 86px - env(safe-area-inset-bottom,0px));border:0;}
+  /* Mid-session the tab bar is hidden: it sits right under the mic, and a
+     stray tap ends a call the student is paying for. The frame takes the
+     freed height back so the chat isn't left with a gap. */
+  #avatarLayer.live .tabbar{display:none;}
+  #avatarLayer.live #avatarFrame{height:100%;}
   #avatarLayer .tabbar{position:absolute;bottom:calc(18px + env(safe-area-inset-bottom,0px));
     left:18px;right:18px;background:#fff;border-radius:30px;padding:11px 16px 9px;
     display:grid;grid-template-columns:1fr 1fr 1fr 1fr;
@@ -299,6 +304,7 @@
     frame.src = 'avatar-test.html?embed=1'
               + (coach ? '&coach=' + encodeURIComponent(coach) : '');
     layer.classList.add('on');
+    layer.classList.remove('live');   // always opens on the picker
     document.querySelectorAll('#avatarLayer .tab').forEach(function(t){
       t.classList.toggle('active', t.dataset.page === 'today');
     });
@@ -309,6 +315,13 @@
     layer.classList.remove('on');
     frame.src = 'about:blank';   // ends any live session at once
   };
+  // The frame reports whether the picker is up; nav shows only then.
+  window.addEventListener('message', function(ev){
+    if(!ev.data || typeof ev.data.emmaPicker === 'undefined') return;
+    els();
+    if(layer) layer.classList.toggle('live', !ev.data.emmaPicker);
+  });
+
   document.addEventListener('DOMContentLoaded', function(){
     els();
     if(!layer) return;
