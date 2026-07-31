@@ -106,10 +106,7 @@
   .t-stat-lbl{font-size:9px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#a89f90;margin-top:8px;}
 
   /* ===== TODAY'S FOCUS ROW ===== */
-  /* ── Live coaches row (replaces the single "Chat with Emma" card) ────────
-     The three faces ARE the choice: tapping one opens the avatar chat with
-     that coach already selected, and the chat's own screen only asks for a
-     confirmation (so a stray tap here can't start a billed session). */
+  /* ── Live coaches row (replaces the single "Chat with Emma" card) ──── */
   .t-coaches{margin:14px 24px 0;}
   .t-coaches-hd{display:flex;align-items:baseline;justify-content:space-between;margin:0 2px 9px;}
   .t-coaches-hd b{font-size:15px;font-weight:700;color:#0a0a0a;letter-spacing:-.012em;}
@@ -117,7 +114,7 @@
   .t-coaches-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
   .t-coach{background:#fff;border-radius:18px;border:1px solid #ece6d8;
     box-shadow:0 2px 12px -4px rgba(0,0,0,.06);padding:12px 6px 11px;text-align:center;
-    cursor:pointer;transition:transform .15s,box-shadow .15s;}
+    cursor:pointer;font-family:inherit;transition:transform .15s,box-shadow .15s;}
   .t-coach:active{transform:scale(.97);box-shadow:0 8px 20px -8px rgba(0,0,0,.12);}
   .t-coach-av{width:56px;height:56px;border-radius:50%;margin:0 auto 7px;background-size:cover;
     background-position:center;box-shadow:0 3px 10px -3px rgba(0,0,0,.18);}
@@ -887,6 +884,8 @@ body::before{display:none !important;}
             </button>
           </div>
         </div>
+
+      </div>
 <div class="screen page-paths">
 
         <!-- TOP BAR -->
@@ -1483,10 +1482,11 @@ function setView(v) {
   }
 
 
-// ===== Live coaches row -> avatar chat with that coach preselected =====
-// Choosing happens HERE; the chat's own screen only confirms. Nothing is
-// minted by this tap — the confirmation press inside the chat starts (and
-// bills) the session.
+// ===== "Chat with Emma" card -> live avatar chat =====
+// The card now opens the avatar page (avatar-test.html), where the student
+// picks a coach and talks to a live Simli avatar. The old in-app free chat
+// (switchMode('emma') with the free-chat-live visibility keeper) is replaced
+// by this navigation; nothing else on the Today page changes.
 (function(){
   var row = document.querySelector('.t-coaches');
   if(!row) return;
