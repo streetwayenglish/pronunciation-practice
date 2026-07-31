@@ -191,8 +191,8 @@ window._startMint = function(coachId){
   <div class="plogo"><img src="intro-assets/emmaspeak-logo.png" alt="emmaspeak"></div>
   <div class="pend" id="pickerEnd"></div>
   <div class="pcard">
-    <h2>Com quem voc&ecirc; quer falar hoje?</h2>
-    <div class="psub">voc&ecirc; pode trocar quando quiser</div>
+    <h2 id="pickerHead">Com quem voc&ecirc; quer falar hoje?</h2>
+    <div class="psub" id="pickerSub">voc&ecirc; pode trocar quando quiser</div>
     <div id="coachRows"></div>
     <button class="pgo" id="pickerGo">Come&ccedil;ar</button>
   </div>
@@ -843,11 +843,29 @@ function renderCoaches(){
   });
   $('pickerGo').textContent = 'Come\u00e7ar com ' + (coach.name === 'Emma' ? 'a Emma' : (coach.name === 'Kate' ? 'a Kate' : 'o Mark'));
 }
-function showPicker(endMsg){
+// The picker has two jobs now that the Today page owns the choosing:
+//   CONFIRM  - arrived with ?coach=: "ready to talk to Kate?" with her
+//              already selected, one press to start. The other two stay
+//              listed so a mis-tap on Today costs nothing.
+//   CHOOSE   - after a session ends (or with no coach in the URL): the
+//              original "who do you want to talk to?" screen.
+// Either way nothing is minted until the button is pressed, and that press
+// is the real gesture iOS needs before it will play any sound.
+function pt(name){
+  return name === 'Mark' ? 'o ' + name : 'a ' + name;
+}
+function showPicker(endMsg, confirmMode){
   $('picker').classList.add('on');
   var e = $('pickerEnd');
   if(endMsg){ e.textContent = endMsg; e.classList.add('on'); }
   else { e.textContent = ''; e.classList.remove('on'); }
+  if(confirmMode){
+    $('pickerHead').textContent = 'Pronto para falar com ' + pt(coach.name) + '?';
+    $('pickerSub').textContent = 'ou escolha outro coach abaixo';
+  }else{
+    $('pickerHead').textContent = 'Com quem voc\u00ea quer falar hoje?';
+    $('pickerSub').textContent = 'voc\u00ea pode trocar quando quiser';
+  }
   renderCoaches();
 }
 function hidePicker(){ $('picker').classList.remove('on'); }
@@ -944,13 +962,16 @@ function enterLab(){
       document.body.classList.add('embedded');
     }
   }catch(e){ document.body.classList.add('embedded'); }
-  try{
-    var saved = localStorage.getItem(COACH_KEY);
-    if(saved){
-      for(var i = 0; i < COACHES.length; i++) if(COACHES[i].id === saved) coach = COACHES[i];
-    }
-  }catch(e){}
-  showPicker();
+  var fromToday = null;
+  try{ fromToday = new URLSearchParams(location.search).get('coach'); }catch(e){}
+  var chosen = fromToday;
+  if(!chosen){
+    try{ chosen = localStorage.getItem(COACH_KEY); }catch(e){}
+  }
+  if(chosen){
+    for(var i = 0; i < COACHES.length; i++) if(COACHES[i].id === chosen) coach = COACHES[i];
+  }
+  showPicker(null, !!fromToday);
   $('pickerGo').addEventListener('click', startSession);
 }
 if(document.readyState === 'loading'){

@@ -291,10 +291,13 @@
     // to <body> for the same reason; do likewise before showing anything.
     if(layer && layer.parentNode !== document.body) document.body.appendChild(layer);
   }
-  window.openAvatarChat = function(){
+  window.openAvatarChat = function(coach){
     els();
     if(!layer) return;
-    frame.src = 'avatar-test.html?embed=1';
+    // The coach is chosen on the Today page; the chat opens on its
+    // confirmation screen with that face already selected.
+    frame.src = 'avatar-test.html?embed=1'
+              + (coach ? '&coach=' + encodeURIComponent(coach) : '');
     layer.classList.add('on');
     document.querySelectorAll('#avatarLayer .tab').forEach(function(t){
       t.classList.toggle('active', t.dataset.page === 'today');
