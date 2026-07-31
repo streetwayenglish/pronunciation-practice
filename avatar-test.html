@@ -26,9 +26,14 @@ window._startMint = function(coachId){
   html,body{background:#F3F0E8;}   /* same as the app (home2.html) */
   body{font-family:"Plus Jakarta Sans",system-ui,sans-serif;color:#23201A;
     -webkit-font-smoothing:antialiased;}
+  html,body{height:100%;}
   .wrap{max-width:430px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;
     overflow:hidden;
     padding:calc(10px + env(safe-area-inset-top)) 16px calc(14px + env(safe-area-inset-bottom));}
+  /* Embedded in the app's avatar layer: the frame already excludes the tab bar
+     and the safe area, so fill it exactly instead of measuring the viewport. */
+  body.embedded .wrap{height:100%;padding:10px 16px 12px;}
+  body.embedded .picker{padding:18px 16px;}
   .top,.hero,.status,.dbg,.bar{flex:none;}
 
   .top{display:grid;grid-template-columns:40px 1fr 40px;align-items:center;padding:2px 4px 10px;}
@@ -68,7 +73,7 @@ window._startMint = function(coachId){
      Shown on entry and again after a session ends. Nothing is minted until a
      coach is chosen, so browsing is free — and the tap doubles as the gesture
      iOS needs before it will play any sound. */
-  .picker{position:fixed;inset:0;z-index:20;background:#F3F0E8;display:none;
+  .picker{position:fixed;top:0;right:0;bottom:0;left:0;z-index:20;background:#F3F0E8;display:none;
     flex-direction:column;align-items:center;justify-content:center;
     padding:24px 18px calc(24px + env(safe-area-inset-bottom));}
   .picker.on{display:flex;}
@@ -934,6 +939,11 @@ function boot(){
   connectAvatar();
 }
 function enterLab(){
+  try{
+    if(new URLSearchParams(location.search).get('embed') === '1' || window.self !== window.top){
+      document.body.classList.add('embedded');
+    }
+  }catch(e){ document.body.classList.add('embedded'); }
   try{
     var saved = localStorage.getItem(COACH_KEY);
     if(saved){

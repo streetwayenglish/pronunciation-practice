@@ -237,6 +237,93 @@
 <div id="beginnerPlayer" style="display:none;position:fixed;inset:0;z-index:100000;background:#000">
   <iframe id="beginnerFrame" allow="microphone; autoplay; encrypted-media" style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>
 <!-- ═════════ NEW MOBILE HOME (Today/Paths/Activity/You) — isolated iframe ═════════ -->
+
+<style id="avatarLayerCSS">
+  /* ── Avatar chat, hosted inside the app ──────────────────────────────────
+     The chat itself runs in a same-origin frame so its (fixed, full-height)
+     layout and the app's stylesheets can't fight each other — the isolation
+     that kept the lab stable. The app's real tab bar is drawn here, outside
+     the frame, so navigation looks and behaves like the rest of the app and
+     never reloads the page. */
+  #avatarLayer{display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:60;background:#F3F0E8;}
+  #avatarLayer.on{display:block;}
+  #avatarFrame{position:absolute;left:0;top:0;display:block;width:100%;
+    height:calc(100% - 86px - env(safe-area-inset-bottom,0px));border:0;}
+  #avatarLayer .tabbar{position:absolute;bottom:calc(18px + env(safe-area-inset-bottom,0px));
+    left:18px;right:18px;background:#fff;border-radius:30px;padding:11px 16px 9px;
+    display:grid;grid-template-columns:1fr 1fr 1fr 1fr;
+    box-shadow:0 12px 35px -10px rgba(0,0,0,.18),inset 0 0 0 1px rgba(0,0,0,.04);z-index:30;}
+  #avatarLayer .tab{background:transparent;border:none;cursor:pointer;display:flex;
+    flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px 2px;
+    color:#bcb4a6;transition:color .2s;font-family:inherit;}
+  #avatarLayer .tab svg{width:22px;height:22px;}
+  #avatarLayer .tab-lbl{font-size:9.5px;font-weight:600;letter-spacing:.005em;color:inherit;}
+  #avatarLayer .tab .ic-fill{display:none;}
+  #avatarLayer .tab.active{color:#e8b835;}
+  #avatarLayer .tab.active .tab-lbl{font-weight:700;}
+  #avatarLayer .tab.active .ic-line{display:none;}
+  #avatarLayer .tab.active .ic-fill{display:block;}
+</style>
+
+<div id="avatarLayer">
+  <iframe id="avatarFrame" allow="microphone; autoplay" title="Emma avatar chat"></iframe>
+  <nav class="tabbar">
+      <button class="tab active" data-page="today" aria-label="Today"><svg class="ic-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="3.5" x2="12" y2="5.5"/><line x1="12" y1="18.5" x2="12" y2="20.5"/><line x1="3.5" y1="12" x2="5.5" y2="12"/><line x1="18.5" y1="12" x2="20.5" y2="12"/><line x1="5.6" y1="5.6" x2="7" y2="7"/><line x1="17" y1="17" x2="18.4" y2="18.4"/><line x1="5.6" y1="18.4" x2="7" y2="17"/><line x1="17" y1="7" x2="18.4" y2="5.6"/></svg><svg class="ic-fill" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4.3"/><rect x="11.25" y="2.8" width="1.5" height="3.2" rx="0.75"/><rect x="11.25" y="18" width="1.5" height="3.2" rx="0.75"/><rect x="2.8" y="11.25" width="3.2" height="1.5" rx="0.75"/><rect x="18" y="11.25" width="3.2" height="1.5" rx="0.75"/><rect x="11.25" y="2.8" width="1.5" height="3.2" rx="0.75" transform="rotate(45 12 12)"/><rect x="11.25" y="2.8" width="1.5" height="3.2" rx="0.75" transform="rotate(135 12 12)"/><rect x="11.25" y="2.8" width="1.5" height="3.2" rx="0.75" transform="rotate(225 12 12)"/><rect x="11.25" y="2.8" width="1.5" height="3.2" rx="0.75" transform="rotate(315 12 12)"/></svg><span class="tab-lbl">Today</span></button>
+      <button class="tab" data-page="paths" aria-label="Paths"><svg class="ic-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg><svg class="ic-fill" viewBox="0 0 24 24" fill="currentColor"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg><span class="tab-lbl">Paths</span></button>
+      <button class="tab" data-page="activity" aria-label="Activity"><svg class="ic-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 L9 11 L13 14 L21 6"/><circle cx="21" cy="6" r="1.2" fill="currentColor"/></svg><svg class="ic-fill" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17 L9 11 L13 14 L21 6 L21 20 L3 20 Z" opacity="0.85"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 17 L9 11 L13 14 L21 6"/><circle cx="21" cy="6" r="1.6"/></svg><span class="tab-lbl">Activity</span></button>
+      <button class="tab" data-page="you" aria-label="You"><svg class="ic-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20.5 C 5 16.5, 8 14, 12 14 S 19 16.5, 19 20.5"/></svg><svg class="ic-fill" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8.5" r="3.8"/><path d="M12 13.5 C 7.5 13.5, 4.5 16.5, 4.5 20.7 L 19.5 20.7 C 19.5 16.5, 16.5 13.5, 12 13.5 Z"/></svg><span class="tab-lbl">You</span></button>
+    </nav>
+</div>
+<script>
+// ── Avatar chat layer ──────────────────────────────────────────────────────
+// openAvatarChat() is called by the "Chat with Emma" card on the Today page.
+// The frame is only given its src on open (so no Simli session is minted, and
+// no microphone is touched, until the student actually goes there) and the src
+// is cleared on close (which tears the session down immediately — the billing
+// meter runs on connection time).
+(function(){
+  var layer, frame;
+  function els(){
+    layer = layer || document.getElementById('avatarLayer');
+    frame = frame || document.getElementById('avatarFrame');
+    // #beginnerPlayer is never closed in this file, so anything after it lands
+    // inside a display:none container. home2-mount.js reparents its own layer
+    // to <body> for the same reason; do likewise before showing anything.
+    if(layer && layer.parentNode !== document.body) document.body.appendChild(layer);
+  }
+  window.openAvatarChat = function(){
+    els();
+    if(!layer) return;
+    frame.src = 'avatar-test.html?embed=1';
+    layer.classList.add('on');
+    document.querySelectorAll('#avatarLayer .tab').forEach(function(t){
+      t.classList.toggle('active', t.dataset.page === 'today');
+    });
+  };
+  window.closeAvatarChat = function(){
+    els();
+    if(!layer) return;
+    layer.classList.remove('on');
+    frame.src = 'about:blank';   // ends any live session at once
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    els();
+    if(!layer) return;
+    layer.querySelectorAll('.tab').forEach(function(tab){
+      tab.addEventListener('click', function(){
+        var page = tab.dataset.page;
+        window.closeAvatarChat();
+        var hl = document.getElementById('home2Layer');
+        if(hl) hl.style.display = '';
+        // drive the app's own tab, so page switching stays in one place
+        var appTab = document.querySelector('#h2root .tabbar .tab[data-page="' + page + '"]');
+        if(appTab) appTab.click();
+      });
+    });
+  });
+})();
+</script>
+
 <div id="home2Layer" style="display:none;position:fixed;inset:0;z-index:50;background:#F3F0E8">
   <iframe id="home2Frame" allow="autoplay; microphone" style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>
 </div>

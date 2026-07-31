@@ -1479,8 +1479,10 @@ function setView(v) {
   if(!fc) return;
   fc.addEventListener('click', function(ev){
     ev.stopPropagation();
-    // Same folder as index.html, so this works on the custom domain and on
-    // the github.io path alike.
+    // Opens the avatar chat as a layer inside the app (tab bar intact, no
+    // page reload). Falls back to navigation if the layer isn't present.
+    var open = (window.parent && window.parent.openAvatarChat) || window.openAvatarChat;
+    if(typeof open === 'function'){ open(); return; }
     window.location.href = 'avatar-test.html';
   });
 })();
