@@ -253,6 +253,12 @@ window._startMint = function(coachId){
 var W = 'https://billowing-sunset-c961.lucaswassup.workers.dev';
 function buildPrompt(c){
   var p = FREE_PROMPT.replace(/__COACH__/g, c.name) + (c.style || '');
+  var who = studentName();
+  if(who){
+    p += ' THE STUDENT\'S NAME IS ' + who + '. Use it naturally - greet them by name and use it '+
+         'occasionally during the conversation, the way a real teacher does. Do not overuse it '+
+         'and never ask them what their name is.';
+  }
   var mem = loadMemory();
   if(mem){
     p += ' WHAT YOU ALREADY KNOW ABOUT THIS STUDENT (from your past conversations): ' + mem +
@@ -302,6 +308,17 @@ var COACH_KEY = 'emma_lab_coach';
 // single turn and slow her replies down. This costs ~1 line of prompt and one
 // API call AFTER the session has ended, so the live conversation is untouched.
 var MEM_KEY = 'emma_student_memory';
+// The student typed this on the app's opening screen (intro.js writes it).
+// Same origin, so the chat can just read it - nothing extra to ask them for.
+var NAME_KEY = 'streetway_user_name';
+function studentName(){
+  try{
+    var n = (localStorage.getItem(NAME_KEY) || '').trim().split(/\s+/)[0];
+    // guard against junk: names only, nothing long enough to be a sentence
+    if(n && n.length <= 20 && /^[\p{L}'\-]+$/u.test(n)) return n;
+  }catch(e){}
+  return '';
+}
 var MEM_MAX = 700;              // characters; keeps the prompt small
 function loadMemory(){
   try{ return (localStorage.getItem(MEM_KEY) || '').slice(0, MEM_MAX); }
@@ -604,7 +621,9 @@ function playBuffer(buf){
 // bubble still never precedes her face — the waiting just happens in parallel.
 var greetingPrefetch = null;
 function prefetchGreeting(){
-  history = [{ role:'user', content:'[Start: greet the student and ask one simple question. 12 words maximum.]' }];
+  history = [{ role:'user', content:'[Start: greet the student' +
+    (studentName() ? ' by name (' + studentName() + ')' : '') +
+    ' and ask one simple question. 12 words maximum.]' }];
   greetingPrefetch = fetch(W + '/emma-chat', {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({ system: buildPrompt(coach), messages: history, topic: 'Conversation', max_tokens: 150 })
@@ -694,7 +713,9 @@ function callClaude(cb){
 }
 function startConvo(){
   setStatus('Emma is preparing...');
-  history = [{ role:'user', content:'[Start: greet the student and ask one simple question. 12 words maximum.]' }];
+  history = [{ role:'user', content:'[Start: greet the student' +
+    (studentName() ? ' by name (' + studentName() + ')' : '') +
+    ' and ask one simple question. 12 words maximum.]' }];
   callClaude(function(text){
     history.push({ role:'assistant', content:text });
     addBubble('emma', text);
