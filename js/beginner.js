@@ -190,7 +190,7 @@
     if(typeof swState !== 'undefined' && swState) swState.topic = 'Beginner';
     var layer = document.getElementById('beginnerPlayer');
     var frame = document.getElementById('beginnerFrame');
-    if(!layer || !frame){ console.warn('[Beginner] #beginnerPlayer / #beginnerFrame missing in index.html'); return; }
+    if(!layer || !frame){ Log.w('[Beginner] #beginnerPlayer / #beginnerFrame missing in index.html'); return; }
     document.body.classList.remove('show-topics');
     hideAppLayers();
     // Reveal first, then set src — iOS won't load an iframe that was hidden

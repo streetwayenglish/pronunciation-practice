@@ -17,7 +17,7 @@ function getProgress(topic) {
 function devGoToUnit(topic, unitNum){
   var progress = { unit: unitNum, expressionIndex: 0, sessionsThisUnit: 0 };
   saveProgress(topic, progress);
-  console.log('Dev: jumped to unit ' + unitNum + ' for ' + topic);
+  Log.d('Dev: jumped to unit ' + unitNum + ' for ' + topic);
 }
 
 function saveProgress(topic, progress) {

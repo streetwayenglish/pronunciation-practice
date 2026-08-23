@@ -161,7 +161,7 @@ window.getWarmupPhrases = function(topic, unitNum){
 
 // State
 var _wuPhrases=[], _wuIdx=0, _wuState='idle';
-var _wuAudio=null, _wuMr=null, _wuChunks=[], _wuStream=null, _wuRec=false, _wuSR=null, _wuMatchedWords=[];
+var _wuAudio=null, _wuRec=false, _wuSR=null, _wuMatchedWords=[];
 var _wuMime='', _wuScore=0, _wuTimeout=null;
 var _wuOnDone=null;
 
@@ -277,7 +277,7 @@ function _wuMaybeCoach(topic){
 }
 
 window.showWarmup = function(onDone){
-  console.log('[ui] warmup modal -> opened');
+  Log.d('[ui] warmup modal -> opened');
   _wuOnDone = onDone || function(){};
   var topic = window._emmaTopic || 'Conversation';
   // Use student's current unit for this topic (falls back to 1)
@@ -315,7 +315,7 @@ window._wuGo = function(){
 };
 
 window.wuClose = function(){
-  console.log('[ui] warmup modal -> closed');
+  Log.d('[ui] warmup modal -> closed');
   _wuIdleHide();
   _wuCleanup();
   var _m=document.getElementById('warmupModal');
@@ -340,7 +340,7 @@ window.wuHearAgain = function(){
 };
 
 window.wuMainTap = function(){
-  console.log('[tap] wuMainTap (state='+_wuState+')');
+  Log.d('[tap] wuMainTap (state='+_wuState+')');
   if(_wuState==='idle')        { _wuPlayAudio(); }
   else if(_wuState==='playing'){ _wuStopAudio(); if(_wuIdx<5) _wuGoListen(); }
   else if(_wuState==='listening'){ _wuStopRec(); }
@@ -648,7 +648,7 @@ function _wuNext(){
 }
 
 function _wuSetState(s){
-  console.log('[ui] warmup state -> '+s);
+  Log.d('[ui] warmup state -> '+s);
   _wuState = s;
   // Idle layer: hidden while Emma is talking, visible otherwise
   if(s==='playing'||s==='echo'){ _wuIdleHide(); } else { _wuIdleShow(); }
@@ -831,102 +831,36 @@ function _wuGoListen(){
 // emma.js), 3) call /score-pron, 4) fuzzy-match the returned words against
 // the target phrase ourselves, 5) blend that match ratio with SpeechAce's
 // own accuracyScore into one final score.
-var _wuMimeCandidates = ['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg'];
-function _wuPickMime(){
-  for(var i=0;i<_wuMimeCandidates.length;i++) if(typeof MediaRecorder!=='undefined'&&MediaRecorder.isTypeSupported(_wuMimeCandidates[i])) return _wuMimeCandidates[i];
-  return '';
-}
-function _wuBlobToWavB64(blob, cb){
-  var fr = new FileReader();
-  fr.onloadend = function(){
-    try{
-      var actx = new (window.AudioContext||window.webkitAudioContext)({sampleRate:16000});
-      actx.decodeAudioData(fr.result, function(decoded){
-        try{
-          var sr=16000, offCtx=new OfflineAudioContext(1, Math.ceil(decoded.duration*sr), sr);
-          var src=offCtx.createBufferSource(); src.buffer=decoded; src.connect(offCtx.destination); src.start(0);
-          offCtx.startRendering().then(function(rendered){
-            var s=rendered.getChannelData(0), dLen=s.length*2, ab=new ArrayBuffer(44+dLen), dv=new DataView(ab);
-            function ws(o,str){ for(var k=0;k<str.length;k++) dv.setUint8(o+k, str.charCodeAt(k)); }
-            ws(0,'RIFF'); dv.setUint32(4,36+dLen,true); ws(8,'WAVE'); ws(12,'fmt ');
-            dv.setUint32(16,16,true); dv.setUint16(20,1,true); dv.setUint16(22,1,true);
-            dv.setUint32(24,sr,true); dv.setUint32(28,sr*2,true); dv.setUint16(32,2,true); dv.setUint16(34,16,true);
-            ws(36,'data'); dv.setUint32(40,dLen,true);
-            for(var i=0,off=44;i<s.length;i++,off+=2){ var v=Math.max(-1,Math.min(1,s[i])); dv.setInt16(off, v<0?v*0x8000:v*0x7FFF, true); }
-            var wb=new Uint8Array(ab), cs=8192, wstr='';
-            for(var j=0;j<wb.length;j+=cs) wstr += String.fromCharCode.apply(null, wb.subarray(j, Math.min(j+cs, wb.length)));
-            cb(null, btoa(wstr));
-          }).catch(function(e){ cb(e); });
-        }catch(e){ cb(e); }
-      }, function(e){ cb(e||new Error('decodeAudioData failed')); });
-    }catch(e){ cb(e); }
-  };
-  fr.readAsArrayBuffer(blob);
-}
+var _wuRecHandle = null;
 
 function _wuStartRec(){
   if(_wuRec) return;
   if(_wuTimeout){ clearTimeout(_wuTimeout); _wuTimeout=null; }
   _wuRec = true;
-
-  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
-    console.log('[warmup:mic] OPEN — listening for speech');
-    _wuStream = stream;
-    _wuChunks = [];
-    var mt = _wuPickMime();
-    _wuMr = new MediaRecorder(stream, mt?{mimeType:mt}:{});
-    _wuMr.ondataavailable = function(e){ if(e.data && e.data.size>0) _wuChunks.push(e.data); };
-    _wuMr.onstop = function(){
-      console.log('[warmup:mic] CLOSED');
-      try{ stream.getTracks().forEach(function(t){ t.stop(); }); }catch(e){}
-      var m2 = _wuMr.mimeType || mt || 'audio/webm';
-      var blob = new Blob(_wuChunks, {type:m2});
-      if(blob.size < 800){
-        console.log('[warmup:mic] DISCARDED recording — too short/silent (blobBytes='+blob.size+')');
-        _wuScore=0; _wuMatchedWords=[]; _wuSetState('retry'); return;
+  var target = (_wuPhrases[_wuIdx]||{}).en || '';
+  _wuRecHandle = window.SpeechRecorder.record({
+    apiBase:W, target:target, fuzzyMatch:_wuFuzzyScore, timeoutMs:6000, minBytes:800, logTag:'warmup',
+    onDone:function(score, details){
+      _wuRec = false;
+      _wuRecHandle = null;
+      _wuScore = score;
+      if(details && details.discarded){ _wuMatchedWords=[]; _wuSetState('retry'); return; }
+      if(details && details.micFailed){
+        // Mic blocked/unavailable/no device — don't dead-end the flow.
+        // Small delay mirrors the pre-refactor UX so the retry state doesn't flash in instantly.
+        setTimeout(function(){ _wuMatchedWords=[]; _wuSetState('retry'); }, 800);
+        return;
       }
-      console.log('[warmup:checking] analyzing recording... (blobBytes='+blob.size+')');
-      _wuBlobToWavB64(blob, function(err, wavB64){
-        if(err){ console.log('[warmup:score-pron] WAV encode ERROR '+(err&&err.message)); _wuScore=0; _wuMatchedWords=[]; _wuSetState('retry'); return; }
-        var target = (_wuPhrases[_wuIdx]||{}).en || '';
-        console.log('[warmup:score-pron] REQUEST target="'+target+'" wavB64Len='+wavB64.length);
-        fetch(W+'/score-pron', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({wavB64:wavB64})})
-          .then(function(r){ console.log('[warmup:score-pron] HTTP status='+r.status); return r.json(); })
-          .then(function(d){
-            console.log('[warmup:score-pron] RESPONSE '+JSON.stringify(d));
-            var pron = d && d.pronunciation;
-            if(!pron){
-              console.log('[warmup:checking] no pronunciation data — treating as no speech detected');
-              _wuScore=0; _wuMatchedWords=[]; _wuSetState('retry'); return;
-            }
-            var heardText = (pron.words||[]).map(function(w){ return w.word; }).join(' ');
-            var wordMatch = _wuFuzzyScore(heardText, target);
-            var acc = pron.accuracyScore || 0;
-            // If they clearly didn't say the target phrase, don't let a high
-            // acoustic accuracy score (on the wrong words) pass them.
-            _wuScore = wordMatch < 50 ? Math.round(wordMatch) : Math.round((wordMatch*0.4)+(acc*0.6));
-            console.log('[warmup:checking] heard="'+heardText+'" target="'+target+'" wordMatch='+wordMatch+' accuracyScore='+acc+' -> finalScore='+_wuScore+' -> '+(_wuScore>=65?'PASS':'FAIL'));
-            if(_wuScore>=65){
-              console.log('[warmup:feedback] PASS — playing success chime');
-              try{var _ac=new(window.AudioContext||window.webkitAudioContext)();[523,659,784].forEach(function(f,i){var o=_ac.createOscillator(),g=_ac.createGain();o.type='triangle';o.frequency.value=f;var t=_ac.currentTime+i*.09;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.22,t+.008);g.gain.exponentialRampToValueAtTime(.001,t+.13);o.connect(g);g.connect(_ac.destination);o.start(t);o.stop(t+.14);});}catch(e){}
-            } else {
-              console.log('[warmup:feedback] FAIL — no chime, showing retry');
-            }
-            _wuSetState(_wuScore >= 65 ? 'perfect' : 'retry');
-          })
-          .catch(function(err){ console.log('[warmup:score-pron] ERROR '+(err&&err.message)); _wuScore=0; _wuMatchedWords=[]; _wuSetState('retry'); });
-      });
-    };
-    _wuMr.start();
-    // Auto-stop after 6s so the session doesn't hang
-    _wuTimeout = setTimeout(function(){
-      console.log('[warmup:mic] auto-stop timeout (6s) reached');
-      if(_wuRec) _wuStopRec();
-    }, 6000);
-  }).catch(function(e){
-    console.log('[warmup:mic] FAILED to open name='+e.name+' message='+e.message);
-    // Mic blocked/unavailable/no device — don't dead-end the flow
-    _wuTimeout = setTimeout(function(){ _wuRec=false; _wuScore=0; _wuMatchedWords=[]; _wuSetState('retry'); }, 800);
+      if(details && details.error){ _wuMatchedWords=[]; _wuSetState('retry'); return; }
+      Log.d('[warmup:checking] -> '+(score>=65?'PASS':'FAIL'));
+      if(score>=65){
+        Log.d('[warmup:feedback] PASS — playing success chime');
+        try{var _ac=new(window.AudioContext||window.webkitAudioContext)();[523,659,784].forEach(function(f,i){var o=_ac.createOscillator(),g=_ac.createGain();o.type='triangle';o.frequency.value=f;var t=_ac.currentTime+i*.09;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.22,t+.008);g.gain.exponentialRampToValueAtTime(.001,t+.13);o.connect(g);g.connect(_ac.destination);o.start(t);o.stop(t+.14);});}catch(e){}
+      } else {
+        Log.d('[warmup:feedback] FAIL — no chime, showing retry');
+      }
+      _wuSetState(score>=65 ? 'perfect' : 'retry');
+    }
   });
 }
 
@@ -935,8 +869,8 @@ function _wuStopRec(){
   if(!_wuRec) return;
   _wuRec = false;
   _wuSetState('processing');
-  if(_wuMr && _wuMr.state==='recording'){
-    try{ _wuMr.stop(); }catch(e){}
+  if(_wuRecHandle && _wuRecHandle.isRecording()){
+    _wuRecHandle.stop();
   } else {
     _wuScore=0; _wuMatchedWords=[]; _wuSetState('retry');
   }
@@ -971,8 +905,7 @@ function _wuCleanup(){
   if(_wuTimeout){ clearTimeout(_wuTimeout); _wuTimeout=null; }
   if(_wuRec){
     _wuRec=false;
-    if(_wuMr){ try{ _wuMr.onstop=null; if(_wuMr.state!=='inactive') _wuMr.stop(); }catch(e){} _wuMr=null; }
-    if(_wuStream){ try{ _wuStream.getTracks().forEach(function(t){ t.stop(); }); }catch(e){} _wuStream=null; }
+    if(_wuRecHandle){ try{ _wuRecHandle.stop(); }catch(e){} _wuRecHandle=null; }
   }
 }
 

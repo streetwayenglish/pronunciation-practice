@@ -12,7 +12,7 @@ function showTeacherLogin(){
 }
 function doLogin(){
   var ok=document.getElementById('pwi').value==='streetway2024';
-  console.log('[teacher:login] '+(ok?'OK':'WRONG PASSWORD'));
+  Log.d('[teacher:login] '+(ok?'OK':'WRONG PASSWORD'));
   if(ok)showTeacherPanel();
   else document.getElementById('pwe').textContent='Wrong password.';
 }
@@ -135,13 +135,13 @@ function generateSentsWithAI(){
   if(!topic){status.textContent='Please enter vocabulary or topic first.';return;}
   btn.disabled=true;btn.textContent='Generating...';
   status.textContent='Generating sentences...';
-  console.log('[teacher:generate-sents] REQUEST topic="'+topic+'"');
+  Log.d('[teacher:generate-sents] REQUEST topic="'+topic+'"');
   fetch(W+'/generate-sents',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({password:'streetway2024',topic:topic})
   })
-  .then(function(r){console.log('[teacher:generate-sents] HTTP status='+r.status);return r.json();})
+  .then(function(r){Log.d('[teacher:generate-sents] HTTP status='+r.status);return r.json();})
   .then(function(d){
     if(d.error)throw new Error(d.error);
     var sents=d.sentences;
@@ -157,7 +157,7 @@ function generateSentsWithAI(){
     btn.disabled=false;btn.textContent='Generate sentences with AI';
   })
   .catch(function(e){
-    console.log('[teacher:generate-sents] ERROR '+(e&&e.message));
+    Log.e('[teacher:generate-sents] ERROR '+(e&&e.message));
     status.textContent='Error: '+e.message;
     btn.disabled=false;btn.textContent='Generate sentences with AI';
   });
@@ -181,14 +181,14 @@ function saveMC(){
   }
   if(!qs.length){document.getElementById('tmsg').textContent='Add at least one question.';return;}
   document.getElementById('tmsg').textContent='Saving...';
-  console.log('[teacher:save-mc] REQUEST questions='+qs.length);
+  Log.d('[teacher:save-mc] REQUEST questions='+qs.length);
   fetch(W+'/mc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:'streetway2024',questions:qs})})
-    .then(function(r){console.log('[teacher:save-mc] HTTP status='+r.status);return r.json();})
+    .then(function(r){Log.d('[teacher:save-mc] HTTP status='+r.status);return r.json();})
     .then(function(d){
-      console.log('[teacher:save-mc] RESPONSE '+JSON.stringify(d));
+      Log.d('[teacher:save-mc] RESPONSE '+JSON.stringify(d));
       if(d.ok){MCQS=qs;document.getElementById('tmsg').textContent='Saved!';setTimeout(closeTeacher,2000);}
       else document.getElementById('tmsg').textContent='Error saving.';
-    }).catch(function(e){console.log('[teacher:save-mc] ERROR '+(e&&e.message));document.getElementById('tmsg').textContent='Error: '+e.message;});
+    }).catch(function(e){Log.e('[teacher:save-mc] ERROR '+(e&&e.message));document.getElementById('tmsg').textContent='Error: '+e.message;});
 }
 function importMCJSON(){
   var inp=document.getElementById('importInp');
@@ -225,7 +225,7 @@ function generateMCWithAI(){
     ' [{"question":"...","options":["...","...","...","..."],"correct":0,"target":"..."},...]'+
     ' The "correct" field is the index (0-3) of the correct option.'+
     ' The "target" field is the specific phrase or expression to practice pronunciation of.';
-  console.log('[teacher:generate-mc] REQUEST topic="'+topic+'"');
+  Log.d('[teacher:generate-mc] REQUEST topic="'+topic+'"');
   fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -235,7 +235,7 @@ function generateMCWithAI(){
       messages:[{role:'user',content:prompt}]
     })
   })
-  .then(function(r){console.log('[teacher:generate-mc] HTTP status='+r.status);return r.json();})
+  .then(function(r){Log.d('[teacher:generate-mc] HTTP status='+r.status);return r.json();})
   .then(function(d){
     var text=(d.content||[]).map(function(b){return b.text||'';}).join('');
     // Strip any markdown backticks
@@ -249,7 +249,7 @@ function generateMCWithAI(){
     inp.value='';
   })
   .catch(function(e){
-    console.log('[teacher:generate-mc] ERROR '+(e&&e.message));
+    Log.e('[teacher:generate-mc] ERROR '+(e&&e.message));
     status.textContent='Error: '+e.message+'. Please try again.';
     btn.disabled=false;
   });
@@ -260,13 +260,13 @@ function saveTeacher(){
   for(var si=0;si<inp.length;si++){var v=inp[si].value.trim();if(v)ns.push(v);}
   if(!ns.length){document.getElementById('tmsg').textContent='Add at least one sentence.';return;}
   document.getElementById('tmsg').textContent='Saving...';
-  console.log('[teacher:save-sentences] REQUEST sentences='+ns.length);
+  Log.d('[teacher:save-sentences] REQUEST sentences='+ns.length);
   fetch(W+'/sentences',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:'streetway2024',sentences:ns})})
-    .then(function(r){console.log('[teacher:save-sentences] HTTP status='+r.status);return r.json();})
+    .then(function(r){Log.d('[teacher:save-sentences] HTTP status='+r.status);return r.json();})
     .then(function(d){
-      console.log('[teacher:save-sentences] RESPONSE '+JSON.stringify(d));
+      Log.d('[teacher:save-sentences] RESPONSE '+JSON.stringify(d));
       if(d.ok){SENTS.length=0;ns.forEach(function(s){SENTS.push(s);});done={};scores={};localStorage.setItem('pd','{}');localStorage.setItem('ps','{}');cur=0;render();document.getElementById('tmsg').textContent='Saved!';setTimeout(closeTeacher,2000);}
       else document.getElementById('tmsg').textContent='Error saving.';
-    }).catch(function(e){console.log('[teacher:save-sentences] ERROR '+(e&&e.message));document.getElementById('tmsg').textContent='Error: '+e.message;});
+    }).catch(function(e){Log.e('[teacher:save-sentences] ERROR '+(e&&e.message));document.getElementById('tmsg').textContent='Error: '+e.message;});
 }
 function closeTeacher(){document.getElementById('tov').style.display='none';history.replaceState({},'',window.location.pathname);}

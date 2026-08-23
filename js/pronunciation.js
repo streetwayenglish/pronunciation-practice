@@ -37,7 +37,7 @@ function renderModeTabs(){
   return '';
 }
 function switchMode(m){
-  console.log('[ui] app mode -> '+m);
+  Log.d('[ui] app mode -> '+m);
   appMode=m;
   document.body.classList.toggle('tab-conversation', m==='emma');
   if(m==='sentences'){preloadSentenceAudio();render();}
@@ -118,13 +118,13 @@ function goTo(i){
   window._ab=null;cur=i;render();
 }
 
-function toggleRec(){console.log('[tap] mbtn (currently '+(rec?'recording -> stop':'idle -> start')+')');rec?doStop():doStart();}
+function toggleRec(){Log.d('[tap] mbtn (currently '+(rec?'recording -> stop':'idle -> start')+')');rec?doStop():doStart();}
 
 function doStart(){
   navigator.mediaDevices.getUserMedia({audio:true})
     .then(function(stream){
       chunks=[];mt=mime();
-      console.log('[pron:mic] getUserMedia OK, recorder mimeType='+(mt||'(default)'));
+      Log.d('[pron:mic] getUserMedia OK, recorder mimeType='+(mt||'(default)'));
       mr=new MediaRecorder(stream,mt?{mimeType:mt}:{});
       mr.ondataavailable=function(e){if(e.data&&e.data.size>0)chunks.push(e.data);};
       mr.start(250);rec=true;
@@ -154,7 +154,7 @@ function doStart(){
       }catch(e){}}
     })
     .catch(function(e){
-      console.log('[pron:mic] getUserMedia FAILED name='+e.name+' message='+e.message);
+      Log.e('[pron:mic] getUserMedia FAILED name='+e.name+' message='+e.message);
       var l=document.getElementById('mlbl');
       if(e.name==='NotAllowedError'||e.name==='PermissionDeniedError'){
         var b=document.getElementById('micBanner');
@@ -211,17 +211,17 @@ function togglePlayRec(btn){
 }
 
 function doAnalyze(){
-  console.log('[tap] abtn (Analyze my pronunciation)');
+  Log.d('[tap] abtn (Analyze my pronunciation)');
   if(!window._ab)return;
   var target=SENTS[cur];
   var fb=document.getElementById('fbarea');
   fb.innerHTML='<div class="fbc"><div class="fbt">Analyzing <div class="dots"><span></span><span></span><span></span></div></div></div>';
   done[cur]=true;localStorage.setItem('pd',JSON.stringify(done));prog();
-  console.log('[pron:analyze] REQUEST target="'+target+'" mimeType='+(window._am||'audio/webm')+' b64Len='+((window._ab||'').length));
+  Log.d('[pron:analyze] REQUEST target="'+target+'" mimeType='+(window._am||'audio/webm')+' b64Len='+((window._ab||'').length));
   fetch(W+'/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:window._ab,target:target,mimeType:window._am||'audio/webm'})})
-    .then(function(r){console.log('[pron:analyze] HTTP status='+r.status); return r.json();})
+    .then(function(r){Log.d('[pron:analyze] HTTP status='+r.status); return r.json();})
     .then(function(d){
-      console.log('[pron:analyze] RESPONSE '+JSON.stringify(d));
+      Log.d('[pron:analyze] RESPONSE '+JSON.stringify(d));
       var ov=d.overallScore||0;
       var ws=d.wordScores||[];
       // Dedupe: SpeechAce sometimes returns the same word twice (word entry + syllable-stress entry).
@@ -297,7 +297,7 @@ function doAnalyze(){
         coachHtml+='<div class="cblock"><span class="cicon">'+icon+'</span><span class="ctext">'+btext+'</span></div>';
       }
 
-      console.log('[ui] feedback rendered: score='+ov+'% phonemeScore='+phonemeScore+' stressScore='+stressScore);
+      Log.d('[ui] feedback rendered: score='+ov+'% phonemeScore='+phonemeScore+' stressScore='+stressScore);
       fb.innerHTML=
         '<div class="fbc">'+
           '<div class="scr">'+
@@ -325,7 +325,7 @@ function doAnalyze(){
       },80);
     })
     .catch(function(e){
-      console.log('[pron:analyze] ERROR '+(e&&e.message));
+      Log.e('[pron:analyze] ERROR '+(e&&e.message));
       fb.innerHTML='<div class="fbc"><div class="ctext" style="color:var(--red)">Error: '+e.message+'</div></div>';
     });
 }

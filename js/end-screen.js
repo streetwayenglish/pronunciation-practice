@@ -46,7 +46,7 @@ function _endVerifyExercises(exercises, pronSentences, done){
     'Include an entry for EVERY exercise and EVERY sentence.\n\n'+
     'EXERCISES:\n\n'+(exList||'(none)')+
     '\n\n=================\n\nPRON SENTENCES:\n\n'+(pronList||'(none)');
-  console.log('[end:verify-exercises] REQUEST exercises='+(exercises||[]).length+' pronSentences='+(pronSentences||[]).length);
+  Log.d('[end:verify-exercises] REQUEST exercises='+(exercises||[]).length+' pronSentences='+(pronSentences||[]).length);
   fetch(W+'/emma-chat',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -57,7 +57,7 @@ function _endVerifyExercises(exercises, pronSentences, done){
       max_tokens:1200
     })
   })
-  .then(function(r){console.log('[end:verify-exercises] HTTP status='+r.status);return r.json();})
+  .then(function(r){Log.d('[end:verify-exercises] HTTP status='+r.status);return r.json();})
   .then(function(d){
     if(d.error)throw new Error(d.error);
     var text=(typeof d.text==='string'&&d.text?d.text:(d.content&&d.content[0]&&d.content[0].text)||'').replace(/```json|```/g,'').trim();
@@ -68,7 +68,7 @@ function _endVerifyExercises(exercises, pronSentences, done){
       if(m){ try { res=JSON.parse(m[0]); } catch(e2){} }
     }
     if(!res){
-      console.warn('[verifier] no verdicts, passing through unverified',text.slice(0,200));
+      Log.w('[verifier] no verdicts, passing through unverified',text.slice(0,200));
       done({exercises:exercises||[],pronSentences:pronSentences||[]});return;
     }
 
@@ -103,18 +103,18 @@ function _endVerifyExercises(exercises, pronSentences, done){
       }
     }
 
-    console.log('[verifier] exercises: '+exFixed+' fixed, '+exDiscarded+' discarded, '+keptExercises.length+' kept of '+(exercises||[]).length+
+    Log.d('[verifier] exercises: '+exFixed+' fixed, '+exDiscarded+' discarded, '+keptExercises.length+' kept of '+(exercises||[]).length+
       '; sentences: '+senRewritten+' rewritten, '+senDiscarded+' discarded, '+keptSentences.length+' kept of '+(pronSentences||[]).length);
     done({exercises:keptExercises,pronSentences:keptSentences});
   })
   .catch(function(err){
-    console.warn('[verifier] failed, passing through unverified:',err&&err.message);
+    Log.w('[verifier] failed, passing through unverified:',err&&err.message);
     done({exercises:exercises||[],pronSentences:pronSentences||[]});
   });
 }
 
 function emmaEndAndBack(){
-  console.log('[tap] emmaEndAndBack (end session)');
+  Log.d('[tap] emmaEndAndBack (end session)');
   // End conversation and return to topic selection
   if(window._sessionExpressions && window._sessionExpressions.length > 0){
     advanceProgress(emmaTopic, window._expressionsTaught || 2);
@@ -349,7 +349,7 @@ function _endBuildReportHTML(r,pronWords){
 
 // ─── Main end-screen entry point ──────────────────────────────────────
 function emmaEnd(){
-  console.log('[tap] emmaEnd (finish + generate report)');
+  Log.d('[tap] emmaEnd (finish + generate report)');
   // Save progress
   if(window._sessionExpressions && window._sessionExpressions.length > 0){
     var taught = window._expressionsTaught || 2;
@@ -426,18 +426,18 @@ function emmaEnd(){
     ' CRITICAL exercise rule: each question MUST have EXACTLY ONE correct answer; the other three options must be unambiguously wrong (clear grammatical errors, factually incorrect, or obviously inappropriate for the context). Do NOT create questions where multiple options could be considered correct in standard English. For example, do NOT ask "choose the correct form" if both an uncontracted and contracted version are grammatically valid — only one option should be correct.'+
     ' Generate exactly 4 pronSentences: correct natural English sentences (8-15 words) relevant to the conversation.'+(pronWords.length>0?' Each sentence must include at least one of these poorly-pronounced words (lowest score first): '+pronWords.map(function(w){return w.word;}).join(', ')+'.':'')+
     ' Match the vocabulary complexity of the student\'s own sentences — keep it simple if they spoke simply. Be kind and practical.';
-  console.log('[end:report] REQUEST historyLen='+history.length+' pronWords='+pronWords.length);
+  Log.d('[end:report] REQUEST historyLen='+history.length+' pronWords='+pronWords.length);
   fetch(W+'/emma-chat',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({system:'You are an English coach writing a report for a Brazilian student. Respond ONLY with valid JSON, nothing else. Write ALL text fields in Brazilian Portuguese, EXCEPT: keep any English words, phrases, or sentences used as examples exactly in English (do not translate them). This includes the headline, summary, mistake titles, mistake details, improvement titles, improvement details, and the positive field.',messages:[{role:'user',content:reportPrompt}],topic:'report',max_tokens:2500})
   })
-  .then(function(r){console.log('[end:report] HTTP status='+r.status);return r.json();})
+  .then(function(r){Log.d('[end:report] HTTP status='+r.status);return r.json();})
   .then(function(d){
     if(d.error)throw new Error(d.error);
     var text=d.text.replace(/```json|```/g,'').trim();
     var r=JSON.parse(text);
-    console.log('[end:report] RESPONSE parsed score='+r.score+' exercises='+(r.exercises||[]).length+' pronSentences='+(r.pronSentences||[]).length);
+    Log.d('[end:report] RESPONSE parsed score='+r.score+' exercises='+(r.exercises||[]).length+' pronSentences='+(r.pronSentences||[]).length);
     _endVerifyExercises(r.exercises||[],r.pronSentences||[],function(result){
       r.exercises=result.exercises;
       r.pronSentences=result.pronSentences;
@@ -445,13 +445,13 @@ function emmaEnd(){
       var area2=document.getElementById('area');
       if(area2)area2.innerHTML=_endBuildReportHTML(r,pronWords);
       window._lastReport=r;
-      console.log('[ui] end-screen report rendered score='+r.score);
+      Log.d('[ui] end-screen report rendered score='+r.score);
       // Log this chat session's grade into the weekly accuracy pool (one sample per session)
       try{ if(window.SWTrack && SWTrack.acc){ var _av=_endScoreToVisual(r.score); SWTrack.acc((_av.filled||0)*10); } }catch(e){}
     });
   })
   .catch(function(e){
-    console.log('[end:report] ERROR '+(e&&e.message));
+    Log.e('[end:report] ERROR '+(e&&e.message));
     _endStopLoadingCycle();
     var area3=document.getElementById('area');
     if(area3)area3.innerHTML=renderModeTabs()+
@@ -511,9 +511,9 @@ function speakCoach(btn){
   // Fetch from ElevenLabs
   btn._fetching=true;
   btn.innerHTML='&#9203;&#65039;';btn.classList.add('loading');btn.style.opacity='0.7';
-  console.log('[end:speak-coach] REQUEST textLen='+((window._coachText||'').length));
+  Log.d('[end:speak-coach] REQUEST textLen='+((window._coachText||'').length));
   fetch(W+'/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:window._coachText,lang:'pt'})})
-    .then(function(r){console.log('[end:speak-coach] HTTP status='+r.status);if(!r.ok)throw new Error(r.status);return r.blob();})
+    .then(function(r){Log.d('[end:speak-coach] HTTP status='+r.status);if(!r.ok)throw new Error(r.status);return r.blob();})
     .then(function(b){
       btn._fetching=false;btn.style.opacity='1';
       var url=URL.createObjectURL(b);
@@ -528,7 +528,7 @@ function speakCoach(btn){
       };
     })
     .catch(function(e){
-      console.log('[end:speak-coach] ERROR '+(e&&e.message));
+      Log.e('[end:speak-coach] ERROR '+(e&&e.message));
       btn._fetching=false;
       btn.innerHTML='&#128266;';btn.classList.remove('loading','playing');btn.style.opacity='1';
     });
@@ -537,7 +537,7 @@ function speakCoach(btn){
 var wpopCorrectAudio=null,wpopRecAudio=null;
 function openWordPopup(pill){
   var d=JSON.parse(decodeURIComponent(pill.getAttribute('data-w')));
-  console.log('[tap] wordPill "'+d.word+'" score='+d.score);
+  Log.d('[tap] wordPill "'+d.word+'" score='+d.score);
   var pop=document.getElementById('wpop');
   var box=document.getElementById('wpopBox');
   var scoreColor=d.score>=85?'var(--green)':d.score>=75?'var(--amb)':'var(--red)';
@@ -585,9 +585,9 @@ function playCorrectWord(btn){var word=btn.getAttribute('data-word');
   btn.classList.add('loading');
   var icon=btn.querySelector('.wpop-btn-icon');
   if(icon)icon.textContent='⏳';
-  console.log('[end:speak-word] REQUEST word="'+word+'"');
+  Log.d('[end:speak-word] REQUEST word="'+word+'"');
   fetch(W+'/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:word})})
-    .then(function(r){console.log('[end:speak-word] HTTP status='+r.status);return r.blob();})
+    .then(function(r){Log.d('[end:speak-word] HTTP status='+r.status);return r.blob();})
     .then(function(b){
       var url=URL.createObjectURL(b);
       wpopCorrectAudio=new Audio(url);
@@ -600,13 +600,13 @@ function playCorrectWord(btn){var word=btn.getAttribute('data-word');
         URL.revokeObjectURL(url);
       };
     }).catch(function(e){
-      console.log('[end:speak-word] ERROR '+(e&&e.message));
+      Log.e('[end:speak-word] ERROR '+(e&&e.message));
       btn.classList.remove('active','loading');
       if(icon)icon.textContent='🔊';
     });
 }
 function playWordClip(start,end,btn){
-  console.log('[tap] wpopRecBtn (play your voice clip)');
+  Log.d('[tap] wpopRecBtn (play your voice clip)');
   if(wpopRecAudio&&!wpopRecAudio.paused){
     wpopRecAudio.pause();wpopRecAudio=null;
     btn.classList.remove('active');return;

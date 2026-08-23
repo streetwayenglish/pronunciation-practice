@@ -26,7 +26,7 @@
       sheet.replaceSync(css);
       return walk(sheet.cssRules);
     }catch(e){
-      console.warn('[home2] CSS scope fallback', e);
+      Log.w('[home2] CSS scope fallback', e);
       return basicScope(css, scope);
     }
     function walk(rules){
@@ -222,7 +222,7 @@
     // Straight to warmup -> Emma (mirrors mhBegin; no curriculum picker).
     try{ if(typeof window._wuGo === 'function') return window._wuGo(); }catch(e){}
     try{ if(typeof window.switchMode === 'function') return switchMode('emma'); }catch(e){}
-    console.warn('[home2] no warmup/emma launcher for', key);
+    Log.w('[home2] no warmup/emma launcher for', key);
   }
 
   var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
@@ -987,7 +987,7 @@
     host.style.height = '100dvh';
     host.style.zIndex = '50';
     host.style.background = '#F3F0E8';
-    build().then(function(){ sizeRoot(); wireContent(); refreshBeginnerStates(); refreshTopicStates(); refreshDetailHeaders(); refreshTodayAndPaths(); }).catch(function(e){ console.warn('[home2] build failed', e); });
+    build().then(function(){ sizeRoot(); wireContent(); refreshBeginnerStates(); refreshTopicStates(); refreshDetailHeaders(); refreshTodayAndPaths(); }).catch(function(e){ Log.w('[home2] build failed', e); });
   }
   function hideHome2(){ var host = layerEl(); if(host) host.style.display = 'none'; }
   window.SWHome2 = { show: showHome2, hide: hideHome2 };
@@ -1362,17 +1362,17 @@ function _summariesLibrary(cfg){
     if(!q){ cb(null); return; }
     var key=q.toLowerCase();
     var c=trCache();
-    if(c[key]){ console.log('[home2:translate] cache hit "'+q+'"'); cb(c[key]); return; }
-    console.log('[home2:translate] REQUEST word="'+q+'"');
+    if(c[key]){ Log.d('[home2:translate] cache hit "'+q+'"'); cb(c[key]); return; }
+    Log.d('[home2:translate] REQUEST word="'+q+'"');
     fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(q)+'&langpair=en|pt-BR&de=contato@streetwayenglish.com')
-      .then(function(r){console.log('[home2:translate] HTTP status='+r.status);return r.json();})
+      .then(function(r){Log.d('[home2:translate] HTTP status='+r.status);return r.json();})
       .then(function(j){
         var t=j&&j.responseData&&j.responseData.translatedText||null;
-        console.log('[home2:translate] RESPONSE "'+t+'"');
+        Log.d('[home2:translate] RESPONSE "'+t+'"');
         if(t && /MYMEMORY|USAGELIMITS/i.test(t)){ cb('__QUOTA__'); return; }
         if(t){ c[key]=t; trSave(); }
         cb(t);
-      }).catch(function(e){ console.log('[home2:translate] ERROR '+(e&&e.message)); cb(null); });
+      }).catch(function(e){ Log.e('[home2:translate] ERROR '+(e&&e.message)); cb(null); });
   }
   function wireTranslate(sc, body){
     // chip pinned above the safe area

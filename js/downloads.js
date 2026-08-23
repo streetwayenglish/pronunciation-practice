@@ -2,7 +2,7 @@
 // DOWNLOADS — print/download report, transcript, exercises
 // ============================================================================
 function downloadReport(){
-  console.log('[tap] downloadReport (Salvar PDF)');
+  Log.d('[tap] downloadReport (Salvar PDF)');
   var r=window._lastReport;
   if(!r)return;
   var date=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
@@ -148,7 +148,7 @@ function downloadReport(){
 }
 
 function downloadTranscript(){
-  console.log('[tap] downloadTranscript');
+  Log.d('[tap] downloadTranscript');
   var history=window._lastHistory;
   if(!history||!history.length)return;
   var date=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
@@ -218,7 +218,7 @@ function emmaTranslate(btn,text,bubble){
   loadingEl.style.cssText='font-size:12px;color:rgba(255,255,255,.3);font-style:italic;padding:6px 0 2px;clear:both;';
   loadingEl.textContent='Traduzindo...';
   btn.parentNode.insertBefore(loadingEl,btn);
-  console.log('[downloads:translate] REQUEST text="'+text+'"');
+  Log.d('[downloads:translate] REQUEST text="'+text+'"');
   fetch(W+'/emma-chat',{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
@@ -226,9 +226,9 @@ function emmaTranslate(btn,text,bubble){
       messages:[{role:'user',content:text}],topic:'translation',max_tokens:300
     })
   })
-  .then(function(r){console.log('[downloads:translate] HTTP status='+r.status);return r.json();})
+  .then(function(r){Log.d('[downloads:translate] HTTP status='+r.status);return r.json();})
   .then(function(d){
-    console.log('[downloads:translate] RESPONSE '+JSON.stringify(d));
+    Log.d('[downloads:translate] RESPONSE '+JSON.stringify(d));
     loadingEl.remove();
     var t=d.content&&d.content[0]?d.content[0].text.trim():'';
     if(!t)return;
@@ -242,11 +242,11 @@ function emmaTranslate(btn,text,bubble){
     var wrap=document.getElementById('emmaBubbles');
     if(wrap)wrap.scrollTop=wrap.scrollHeight;
   })
-  .catch(function(e){console.log('[downloads:translate] ERROR '+(e&&e.message));loadingEl.remove();btn.style.opacity='.38';});
+  .catch(function(e){Log.e('[downloads:translate] ERROR '+(e&&e.message));loadingEl.remove();btn.style.opacity='.38';});
 }
 
 function showReport(){
-  console.log('[ui] showReport');
+  Log.d('[ui] showReport');
   var r=window._lastReport;
   if(!r)return;
   var area=document.getElementById('area');
@@ -310,7 +310,7 @@ function showReport(){
 }
 
 function downloadExercises(){
-  console.log('[tap] downloadExercises');
+  Log.d('[tap] downloadExercises');
   var r=window._lastReport;
   if(!r||!r.exercises)return;
   var area=document.getElementById('area');
@@ -339,7 +339,7 @@ function downloadExercises(){
       '</div>';
     var auditQs=(r.exercises||[]).slice(0,8);
     var payload=auditQs.map(function(q,i){return{i:i,question:q.question,options:q.options};});
-    console.log('[downloads:exercise-audit] REQUEST items='+payload.length);
+    Log.d('[downloads:exercise-audit] REQUEST items='+payload.length);
     fetch(W+'/emma-chat',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
@@ -348,9 +348,9 @@ function downloadExercises(){
         topic:'exercise-audit',max_tokens:600
       })
     })
-    .then(function(res){console.log('[downloads:exercise-audit] HTTP status='+res.status);return res.json();})
+    .then(function(res){Log.d('[downloads:exercise-audit] HTTP status='+res.status);return res.json();})
     .then(function(d){
-      console.log('[downloads:exercise-audit] RESPONSE '+JSON.stringify(d));
+      Log.d('[downloads:exercise-audit] RESPONSE '+JSON.stringify(d));
       var t=(typeof d.text==='string'&&d.text)?d.text:(d.content&&d.content[0]&&d.content[0].text)||'';
       t=String(t).replace(/```json|```/g,'').trim();
       var verdicts=JSON.parse(t);
@@ -364,7 +364,7 @@ function downloadExercises(){
       });
       r.exercises=auditQs.filter(function(q,i){return !drop[i];});
     })
-    .catch(function(e){console.log('[downloads:exercise-audit] ERROR '+(e&&e.message)+' — showing exercises as-is');})
+    .catch(function(e){Log.e('[downloads:exercise-audit] ERROR '+(e&&e.message)+' — showing exercises as-is');})
     .then(function(){
       r._exVerified=true;
       window._exAuditing=false;
@@ -428,14 +428,14 @@ function downloadExercises(){
       return Promise.resolve(window._exMicStream);
     }
     return navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){
-      console.log('[downloads:mic] OPEN — listening for speech');
+      Log.d('[downloads:mic] OPEN — listening for speech');
       window._exMicStream=s;
       return s;
-    }).catch(function(e){console.log('[downloads:mic] FAILED to open name='+e.name+' message='+e.message);throw e;});
+    }).catch(function(e){Log.e('[downloads:mic] FAILED to open name='+e.name+' message='+e.message);throw e;});
   };
   window._exReleaseMicStream=window._exReleaseMicStream||function(){
     if(window._exMicStream){
-      console.log('[downloads:mic] CLOSED');
+      Log.d('[downloads:mic] CLOSED');
       try{window._exMicStream.getTracks().forEach(function(t){t.stop();});}catch(e){}
       window._exMicStream=null;
     }
@@ -657,7 +657,7 @@ function downloadExercises(){
   }
 
   window.exNav=function(dir){
-    console.log('[tap] exNav dir='+dir);
+    Log.d('[tap] exNav dir='+dir);
     exIdx=Math.max(0,Math.min(totalQs,exIdx+dir));
     if(pronAudio){pronAudio.pause();pronAudio=null;}
     if(window._exPronRec&&window._exPronRec.state==='recording')window._exPronRec.stop();
@@ -680,9 +680,9 @@ function downloadExercises(){
     if(pronAudio){resetBtn();return;}
     if(btn){btn.style.background='#0a0a0a';}
     if(icon){icon.setAttribute('fill','#fff');icon.innerHTML=pauseSvg;}
-    console.log('[downloads:emma-speak] REQUEST text="'+pe.sentence+'"');
+    Log.d('[downloads:emma-speak] REQUEST text="'+pe.sentence+'"');
     fetch(W+'/emma-speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:pe.sentence})})
-    .then(function(r){console.log('[downloads:emma-speak] HTTP status='+r.status);return r.arrayBuffer();})
+    .then(function(r){Log.d('[downloads:emma-speak] HTTP status='+r.status);return r.arrayBuffer();})
     .then(function(ab){
       var ctx=new (window.AudioContext||window.webkitAudioContext)();
       return ctx.decodeAudioData(ab).then(function(buf){
@@ -690,11 +690,11 @@ function downloadExercises(){
         pronAudio=src;
         src.onended=function(){if(pronAudio===src)resetBtn();};
       });
-    }).catch(function(e){console.log('[downloads:emma-speak] ERROR '+(e&&e.message));resetBtn();});
+    }).catch(function(e){Log.e('[downloads:emma-speak] ERROR '+(e&&e.message));resetBtn();});
   };
 
   window.exToggleRec=function(pi){
-    console.log('[tap] exToggleRec pi='+pi+' (currently '+((window._exPronRec&&window._exPronRec.state==='recording')?'recording -> stop':'idle -> start')+')');
+    Log.d('[tap] exToggleRec pi='+pi+' (currently '+((window._exPronRec&&window._exPronRec.state==='recording')?'recording -> stop':'idle -> start')+')');
     var recBtn=document.getElementById('exRecBtn_'+pi);
     var recLabel=document.getElementById('exRecLabel_'+pi);
     if(window._exPronRec&&window._exPronRec.state==='recording'){
@@ -708,7 +708,7 @@ function downloadExercises(){
       window._exPronRec=mr;
       mr.ondataavailable=function(e){if(e.data.size>0)chunks.push(e.data);};
       mr.onstop=function(){
-        console.log('[downloads:mic] recorder stopped (blobBytes pending)');
+        Log.d('[downloads:mic] recorder stopped (blobBytes pending)');
         // Don't stop tracks — stream stays alive to avoid iOS chime on next record
         if(recBtn){recBtn.style.background='#e8b84b';recBtn.style.boxShadow='0 0 0 10px rgba(232,184,75,.12)';recBtn.classList.remove('ex-rec-active');}
         var recIconStop=document.getElementById('exRecIcon_'+pi);
@@ -721,11 +721,11 @@ function downloadExercises(){
           var pe=pronExercises[pi];
           // Convert to 16kHz WAV for better Azure scoring
           function sendToAzure(wavB64){
-            console.log('[downloads:transcribe] REQUEST referenceText="'+pe.sentence+'" mimeType='+mt+' hasWav='+!!wavB64);
+            Log.d('[downloads:transcribe] REQUEST referenceText="'+pe.sentence+'" mimeType='+mt+' hasWav='+!!wavB64);
             fetch(W+'/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:b64,mimeType:mt,wavB64:wavB64||null,referenceText:pe.sentence,noEcho:true})})
-            .then(function(r){console.log('[downloads:transcribe] HTTP status='+r.status);return r.json();})
+            .then(function(r){Log.d('[downloads:transcribe] HTTP status='+r.status);return r.json();})
             .then(function(d){
-              console.log('[downloads:transcribe] RESPONSE '+JSON.stringify(d));
+              Log.d('[downloads:transcribe] RESPONSE '+JSON.stringify(d));
               var fb=document.getElementById('exPronFeedback_'+pi);
               var wordsEl=document.getElementById('exWords_'+pi);
               var score=d.pronunciation?Math.round(d.pronunciation.pronScore||d.pronunciation.accuracyScore||0):0;
@@ -761,7 +761,7 @@ function downloadExercises(){
                 fb.innerHTML='<div style="margin-top:14px;padding:10px 14px;background:rgba(45,122,58,.06);border:1px solid rgba(45,122,58,.15);border-radius:10px;font-size:14px;color:#2d7a3a;">'+msg+'</div>';
                 if(score>=80&&window._exPlayCorrectChime)window._exPlayCorrectChime();
               }
-            }).catch(function(e){console.log('[downloads:transcribe] ERROR '+(e&&e.message));if(recLabel)recLabel.textContent='Erro. Tente novamente.';});
+            }).catch(function(e){Log.e('[downloads:transcribe] ERROR '+(e&&e.message));if(recLabel)recLabel.textContent='Erro. Tente novamente.';});
           }
           try{
             var arrBuf=fr.result;

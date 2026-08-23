@@ -302,7 +302,7 @@ function mhSelectPath(name){
 }
 
 function mhSwitchTab(tab){
-  console.log('[ui] home tab -> '+tab);
+  Log.d('[ui] home tab -> '+tab);
   var screens = document.querySelectorAll('.mh-screen');
   for(var i=0;i<screens.length;i++) screens[i].classList.remove('active');
   var capped = tab.charAt(0).toUpperCase() + tab.slice(1);
@@ -373,7 +373,7 @@ function mhInit(){
 
 
 function selectAndStart(topicName){
-  console.log('[ui] track selected -> "'+topicName+'"');
+  Log.d('[ui] track selected -> "'+topicName+'"');
   window._lastTopic = topicName;
   window._emmaTopic = topicName;
   emmaTopic = topicName;

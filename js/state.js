@@ -16,7 +16,7 @@
     if(!el) return;
     var label = el.id ? '#'+el.id : (typeof el.className==='string' && el.className ? '.'+el.className.split(' ')[0] : el.tagName);
     var text = (el.textContent||'').trim().replace(/\s+/g,' ').slice(0,40);
-    console.log('[tap] '+label+(text?' "'+text+'"':''));
+    Log.d('[tap] '+label+(text?' "'+text+'"':''));
   }, true);
 })();
 

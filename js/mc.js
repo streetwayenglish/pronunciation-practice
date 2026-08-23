@@ -2,7 +2,7 @@
 // MC — multiple-choice exercise mode
 // ============================================================================
 function renderMC(){
-  console.log('[mc:ui] renderMC mcCur='+mcCur+' total='+(MCQS?MCQS.length:0));
+  Log.d('[mc:ui] renderMC mcCur='+mcCur+' total='+(MCQS?MCQS.length:0));
   // Update progress bar for MC mode
   var pf=document.getElementById('pf');
   var pl=document.getElementById('pl');
@@ -83,9 +83,9 @@ function mcSpeak(btn){
   // Fallback: fetch if not cached yet
   var q=MCQS[mcCur];
   btn.innerHTML='&#9203;&#65039;';btn.style.opacity='0.6';
-  console.log('[mc:speak] REQUEST text="'+q.question+'"');
+  Log.d('[mc:speak] REQUEST text="'+q.question+'"');
   fetch(W+'/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:q.question})})
-    .then(function(r){console.log('[mc:speak] HTTP status='+r.status);return r.blob();})
+    .then(function(r){Log.d('[mc:speak] HTTP status='+r.status);return r.blob();})
     .then(function(b){
       var url=URL.createObjectURL(b);
       _mcAudioCache[mcCur]=url;
@@ -93,15 +93,15 @@ function mcSpeak(btn){
       btn.innerHTML='<span class="stop-sq"></span>';btn.style.opacity='1';
       mcAudio.play();
       mcAudio.onended=function(){mcAudio=null;btn.innerHTML='&#128266;';URL.revokeObjectURL(url);};
-    }).catch(function(e){console.log('[mc:speak] ERROR '+(e&&e.message));btn.innerHTML='&#128266;';btn.style.opacity='1';});
+    }).catch(function(e){Log.e('[mc:speak] ERROR '+(e&&e.message));btn.innerHTML='&#128266;';btn.style.opacity='1';});
 }
 
 var mcRec=false,mcMr=null,mcChunks=[];
-function mcToggleRec(qIdx){console.log('[mc:mic] toggle (currently '+(mcRec?'recording -> stop':'idle -> start')+')');mcRec?mcStopRec(qIdx):mcStartRec(qIdx);}
+function mcToggleRec(qIdx){Log.d('[mc:mic] toggle (currently '+(mcRec?'recording -> stop':'idle -> start')+')');mcRec?mcStopRec(qIdx):mcStartRec(qIdx);}
 function mcStartRec(qIdx){
   var streamPromise=window._exGetMicStream?window._exGetMicStream():navigator.mediaDevices.getUserMedia({audio:true});
   streamPromise.then(function(stream){
-    console.log('[mc:mic] OPEN — listening for speech');
+    Log.d('[mc:mic] OPEN — listening for speech');
     mcChunks=[];var mt2=mime();
     mcMr=new MediaRecorder(stream,mt2?{mimeType:mt2}:{});
     mcMr.ondataavailable=function(e){if(e.data&&e.data.size>0)mcChunks.push(e.data);};
@@ -130,11 +130,11 @@ function mcStartRec(qIdx){
       window._exSR.onend=function(){if(mcRec&&window._exSR){try{window._exSR.start();}catch(e){}}};
       window._exSR.start();
     }catch(e){}}
-  }).catch(function(e){console.log('[mc:mic] FAILED to open name='+e.name+' message='+e.message);var l=document.getElementById('exMicLbl');if(l)l.textContent='Mic error: '+e.message;});
+  }).catch(function(e){Log.e('[mc:mic] FAILED to open name='+e.name+' message='+e.message);var l=document.getElementById('exMicLbl');if(l)l.textContent='Mic error: '+e.message;});
 }
 function mcStopRec(qIdx){
   if(!mcMr)return;mcRec=false;
-  console.log('[mc:mic] CLOSED (stop requested)');
+  Log.d('[mc:mic] CLOSED (stop requested)');
   // Capture the displayed transcript (includes interim words) BEFORE killing recognizer.
   // Otherwise final-only `_exTranscript` misses anything spoken in the last ~1s.
   var tEl=document.getElementById('exTranscript');
@@ -199,7 +199,7 @@ function exCheckVoice(qIdx,transcript){
   if(typeof window._exSetScore==='function')window._exSetScore(qIdx,matchedIdx);
 }
 function mcCheckManual(){
-  console.log('[tap] mcCheckBtn (Check my answer)');
+  Log.d('[tap] mcCheckBtn (Check my answer)');
   var transcript=window._transcript||'';
   var cb=document.getElementById('mcCheckBtn');
   var an=document.getElementById('mcAnalyzing');
@@ -293,11 +293,11 @@ function mcAnalyzePronunciation(target){
   if(!window._ab)return;
   var result=document.getElementById('mcResult');
   // analyzing state shown in correct result HTML
-  console.log('[mc:analyze] REQUEST target="'+target+'"');
+  Log.d('[mc:analyze] REQUEST target="'+target+'"');
   fetch(W+'/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:window._ab,target:target,mimeType:window._am||'audio/webm'})})
-    .then(function(r){console.log('[mc:analyze] HTTP status='+r.status);return r.json();})
+    .then(function(r){Log.d('[mc:analyze] HTTP status='+r.status);return r.json();})
     .then(function(d){
-      console.log('[mc:analyze] RESPONSE '+JSON.stringify(d));
+      Log.d('[mc:analyze] RESPONSE '+JSON.stringify(d));
       if(!result)return;
       var ws=d.wordScores||[];
       if(!ws.length)return;
@@ -342,11 +342,11 @@ function mcAnalyzePronunciation(target){
           '</div>'+
           '<div class="wp">'+pills+'</div>'+
         '</div>';
-    }).catch(function(e){console.log('[mc:analyze] ERROR '+(e&&e.message));});
+    }).catch(function(e){Log.e('[mc:analyze] ERROR '+(e&&e.message));});
 }
 
 function mcNext(){
-  console.log('[tap] mcNextBtn (Next question)');
+  Log.d('[tap] mcNextBtn (Next question)');
   mcCur++;
   window._ab=null;window._transcript='';
   if(window._recUrl){URL.revokeObjectURL(window._recUrl);window._recUrl=null;}
