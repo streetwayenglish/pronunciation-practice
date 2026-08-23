@@ -1362,15 +1362,17 @@ function _summariesLibrary(cfg){
     if(!q){ cb(null); return; }
     var key=q.toLowerCase();
     var c=trCache();
-    if(c[key]){ cb(c[key]); return; }
+    if(c[key]){ console.log('[home2:translate] cache hit "'+q+'"'); cb(c[key]); return; }
+    console.log('[home2:translate] REQUEST word="'+q+'"');
     fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(q)+'&langpair=en|pt-BR&de=contato@streetwayenglish.com')
-      .then(function(r){return r.json();})
+      .then(function(r){console.log('[home2:translate] HTTP status='+r.status);return r.json();})
       .then(function(j){
         var t=j&&j.responseData&&j.responseData.translatedText||null;
+        console.log('[home2:translate] RESPONSE "'+t+'"');
         if(t && /MYMEMORY|USAGELIMITS/i.test(t)){ cb('__QUOTA__'); return; }
         if(t){ c[key]=t; trSave(); }
         cb(t);
-      }).catch(function(){ cb(null); });
+      }).catch(function(e){ console.log('[home2:translate] ERROR '+(e&&e.message)); cb(null); });
   }
   function wireTranslate(sc, body){
     // chip pinned above the safe area

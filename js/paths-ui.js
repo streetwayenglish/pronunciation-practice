@@ -153,6 +153,7 @@ function swUpdateCta(){
 }
 
 function swSelectPath(topic){
+  console.log('[ui] swSelectPath -> "'+topic+'"');
   if(!CURRICULUM[topic]) return;
   swState.topic = topic;
   var progress = getProgress(topic);
@@ -181,6 +182,7 @@ function swStart(unitNum){
     var p = getProgress(topic);
     unitNum = p.unit || 1;
   }
+  console.log('[ui] swStart topic="'+topic+'" unit='+unitNum);
   swState.selectedUnit = unitNum;
   var progress = getProgress(topic);
   progress.unit = unitNum;
@@ -309,6 +311,7 @@ function toRoman(n){
 }
 
 function cpSelectUnit(unitNum){
+  console.log('[ui] cpSelectUnit -> '+unitNum);
   window._cpSelectedUnit = unitNum;
   var units = CURRICULUM[window._emmaTopic];
   if(!units) return;
@@ -327,6 +330,7 @@ function cpSelectUnit(unitNum){
 }
 
 function cpStart(){
+  console.log('[tap] cpStartBtn (Continue) topic="'+window._emmaTopic+'" unit='+window._cpSelectedUnit);
   // Override progress to selected unit if different
   var topic = window._emmaTopic;
   if(window._cpSelectedUnit){

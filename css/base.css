@@ -11,7 +11,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--white);color:var(--black)
 .hdr{display:none!important}
 .logo{height:90px;width:auto;display:block;margin:0 auto 12px}
 .ttl{font-size:20px;font-weight:700;color:var(--black)}
-.main{max-width:720px;margin:0 auto;padding:1.5rem 1rem 4rem}
+.main{max-width:720px;margin:0 auto;padding:calc(1.5rem + env(safe-area-inset-top,0px)) 1rem 4rem}
 .pb{display:flex;align-items:center;gap:12px;margin-bottom:1.5rem}
 .pt{flex:1;height:4px;background:var(--g200);border-radius:2px;overflow:hidden}
 .pf{height:100%;background:var(--yellow);border-radius:2px;transition:width .4s}
