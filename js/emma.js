@@ -150,6 +150,7 @@ function emmaSyncVideoState(){
 }
 
 function emmaStateSpeaking(){
+  console.log('[ui] emma state -> speaking');
   var wrap=window._emmaVideoWrap;
   var vidIdle=window._vidIdle;
   var vidTransition=window._vidTransition;
@@ -186,6 +187,7 @@ function emmaStateSpeaking(){
 }
 
 function emmaStateIdle(){
+  console.log('[ui] emma state -> idle');
   var wrap=window._emmaVideoWrap;
   var vidIdle=window._vidIdle;
   var vidTransition=window._vidTransition;
@@ -210,6 +212,7 @@ function emmaStateIdle(){
 }
 
 function emmaStateListening(){
+  console.log('[ui] emma state -> listening');
   emmaStateIdle();
 }
 
@@ -322,7 +325,7 @@ function emmaPrefetchIntro(){
     var blobPromises=_emmaSplitSentences(spoken).map(function(t){return _emmaFetchTTS(t);});
     return {text:d.text,blobPromises:blobPromises};
   })
-  .catch(function(){return null;});
+  .catch(function(err){console.log('[emma:chat] prefetch intro ERROR '+(err&&err.message)+' — falling back to classic path');return null;});
 }
 
 function emmaStartConvo(){
@@ -374,13 +377,14 @@ function emmaCallClaude(sysPrompt,cb){
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({system:sysPrompt,messages:msgs,topic:emmaTopic,max_tokens:300})
   })
-  .then(function(r){return r.json();})
+  .then(function(r){console.log('[emma:chat] HTTP status='+r.status);return r.json();})
   .then(function(d){
     console.log('[perf] claude: '+(Date.now()-_t0)+'ms ('+msgs.length+' msgs sent)');
     if(d.error)throw new Error(d.error);
     cb(d.text);
   })
   .catch(function(e){
+    console.log('[emma:chat] ERROR '+(e&&e.message));
     var s=document.getElementById('emmaStatus');
     if(s)s.textContent='Error: '+e.message;
     var ring=document.getElementById('emmaRing');
@@ -410,7 +414,8 @@ function _emmaSplitSentences(text){
 
 function _emmaFetchTTS(text){
   return fetch(W+'/emma-speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text})})
-    .then(function(r){if(!r.ok)throw new Error(r.status);return r.blob();});
+    .then(function(r){console.log('[emma:tts] HTTP status='+r.status+' for "'+text.slice(0,40)+'"');if(!r.ok)throw new Error(r.status);return r.blob();})
+    .catch(function(err){console.log('[emma:tts] ERROR '+(err&&err.message));throw err;});
 }
 
 // Plays an ordered array of blob promises through the unlocked audio element.
@@ -601,13 +606,15 @@ function wpToggleRec(){
     _wpRecorder.start();
     if(recBtn)recBtn.classList.add('recording');
     var tip=document.getElementById('wpTip');if(tip)tip.textContent='Recording... tap again to stop.';
-  }).catch(function(){});
+  }).catch(function(e){console.log('[wordpractice:mic] getUserMedia FAILED name='+e.name+' message='+e.message);});
 }
 
 function wpScoreWithAudio(audioB64,mimeType,wavB64,targetWord){
+  console.log('[wordpractice:transcribe] REQUEST target="'+targetWord+'" mimeType='+mimeType+' hasWav='+!!wavB64);
   fetch(W+'/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:audioB64,mimeType:mimeType,wavB64:wavB64||null,referenceText:targetWord||'',noEcho:true})})
-  .then(function(r){return r.json();})
+  .then(function(r){console.log('[wordpractice:transcribe] HTTP status='+r.status);return r.json();})
   .then(function(d){
+    console.log('[wordpractice:transcribe] RESPONSE '+JSON.stringify(d).slice(0,300));
     var scoreEl=document.getElementById('wpScore'),tipEl=document.getElementById('wpTip');
     var score=0;
     if(d.pronunciation&&d.pronunciation.words&&d.pronunciation.words.length>0){
@@ -621,7 +628,7 @@ function wpScoreWithAudio(audioB64,mimeType,wavB64,targetWord){
       if(scoreEl)scoreEl.textContent='';
       if(tipEl)tipEl.textContent='Não conseguimos pontuar. Tente de novo mais perto do microfone.';
     }
-  }).catch(function(){var t=document.getElementById('wpTip');if(t)t.textContent='Erro ao pontuar. Tente de novo.';});
+  }).catch(function(err){console.log('[wordpractice:transcribe] ERROR '+(err&&err.message));var t=document.getElementById('wpTip');if(t)t.textContent='Erro ao pontuar. Tente de novo.';});
 }
 
 function showPronunciationPanel(bubbleId){
@@ -700,13 +707,18 @@ function showSuggestion(){
   popup.innerHTML='<div class="suggestion-handle"></div><div class="suggestion-header"><div class="suggestion-lbl">Sugestão de resposta</div></div><div id="suggestionOptions"><div style="padding:20px 24px;font-size:14px;color:rgba(255,255,255,.3)">Carregando...</div></div><div class="suggestion-close" onclick="closeSuggestion()">Dispensar</div>';
   document.body.appendChild(popup);
   fetch(W+'/emma-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:(window._emmaSystem||'')+' Give 2 short natural English responses the student could say. Return ONLY a JSON array of 2 strings.',messages:(emmaHistory.length>10?emmaHistory.slice(-10):emmaHistory).concat([{role:'user',content:'Suggest 2 responses.'}]),max_tokens:100})})
-  .then(function(r){return r.json();})
+  .then(function(r){console.log('[emma:suggestion] HTTP status='+r.status);return r.json();})
   .then(function(d){
     try{
       var opts=JSON.parse((d.text||'').replace(/```json|```/g,'').trim());
       var el=document.getElementById('suggestionOptions');
       if(el&&Array.isArray(opts)){el.innerHTML=opts.slice(0,2).map(function(o,i){return '<div class="suggestion-option" style="animation:rowIn .2s ease '+(i*0.08)+'s both;" onclick="useSuggestion(this)"><span style="flex:1">'+o+'</span><span style="font-size:18px;color:rgba(255,255,255,.15);flex-shrink:0">→</span></div>';}).join('');}
-    }catch(e){var el=document.getElementById('suggestionOptions');if(el)el.innerHTML='<div style="font-size:13px;color:rgba(255,255,255,.4)">Não foi possível carregar sugestões.</div>';}
+    }catch(e){console.log('[emma:suggestion] PARSE ERROR '+(e&&e.message)+' raw="'+(d.text||'')+'"');var el=document.getElementById('suggestionOptions');if(el)el.innerHTML='<div style="font-size:13px;color:rgba(255,255,255,.4)">Não foi possível carregar sugestões.</div>';}
+  })
+  .catch(function(err){
+    console.log('[emma:suggestion] ERROR '+(err&&err.message));
+    var el=document.getElementById('suggestionOptions');
+    if(el)el.innerHTML='<div style="font-size:13px;color:rgba(255,255,255,.4)">Não foi possível carregar sugestões.</div>';
   });
 }
 
@@ -778,6 +790,7 @@ function _emmaRevealPending(){
   });
 }
 function emmaAddBubble(who,text){
+  console.log('[ui] bubble added ('+who+') "'+String(text).replace(/<[^>]*>/g,'').slice(0,60)+'"');
   var wrap=document.getElementById('emmaBubbles');if(!wrap)return;
   var div=document.createElement('div');div.className='emma-bubble '+who;div.innerHTML=text;
   if(who==='student'){
@@ -935,6 +948,7 @@ if(!window._emmaInsetListener){
 }
 
 function emmaToggleRec(){
+  console.log('[tap] emmaMicBtn (currently '+(emmaRec?'recording -> stop':'idle -> start')+')');
   emmaRec?emmaStopRec():emmaStartRec();
 }
 
@@ -942,6 +956,7 @@ function emmaStartRec(){
   var btn=document.getElementById('emmaMicBtn');
   var status=document.getElementById('emmaStatus');
   navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+    console.log('[emma:mic] getUserMedia OK');
     emmaChunks=[];
     var mt2=mime();
     // 32kbps opus/aac is plenty for speech — halves upload size and WAV-decode
@@ -981,7 +996,7 @@ function emmaStartRec(){
     }catch(e){window._emmaRecPeak=1;}
     if(btn){btn.classList.add('rec');btn.innerHTML='<span class="stop-sq"></span> Stop speaking';}
     if(status)status.textContent='Listening... tap stop when done';
-  }).catch(function(e){if(status)status.textContent='Mic error: '+e.message;});
+  }).catch(function(e){console.log('[emma:mic] getUserMedia FAILED name='+e.name+' message='+e.message);if(status)status.textContent='Mic error: '+e.message;});
 }
 
 function emmaStopRec(){
@@ -1008,7 +1023,7 @@ function emmaStopRec(){
     var mt2=emmaMr.mimeType||'audio/webm';
     var blob=new Blob(emmaChunks,{type:mt2});
     if(blob.size<1000 || _recMs<500 || _recPeak<0.02){
-      console.log('[mic] discarded: '+_recMs+'ms, peak '+_recPeak.toFixed(4)+', '+blob.size+'B');
+      console.log('[emma:mic] discarded (silence gate): '+_recMs+'ms, peak '+_recPeak.toFixed(4)+', '+blob.size+'B');
       if(btn){btn.disabled=false;btn.style.opacity='1';}
       if(status)status.textContent='Could not hear you. Tap to try again.';
       return;
@@ -1024,10 +1039,12 @@ function emmaStopRec(){
         // ── FAST LANE — transcript only (no WAV). The conversation rides this
         //    and never waits for pronunciation scoring.
         var _t0=Date.now();
+        console.log('[emma:transcribe] REQUEST mimeType='+origMime+' b64Len='+origB64.length);
         fetch(W+'/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:origB64,mimeType:origMime,skipPron:true,noEcho:true})})
-        .then(function(r){return r.json();})
+        .then(function(r){console.log('[emma:transcribe] HTTP status='+r.status);return r.json();})
         .then(function(d){
           console.log('[perf] transcribe fast lane: '+(Date.now()-_t0)+'ms (payload ~'+Math.round(origB64.length/1024)+'KB, stt: '+(d.sttProvider||'?')+')');
+          console.log('[emma:transcribe] RESPONSE text="'+(d.text||'')+'"');
           var transcript=(d.text||'').trim();
           // ── Whisper hallucination filter ─────────────────────────────────
           // Whisper (trained on YouTube subs) hallucinates these phrases on silent/unclear audio.
@@ -1088,16 +1105,18 @@ function emmaStopRec(){
           }
           emmaSubmit(transcript);
         })
-        .catch(function(){cancelled=true;if(btn){btn.disabled=false;btn.style.opacity='1';}});
+        .catch(function(err){console.log('[emma:transcribe] ERROR '+(err&&err.message));cancelled=true;if(btn){btn.disabled=false;btn.style.opacity='1';}});
 
         // ── BACKGROUND LANE — WAV build + pronunciation scoring. Fire-and-forget;
         //    never blocks or delays the turn. Attaches results to the bubble.
         function sendScore(wavB64){
           if(!wavB64||cancelled)return;
           var _ts=Date.now();
+          console.log('[emma:score-pron] REQUEST wavB64Len='+wavB64.length);
           fetch(W+'/score-pron',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({wavB64:wavB64})})
-          .then(function(r){return r.json();})
+          .then(function(r){console.log('[emma:score-pron] HTTP status='+r.status);return r.json();})
           .then(function(d2){
+            console.log('[emma:score-pron] RESPONSE hasPronunciation='+!!(d2&&d2.pronunciation));
             if(cancelled||!d2||!d2.pronunciation)return;
             console.log('[perf] pron scores (background): '+(Date.now()-_ts)+'ms');
             var rec=_pronData[pid];
@@ -1110,7 +1129,7 @@ function emmaStopRec(){
               window._pronOnboardShown=true;setTimeout(showPronOnboarding,300);
             }
           })
-          .catch(function(){});
+          .catch(function(err){console.log('[emma:score-pron] ERROR '+(err&&err.message));});
         }
         // Deferred 1.5s so the WAV upload (the turn's biggest transfer) never
         // competes with the fast lane, Claude, or TTS for mobile bandwidth —

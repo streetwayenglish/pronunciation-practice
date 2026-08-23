@@ -249,9 +249,73 @@ function ensure(sc,cb){if(curScene===sc){cb();return;}curScene=sc;vid.src=url(sc
 function stopW(){if(raf){cancelAnimationFrame(raf);raf=null;}}
 function startW(){stopW();const t=()=>{if(stopAt==null)return;if(vid.currentTime>=stopAt-EPS){vid.pause();try{vid.currentTime=Math.max(0,stopAt-EPS);}catch(e){}const cb=onSegEnd;stopAt=null;if(cb)cb();return;}raf=requestAnimationFrame(t);};raf=requestAnimationFrame(t);}
 function playSeg(sc,se,cb){ensure(sc,()=>{onSegEnd=cb;stopAt=se.end;try{vid.currentTime=se.start;}catch(e){}vid.play().catch(()=>{});startW();});}
-function killRec(){if(rt){clearTimeout(rt);rt=null;}if(sr){try{sr.onresult=sr.onerror=sr.onend=null;sr.stop();}catch(e){}sr=null;}}
-function recBegin(target,onDone){killRec();matched=[];_recDone=false;const fin=(s)=>{if(_recDone)return;_recDone=true;if(rt){clearTimeout(rt);rt=null;}killRec();onDone(s);};_fin=fin;const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){rt=setTimeout(()=>fin(80),1400);return;}sr=new SR();sr.lang='en-US';sr.continuous=false;sr.interimResults=false;sr.maxAlternatives=3;sr.onresult=e=>{let b=-1;for(let i=0;i<e.results[0].length;i++){let s=fz(e.results[0][i].transcript,target);if(s>b)b=s;}fin(Math.round(b));};sr.onerror=()=>fin(0);try{sr.start();}catch(e){rt=setTimeout(()=>fin(80),1400);return;}rt=setTimeout(()=>{try{if(sr)sr.stop();}catch(e){}},6000);}
-function recSubmit(){if(rt){clearTimeout(rt);rt=null;}if(!sr){if(_fin)_fin(80);return;}rt=setTimeout(()=>{try{if(sr)sr.stop();}catch(e){}rt=setTimeout(()=>{if(!_recDone&&_fin)_fin(0);},1000);},2500);}
+var _apiBase='https://billowing-sunset-c961.lucaswassup.workers.dev';
+var _recStream=null,_recMr=null,_recChunks=[];
+function _recMime(){var t=['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg'];for(var i=0;i<t.length;i++)if(typeof MediaRecorder!=='undefined'&&MediaRecorder.isTypeSupported(t[i]))return t[i];return '';}
+function _recBlobToWavB64(blob,cb){
+ var fr=new FileReader();
+ fr.onloadend=function(){
+  try{
+   var actx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:16000});
+   actx.decodeAudioData(fr.result,function(decoded){
+    try{
+     var sr=16000,offCtx=new OfflineAudioContext(1,Math.ceil(decoded.duration*sr),sr);
+     var src=offCtx.createBufferSource();src.buffer=decoded;src.connect(offCtx.destination);src.start(0);
+     offCtx.startRendering().then(function(rendered){
+      var s=rendered.getChannelData(0),dLen=s.length*2,ab=new ArrayBuffer(44+dLen),dv=new DataView(ab);
+      function ws(o,str){for(var k=0;k<str.length;k++)dv.setUint8(o+k,str.charCodeAt(k));}
+      ws(0,'RIFF');dv.setUint32(4,36+dLen,true);ws(8,'WAVE');ws(12,'fmt ');
+      dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);
+      dv.setUint32(24,sr,true);dv.setUint32(28,sr*2,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);
+      ws(36,'data');dv.setUint32(40,dLen,true);
+      for(var i=0,off=44;i<s.length;i++,off+=2){var v=Math.max(-1,Math.min(1,s[i]));dv.setInt16(off,v<0?v*0x8000:v*0x7FFF,true);}
+      var wb=new Uint8Array(ab),cs=8192,wstr='';
+      for(var j=0;j<wb.length;j+=cs)wstr+=String.fromCharCode.apply(null,wb.subarray(j,Math.min(j+cs,wb.length)));
+      cb(null,btoa(wstr));
+     }).catch(function(e){cb(e);});
+    }catch(e){cb(e);}
+   },function(e){cb(e||new Error('decodeAudioData failed'));});
+  }catch(e){cb(e);}
+ };
+ fr.readAsArrayBuffer(blob);
+}
+function killRec(){if(rt){clearTimeout(rt);rt=null;}if(_recMr){try{_recMr.onstop=null;if(_recMr.state!=='inactive')_recMr.stop();}catch(e){}_recMr=null;}if(_recStream){try{_recStream.getTracks().forEach(function(t){t.stop();});}catch(e){}_recStream=null;}}
+function recBegin(target,onDone){console.log('[player:rec] BEGIN target="'+target+'"');killRec();matched=[];_recDone=false;const fin=(s)=>{if(_recDone)return;_recDone=true;console.log('[player:rec] DONE score='+s);if(rt){clearTimeout(rt);rt=null;}killRec();onDone(s);};_fin=fin;
+ navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+  console.log('[player:rec:mic] OPEN — listening for speech');
+  _recStream=stream;_recChunks=[];var mt=_recMime();
+  _recMr=new MediaRecorder(stream,mt?{mimeType:mt}:{});
+  _recMr.ondataavailable=function(e){if(e.data&&e.data.size>0)_recChunks.push(e.data);};
+  _recMr.onstop=function(){
+   console.log('[player:rec:mic] CLOSED');
+   try{stream.getTracks().forEach(function(t){t.stop();});}catch(e){}
+   var m2=_recMr.mimeType||mt||'audio/webm';
+   var blob=new Blob(_recChunks,{type:m2});
+   if(blob.size<800){console.log('[player:rec:mic] DISCARDED — too short/silent (blobBytes='+blob.size+')');fin(0);return;}
+   console.log('[player:rec:checking] analyzing recording... (blobBytes='+blob.size+')');
+   _recBlobToWavB64(blob,function(err,wavB64){
+    if(err){console.log('[player:rec:score-pron] WAV encode ERROR '+(err&&err.message));fin(0);return;}
+    console.log('[player:rec:score-pron] REQUEST target="'+target+'" wavB64Len='+wavB64.length);
+    fetch(_apiBase+'/score-pron',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({wavB64:wavB64})})
+     .then(function(r){console.log('[player:rec:score-pron] HTTP status='+r.status);return r.json();})
+     .then(function(d){
+      var pron=d&&d.pronunciation;
+      if(!pron){console.log('[player:rec:checking] no pronunciation data — treating as no speech detected');fin(0);return;}
+      var heardText=(pron.words||[]).map(function(w){return w.word;}).join(' ');
+      var wordMatch=fz(heardText,target);
+      var acc=pron.accuracyScore||0;
+      var s=wordMatch<50?Math.round(wordMatch):Math.round((wordMatch*0.4)+(acc*0.6));
+      console.log('[player:rec:checking] heard="'+heardText+'" wordMatch='+wordMatch+' accuracyScore='+acc+' -> finalScore='+s);
+      fin(s);
+     })
+     .catch(function(err){console.log('[player:rec:score-pron] ERROR '+(err&&err.message));fin(0);});
+   });
+  };
+  _recMr.start();
+  rt=setTimeout(function(){try{if(_recMr&&_recMr.state==='recording')_recMr.stop();}catch(e){}},6000);
+ }).catch(function(e){console.log('[player:rec:mic] FAILED to open name='+e.name+' message='+e.message);fin(0);});
+}
+function recSubmit(){console.log('[player:rec] SUBMIT (stop requested)');if(rt){clearTimeout(rt);rt=null;}if(_recMr&&_recMr.state==='recording'){try{_recMr.stop();}catch(e){}}else if(_fin){_fin(0);}}
 
 function setProg(){const p=parts[part-1];const span=(p.end-1)-p.start;$('fill').style.width=(span>0?Math.max(0,(si-p.start)/span*100):0)+'%';}
 function tag(t){$('stagetag').textContent=t||'';}

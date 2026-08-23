@@ -1,4 +1,26 @@
 // ============================================================================
+// DEBUG LOGGING — every console.log gets a millisecond timestamp so a pasted
+// device console reads as one ordered timeline (tap -> UI change -> API call).
+// A single delegated click listener also logs every button/tap target
+// automatically, without touching each individual onclick handler.
+// ============================================================================
+(function(){
+  var _origLog = console.log.bind(console);
+  console.log = function(){
+    var t = new Date().toISOString().slice(11,23);
+    var args = Array.prototype.slice.call(arguments);
+    _origLog.apply(console, ['['+t+']'].concat(args));
+  };
+  document.addEventListener('click', function(e){
+    var el = e.target.closest('button, [onclick], a, .pa-item, .mh-tab, .pill, .suggestion-option');
+    if(!el) return;
+    var label = el.id ? '#'+el.id : (typeof el.className==='string' && el.className ? '.'+el.className.split(' ')[0] : el.tagName);
+    var text = (el.textContent||'').trim().replace(/\s+/g,' ').slice(0,40);
+    console.log('[tap] '+label+(text?' "'+text+'"':''));
+  }, true);
+})();
+
+// ============================================================================
 // STATE — globals (W endpoint, SENTS, done/scores, mode, audio caches)
 // ============================================================================
 var W='https://billowing-sunset-c961.lucaswassup.workers.dev';
