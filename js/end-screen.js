@@ -177,7 +177,7 @@ var _endStyles='\
 body.tab-conversation .end-shell .emma-back-menu{background:transparent;border-color:rgba(0,0,0,.12);color:rgba(0,0,0,.55);backdrop-filter:none;-webkit-backdrop-filter:none;}\
 body.tab-conversation .end-shell .emma-nav-topic{color:rgba(0,0,0,.42);}\
 .end-page,.end-loading{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;background:#f6f5f1;}\
-.end-page{padding:18px 14px 32px;}\
+.end-page{padding:calc(18px + env(safe-area-inset-top,0px)) 14px 32px;}\
 .end-loading{padding:40px 24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;}\
 .end-card{background:#fff;border-radius:16px;margin-bottom:10px;padding:20px;}\
 .end-card-title{font-size:15px;font-weight:700;color:#0a0a0a;letter-spacing:-.01em;margin-bottom:14px;}\
