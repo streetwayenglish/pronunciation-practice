@@ -20,3 +20,7 @@ npx serve .
 ```
 
 Then open `http://localhost:3000` (or `index.html` directly).
+
+## Privacy
+
+Read the [Emma Speak Privacy Policy](privacy-policy.md).
