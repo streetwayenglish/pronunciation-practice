@@ -830,18 +830,16 @@ body::before{display:none !important;}
 .iphone-screen{width:100% !important;height:100% !important;border-radius:0 !important;}
 .iphone-island,.statusbar{display:none !important;}
 .screen{padding-top:0 !important;
-  padding-bottom:calc(105px + env(safe-area-inset-bottom,0px)) !important;
+  padding-bottom:calc(140px + env(safe-area-inset-bottom,0px)) !important;
   -webkit-overflow-scrolling:touch;}
 /* Pin the EmmaSpeak header so it stays put while content scrolls */
 .screen > .topbar{position:sticky;top:0;z-index:60;background:#F3F0E8;
-  padding-top:10px !important;
+  padding-top:max(54px, calc(env(safe-area-inset-top,0px) + 6px)) !important;
   padding-bottom:8px !important;}
-@media (display-mode: standalone){
-  .screen > .topbar{padding-top:calc(env(safe-area-inset-top,0px) + 6px) !important;}
-}
 .screen .hello{padding-top:6px !important;}
 .screen > .topbar .logo{height:auto !important;margin:0 !important;}
-.tabbar{bottom:calc(18px + env(safe-area-inset-bottom,0px)) !important;}
+.tabbar{bottom:calc(10px + env(safe-area-inset-bottom,0px)) !important;
+  grid-template-columns:repeat(4, minmax(0, 1fr)) !important;}
 .detail-screen{border-radius:0 !important;}
 </style>
 

@@ -1,8 +1,8 @@
 <!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Situações de Viagem · Street Way English</title><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style>body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:#000;color:#fff;margin:0;height:100dvh;overflow:hidden}
 .phone{position:fixed;inset:0;width:100vw;height:100dvh;background:radial-gradient(120% 90% at 50% 18%,#1d160c 0%,#0d0a05 62%,#070503 100%);overflow:hidden}
-.topbar{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);left:14px;right:14px;display:flex;align-items:center;gap:8px;z-index:7}
-.stagetag{position:absolute;top:calc(env(safe-area-inset-top,0px) + 48px);left:0;right:0;text-align:center;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.92);text-shadow:0 1px 4px rgba(0,0,0,.5);z-index:5}
-.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;color:#1a1a1a;border-radius:26px 26px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom,0px));z-index:6;display:flex;flex-direction:column}
+.topbar{position:absolute;top:max(54px,calc(env(safe-area-inset-top,0px) + 14px));left:max(14px,calc(env(safe-area-inset-left,0px) + 14px));right:max(14px,calc(env(safe-area-inset-right,0px) + 14px));display:flex;align-items:center;gap:8px;z-index:7}
+.stagetag{position:absolute;top:max(88px,calc(env(safe-area-inset-top,0px) + 48px));left:0;right:0;text-align:center;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.92);text-shadow:0 1px 4px rgba(0,0,0,.5);z-index:5}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;color:#1a1a1a;border-radius:26px 26px 0 0;padding:16px 16px calc(34px + env(safe-area-inset-bottom,0px));z-index:6;display:flex;flex-direction:column}
 .cover{padding-bottom:env(safe-area-inset-bottom,0px);height:calc(118px + env(safe-area-inset-bottom,0px))}
 *{box-sizing:border-box;-webkit-font-smoothing:antialiased;margin:0}
 select{font-family:inherit}
@@ -11,7 +11,7 @@ video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;backgrou
 .mpick{font-size:11px;padding:4px 7px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.45);color:#fff;max-width:150px;font-family:inherit}
 .jpick{max-width:120px}
 .track{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.35);position:relative}.track .fill{position:absolute;left:0;top:0;height:100%;border-radius:2px;background:#fff;transition:width .25s}
-.cover{position:absolute;left:0;right:0;bottom:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:5;height:118px;background:#fff;border-radius:22px 22px 0 0}
+.cover{position:absolute;left:0;right:0;bottom:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:5;height:calc(118px + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);background:#fff;border-radius:22px 22px 0 0}
 .covtitle{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#C8941F}
 .covplay{width:58px;height:58px;border-radius:50%;border:none;background:#111;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}.covplay svg{width:26px;height:26px}
 .slabel{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-align:center;margin:0 40px 14px;min-height:16px}
