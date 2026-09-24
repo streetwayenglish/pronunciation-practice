@@ -121,6 +121,13 @@ function goTo(i){
 function toggleRec(){Log.d('[tap] mbtn (currently '+(rec?'recording -> stop':'idle -> start')+')');rec?doStop():doStart();}
 
 function doStart(){
+  if(window.AIConsent&&!window.AIConsent.hasConsent()){
+    window.AIConsent.require(function(){doStart();},function(){
+      var l=document.getElementById('mlbl');
+      if(l)l.textContent='Consent required to record. Tap again to review.';
+    });
+    return;
+  }
   navigator.mediaDevices.getUserMedia({audio:true})
     .then(function(stream){
       chunks=[];mt=mime();

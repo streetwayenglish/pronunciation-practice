@@ -2,15 +2,15 @@
 
 **Emma Speak** helps people practice English pronunciation and conversation. This Privacy Policy explains what information the app uses, why it is used, and the choices available to you.
 
-**Effective date:** September 9, 2026
+**Effective date:** September 23, 2026
 
 ## 1. Information We Use
 
 ### Voice recordings
 
-When you start a pronunciation or conversation exercise, Emma Speak asks for access to your device microphone. The app uses the microphone only after you begin an audio feature.
+When you start a pronunciation or conversation exercise, Emma Speak asks for access to your device microphone. Before the first recording, the app shows an in-app consent dialog. The app uses the microphone only after you agree and begin an audio feature.
 
-Voice recordings may be sent to our speech-processing services to provide pronunciation scoring, speech recognition, conversation responses, and related feedback. Audio is processed for the feature you requested. Do not record another person without their permission.
+Voice recordings (and transcripts derived from them) may be sent to our cloud API and third-party speech and AI processors to provide pronunciation scoring, speech recognition, conversation responses, and related feedback. Audio is processed for the feature you requested. Do not record another person without their permission.
 
 ### Learning progress and preferences
 
@@ -30,11 +30,27 @@ Information is used to:
 - Save progress and preferences on your device.
 - Maintain, secure, and troubleshoot the app and its services.
 
-## 3. Service Providers
+## 3. Service Providers / Third-Party AI
 
-Emma Speak uses hosting, speech-processing, AI, and other infrastructure providers to operate its features. These providers may process information on our behalf and may have their own privacy policies and retention practices.
+Emma Speak sends voice recordings to third-party speech processing and AI services to provide pronunciation scoring and conversation features.
 
-The app connects to a backend service for speech-to-text, pronunciation scoring, and AI conversation requests. We do not control the privacy practices of independent third-party services, so please review their policies where appropriate.
+**Data sent:** Voice audio recordings (typically converted to WAV or similar format for analysis), and transcripts derived from that audio when needed for conversation features.
+
+**Recipients and purposes:**
+
+| Recipient | Purpose |
+|-----------|---------|
+| Emma Speak cloud API (Cloudflare Worker) | Receives your audio, routes requests, and returns results to the app |
+| Microsoft Azure Speech | Pronunciation accuracy scoring |
+| Speech-to-text AI | Transcription of your speech |
+| AI language model | Conversation replies and learning feedback |
+| Avatar / voice providers (when you use live avatar chat) | Real-time avatar conversation |
+
+**Retention:** Audio is processed temporarily to provide your results. Service providers may retain system logs for security, reliability, and abuse prevention.
+
+Before your first recording, the app displays a consent dialog explaining this data sharing. You must tap **I Understand & Agree** to proceed with voice features. If you tap **Decline**, voice features remain unavailable and your audio is not sent.
+
+Emma Speak uses hosting, AI, and other infrastructure providers to operate its features. These providers may process information on our behalf and may have their own privacy policies and retention practices.
 
 ## 4. Information Storage and Retention
 
@@ -46,9 +62,10 @@ Audio and other content sent to remote services may be temporarily processed to 
 
 You can:
 
+- Decline the in-app AI consent dialog. Pronunciation and voice conversation features will not send audio until you agree.
 - Deny microphone access. Pronunciation and voice conversation features will not work without it.
 - Revoke microphone access later in your device settings.
-- Clear local app data to remove locally stored progress and preferences.
+- Clear local app data to remove locally stored progress, preferences, and consent choice.
 - Stop using the app and request information about data associated with your use by contacting us.
 
 ## 6. Children's Privacy

@@ -17,6 +17,10 @@ agent-project-context.txt
 android/
 plan/
 
+# Local test/development scripts
+scripts/test-ios-device.sh
+assets/
+
 # iOS build output
 ios/App/Pods/
 ios/App/build/

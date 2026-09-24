@@ -84,6 +84,22 @@
   }
 
   function record(opts){
+    // Check AI consent BEFORE requesting microphone (Apple Guidelines 5.1.1(i) & 5.1.2(i))
+    if(window.AIConsent&&!window.AIConsent.hasConsent()){
+      window.AIConsent.require(
+        function(){actuallyStartRecording(opts);},
+        function(){
+          var tag=opts.logTag||'speech-recorder';
+          Log.d('['+tag+'] AI consent declined by user');
+          if(opts.onDone)opts.onDone(0,{error:'User declined AI consent'});
+        }
+      );
+      return {stop:function(){},isRecording:function(){return false;}};
+    }
+    return actuallyStartRecording(opts);
+  }
+
+  function actuallyStartRecording(opts){
     var tag=opts.logTag||'speech-recorder';
     var timeoutMs=opts.timeoutMs||6000;
     var minBytes=opts.minBytes==null?800:opts.minBytes;

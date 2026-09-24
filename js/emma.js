@@ -560,6 +560,13 @@ function wpPlayEmma(){
 function wpToggleRec(){
   var recBtn=document.getElementById('wpRecBtn');
   if(_wpRecorder&&_wpRecorder.state==='recording'){_wpRecorder.stop();return;}
+  if(window.AIConsent&&!window.AIConsent.hasConsent()){
+    window.AIConsent.require(function(){wpToggleRec();},function(){
+      var tip=document.getElementById('wpTip');
+      if(tip)tip.textContent='Consent required to record.';
+    });
+    return;
+  }
   navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
     var chunks=[];
     var mt=MediaRecorder.isTypeSupported('audio/mp4')?'audio/mp4':MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')?'audio/ogg;codecs=opus':'audio/webm';
@@ -953,6 +960,13 @@ function emmaToggleRec(){
 }
 
 function emmaStartRec(){
+  if(window.AIConsent&&!window.AIConsent.hasConsent()){
+    window.AIConsent.require(function(){emmaStartRec();},function(){
+      var status=document.getElementById('emmaStatus');
+      if(status)status.textContent='Consent required to talk with Emma.';
+    });
+    return;
+  }
   var btn=document.getElementById('emmaMicBtn');
   var status=document.getElementById('emmaStatus');
   navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){

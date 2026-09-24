@@ -299,15 +299,22 @@
   window.openAvatarChat = function(coach){
     els();
     if(!layer) return;
-    // The coach is chosen on the Today page; the chat opens on its
-    // confirmation screen with that face already selected.
-    frame.src = 'avatar-test.html?embed=1'
-              + (coach ? '&coach=' + encodeURIComponent(coach) : '');
-    layer.classList.add('on');
-    layer.classList.remove('live');   // always opens on the picker
-    document.querySelectorAll('#avatarLayer .tab').forEach(function(t){
-      t.classList.toggle('active', t.dataset.page === 'today');
-    });
+    function open(){
+      // The coach is chosen on the Today page; the chat opens on its
+      // confirmation screen with that face already selected.
+      frame.src = 'avatar-test.html?embed=1'
+                + (coach ? '&coach=' + encodeURIComponent(coach) : '');
+      layer.classList.add('on');
+      layer.classList.remove('live');   // always opens on the picker
+      document.querySelectorAll('#avatarLayer .tab').forEach(function(t){
+        t.classList.toggle('active', t.dataset.page === 'today');
+      });
+    }
+    if(window.AIConsent){
+      window.AIConsent.require(open, function(){});
+    } else {
+      open();
+    }
   };
   window.closeAvatarChat = function(){
     els();
@@ -354,6 +361,7 @@
      the markup above continue to resolve. Do NOT add type="module".
 ──────────────────────────────────────────────────────────────────────── -->
 <script src="js/logger.js"></script>
+<script src="js/ai-consent.js"></script>
 <script src="js/state.js"></script>
 <script src="js/home.js"></script>
 <script src="js/curriculum.js"></script>

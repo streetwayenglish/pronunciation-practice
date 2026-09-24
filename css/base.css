@@ -356,3 +356,15 @@ button{-webkit-appearance:none}
   .coach-audio-btn{width:30px;height:30px;font-size:13px}
 }
 
+/* AI Consent Dialog Styles - Apple Guidelines 5.1.1(i) & 5.1.2(i) */
+#ai-consent-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);}
+.ai-consent-box{background:#fff;border-radius:16px;padding:28px;max-width:480px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+.ai-consent-box h2{margin:0 0 16px 0;color:#000;font-size:22px;font-weight:700;}
+.ai-consent-box p{color:#333;line-height:1.7;margin:12px 0;font-size:15px;}
+.ai-consent-box ul{margin:8px 0 8px 18px;padding:0;color:#333;font-size:15px;line-height:1.6;}
+.ai-consent-box b{color:#000;font-weight:600;}
+.ai-consent-btns{display:flex;gap:12px;margin-top:24px;}
+.ai-consent-btns button{flex:1;padding:16px;border:none;border-radius:10px;font-size:17px;font-weight:600;cursor:pointer;}
+.btn-pri{background:#007AFF;color:#fff;}
+.btn-sec{background:#F2F2F7;color:#000;}
+

@@ -99,6 +99,13 @@ function mcSpeak(btn){
 var mcRec=false,mcMr=null,mcChunks=[];
 function mcToggleRec(qIdx){Log.d('[mc:mic] toggle (currently '+(mcRec?'recording -> stop':'idle -> start')+')');mcRec?mcStopRec(qIdx):mcStartRec(qIdx);}
 function mcStartRec(qIdx){
+  if(window.AIConsent&&!window.AIConsent.hasConsent()){
+    window.AIConsent.require(function(){mcStartRec(qIdx);},function(){
+      var l=document.getElementById('exMicLbl');
+      if(l)l.textContent='Consentimento necessário para gravar.';
+    });
+    return;
+  }
   var streamPromise=window._exGetMicStream?window._exGetMicStream():navigator.mediaDevices.getUserMedia({audio:true});
   streamPromise.then(function(stream){
     Log.d('[mc:mic] OPEN — listening for speech');

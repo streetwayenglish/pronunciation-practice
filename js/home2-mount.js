@@ -591,7 +591,7 @@
 
   // ===== "You" tab: profile, photo, daily goal, support, reset =====
   var YOU_SUPPORT_EMAIL = 'contato@emmaspeak.com.br'; // TODO: set your real support email
-  var YOU_PRIVACY_URL = '';  // TODO: set your privacy-policy URL
+  var YOU_PRIVACY_URL = 'https://github.com/streetwayenglish/pronunciation-practice/blob/ios-main/privacy-policy.md';
   var YOU_TERMS_URL   = '';  // TODO: set your terms URL
 
   function _esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }

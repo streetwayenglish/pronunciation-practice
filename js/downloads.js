@@ -424,14 +424,25 @@ function downloadExercises(){
   };
   // ─── Shared mic stream cache (kills iOS recording chime by reusing stream) ──
   window._exGetMicStream=window._exGetMicStream||function(){
-    if(window._exMicStream && window._exMicStream.active){
-      return Promise.resolve(window._exMicStream);
+    function openMic(){
+      if(window._exMicStream && window._exMicStream.active){
+        return Promise.resolve(window._exMicStream);
+      }
+      return navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){
+        Log.d('[downloads:mic] OPEN — listening for speech');
+        window._exMicStream=s;
+        return s;
+      }).catch(function(e){Log.e('[downloads:mic] FAILED to open name='+e.name+' message='+e.message);throw e;});
     }
-    return navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){
-      Log.d('[downloads:mic] OPEN — listening for speech');
-      window._exMicStream=s;
-      return s;
-    }).catch(function(e){Log.e('[downloads:mic] FAILED to open name='+e.name+' message='+e.message);throw e;});
+    if(window.AIConsent&&!window.AIConsent.hasConsent()){
+      return new Promise(function(resolve,reject){
+        window.AIConsent.require(
+          function(){openMic().then(resolve,reject);},
+          function(){reject(new Error('User declined AI consent'));}
+        );
+      });
+    }
+    return openMic();
   };
   window._exReleaseMicStream=window._exReleaseMicStream||function(){
     if(window._exMicStream){
